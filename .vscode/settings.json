@@ -1,0 +1,57 @@
+{
+  "latex-workshop.latex.outDir": "%DIR%/_build",
+  "latex-workshop.latex.recipe.default": "latexmk (XeLaTeX)",
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk (XeLaTeX)",
+      "tools": ["latexmk-xelatex"]
+    },
+    {
+      "name": "XeLaTeX + biber + XeLaTeX ×2",
+      "tools": ["xelatex", "biber", "xelatex", "xelatex"]
+    }
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk-xelatex",
+      "command": "latexmk",
+      "args": [
+        "-xelatex",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "%DOC%"
+      ],
+      "env": {}
+    },
+    {
+      "name": "xelatex",
+      "command": "xelatex",
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-output-directory=_build",
+        "%DOC%"
+      ],
+      "env": {}
+    },
+    {
+      "name": "biber",
+      "command": "biber",
+      "args": ["_build/%DOCFILE%"],
+      "env": {}
+    }
+  ],
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  "plantuml.jar": "/usr/share/java/plantuml/plantuml.jar",
+  "plantuml.render": "Local",
+  "plantuml.exportFormat": "pdf",
+  "plantuml.exportOutDir": "diagramas/generados",
+  "files.encoding": "utf8",
+  "files.associations": {
+    "*.puml": "plantuml"
+  }
+}

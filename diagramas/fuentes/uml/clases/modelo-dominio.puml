@@ -1,0 +1,68 @@
+@startuml
+hide circle
+skinparam classAttributeIconSize 0
+
+class Usuario {
+  - idUsuario : int
+  - nombre : String
+  - correo : String
+  - contrasena : String
+  + iniciarSesion() : boolean
+  + cerrarSesion() : void
+}
+
+class Estudiante {
+  - registro : String
+  + registrarProyecto() : void
+  + registrarAvance() : void
+}
+
+class Docente {
+  - especialidad : String
+  + evaluarAvance() : void
+}
+
+class Coordinacion {
+  - cargo : String
+  + generarReporte() : void
+}
+
+class Proyecto {
+  - idProyecto : int
+  - titulo : String
+  - gestion : int
+  - estado : EstadoProyecto
+  + calcularAvance() : float
+}
+
+class Avance {
+  - idAvance : int
+  - numero : int
+  - fechaEntrega : date
+  - archivo : String
+  + estaFueraDePlazo() : boolean
+}
+
+class Evaluacion {
+  - nota : float
+  - observacion : String
+  - fecha : date
+}
+
+enum EstadoProyecto {
+  EN_REVISION
+  APROBADO
+  OBSERVADO
+  CERRADO
+}
+
+Usuario <|-- Estudiante
+Usuario <|-- Docente
+Usuario <|-- Coordinacion
+
+Docente "1" -- "0..*" Proyecto : guía >
+Estudiante "1" -- "0..*" Proyecto : participa >
+Proyecto "1" *-- "0..*" Avance : contiene
+Avance "1" -- "1" Evaluacion : recibe
+Proyecto --> EstadoProyecto
+@enduml

@@ -1,0 +1,119 @@
+%% =====================================================================
+%%  entornos-apa.sty
+%%  Entornos auxiliares con formato APA 7 para tablas, figuras,
+%%  citas en bloque e insercion de diagramas UML.
+%% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{entornos-apa}[2026/11/14 v1.0 Entornos APA 7 - UPDS]
+
+\RequirePackage{graphicx}
+\RequirePackage{booktabs}
+\RequirePackage{xcolor}
+
+%% ---------------------------------------------------------------------
+%%  Tabla APA
+%%  Uso:
+%%    \begin{tablaapa}{tab:etiqueta}{Titulo de la tabla en cursiva}
+%%      \begin{tabular}{@{}lcc@{}}
+%%        \toprule
+%%        Encabezado & A & B \\
+%%        \midrule
+%%        Dato & 1 & 2 \\
+%%        \bottomrule
+%%      \end{tabular}
+%%      \nota{Elaboración propia.}
+%%    \end{tablaapa}
+%% ---------------------------------------------------------------------
+\newenvironment{tablaapa}[2]{%
+  \begin{table}[H]
+  \centering
+  \caption{#2}\label{#1}%
+  \vspace{2pt}%
+}{%
+  \end{table}%
+}
+
+%% Version para tablas que ocupan mas de una pagina.
+\newenvironment{tablaLarga}[2]{%
+  \begin{longtable}{#1}
+  \caption{#2}\label{#2}\\
+  \toprule
+}{%
+  \bottomrule
+  \end{longtable}%
+}
+
+%% ---------------------------------------------------------------------
+%%  Figura APA (numero y titulo arriba, nota abajo)
+%%  Uso:
+%%    \begin{figuraapa}{fig:etiqueta}{Titulo de la figura}
+%%      \incluirDiagrama{casos-uso/general}
+%%      \nota{Fuente: elaboración propia.}
+%%    \end{figuraapa}
+%% ---------------------------------------------------------------------
+\newenvironment{figuraapa}[2]{%
+  \begin{figure}[H]
+  \centering
+  \caption{#2}\label{#1}%
+  \vspace{2pt}%
+}{%
+  \end{figure}%
+}
+
+%% Nota al pie de tabla o figura (formato APA)
+\newcommand{\nota}[1]{%
+  \par\vspace{3pt}%
+  {\singlespacing\small\raggedright\setlength{\parindent}{0pt}\noindent
+   \emph{Nota.}~#1\par}%
+}
+
+%% Seccion preliminar: titulo sin numero e inclusion en el indice.
+%% \preliminar{Resumen}
+\newcommand{\preliminar}[1]{%
+  \chapter*{#1}%
+  \phantomsection
+  \addcontentsline{toc}{chapter}{#1}%
+}
+
+%% ---------------------------------------------------------------------
+%%  Insercion de diagramas UML generados con PlantUML
+%%  \incluirDiagrama[ancho]{ruta/relativa/sin-extension}
+%%  La ruta se resuelve dentro de diagramas/generados/.
+%%  Si el PDF no existe, muestra un aviso en lugar de romper la compilacion.
+%% ---------------------------------------------------------------------
+\newcommand{\incluirDiagrama}[2][\linewidth]{%
+  \IfFileExists{diagramas/generados/#2.pdf}%
+    {\includegraphics[width=#1,height=0.72\textheight,keepaspectratio]%
+       {diagramas/generados/#2.pdf}}%
+    {\fbox{\begin{minipage}[c][4.5cm][c]{0.85\linewidth}\centering\small
+       \textbf{Diagrama aún no generado}\\[3pt]
+       \texttt{diagramas/fuentes/uml/#2.puml}\\[3pt]
+       Ejecute \texttt{make diagramas} para generarlo.
+     \end{minipage}}}%
+}
+
+%% Insercion generica de imagenes (logos, capturas, etc.)
+%% \incluirImagen[ancho]{ruta/con/extension}
+\newcommand{\incluirImagen}[2][\linewidth]{%
+  \IfFileExists{#2}%
+    {\includegraphics[width=#1]{#2}}%
+    {\fbox{\begin{minipage}[c][4cm][c]{0.85\linewidth}\centering\small
+       \textbf{Imagen no encontrada}\\[3pt]\texttt{#2}
+     \end{minipage}}}%
+}
+
+%% ---------------------------------------------------------------------
+%%  Cita textual de 40 palabras o mas (bloque APA)
+%%  Sin comillas, con sangria de 1,27 cm y sin sangria de primera linea.
+%% ---------------------------------------------------------------------
+\newenvironment{citalarga}{%
+  \par\vspace{0.5\baselineskip}%
+  \begin{adjustwidth}{1.27cm}{0pt}%
+  \setlength{\parindent}{0pt}%
+  \noindent\ignorespaces
+}{%
+  \par\end{adjustwidth}%
+  \vspace{0.5\baselineskip}%
+}
+
+\endinput

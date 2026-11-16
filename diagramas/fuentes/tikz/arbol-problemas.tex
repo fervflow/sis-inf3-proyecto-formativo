@@ -1,0 +1,80 @@
+%% =====================================================================
+%%  arbol-problemas.tex
+%%  Diagrama de árbol de problemas (TikZ).
+%%  Se incluye desde el Anexo A en una página horizontal.
+%% =====================================================================
+\begin{tikzpicture}[
+  nodo/.style={
+    draw=black!65, line width=0.5pt, rounded corners=1pt,
+    align=center, font=\scriptsize, text width=4cm,
+    inner sep=3pt, minimum height=1.7cm, fill=white
+  },
+  central/.style={
+    nodo, text width=17cm, font=\small\bfseries,
+    fill=black!8, minimum height=1.3cm
+  },
+  flecha/.style={
+    -{Latex[length=1.8mm,width=1.4mm]},
+    draw=black!65, line width=0.5pt
+  },
+  rotulo/.style={
+    rotate=90, font=\tiny\bfseries, text=black!70, align=center
+  }
+]
+
+%% ------------------------- Efectos indirectos ------------------------
+\node[nodo] (I1) at (-8.4,0) {Pérdida potencial de clientes y oportunidades de venta};
+\node[nodo] (I2) at (-2.8,0) {Disminución de la confianza en el servicio ofrecido};
+\node[nodo] (I3) at ( 2.8,0) {Mayores costos de coordinación y corrección};
+\node[nodo] (I4) at ( 8.4,0) {Dificultades en la planificación de salidas turísticas};
+
+%% -------------------------- Efectos directos -------------------------
+\node[nodo] (D1) at (-8.4,-2.6) {Demoras en la confirmación de reservas};
+\node[nodo] (D2) at (-2.8,-2.6) {Errores en las reservas, cupos duplicados o mal asignados};
+\node[nodo] (D3) at ( 2.8,-2.6) {Información contradictoria sobre la disponibilidad};
+\node[nodo] (D4) at ( 8.4,-2.6) {Reprogramaciones, reclamos y cancelaciones};
+
+%% --------------------------- Problema central ------------------------
+\node[central] (C) at (0,-5.2) {Ineficiencia en el proceso de venta de paquetes turísticos en las agencias de viajes de Potosí};
+
+%% --------------------------- Causas directas -------------------------
+\node[nodo] (CD1) at (-8.4,-7.8) {Verificación no uniforme de cupos antes de confirmar una reserva};
+\node[nodo] (CD2) at (-2.8,-7.8) {Desfase en la actualización de ventas entre distintos canales de atención};
+\node[nodo] (CD3) at ( 2.8,-7.8) {Cambios de fechas o capacidad que no se reflejan oportunamente en las reservas};
+\node[nodo] (CD4) at ( 8.4,-7.8) {Criterios poco claros para modificar, cancelar y liberar reservas};
+
+%% ------------------------- Causas indirectas -------------------------
+\node[nodo] (CI1) at (-8.4,-10.4) {Responsabilidades de verificación y actualización sin definición suficiente};
+\node[nodo] (CI2) at (-2.8,-10.4) {Información de salidas y reservas sin una fuente compartida y actualizada};
+\node[nodo] (CI3) at ( 2.8,-10.4) {Falta de controles para identificar cambios y prevenir conflictos de capacidad};
+\node[nodo] (CI4) at ( 8.4,-10.4) {Procedimientos de seguimiento y validación insuficientemente estandarizados};
+
+%% ------------------------------ Flechas ------------------------------
+%% Efecto directo -> efecto indirecto
+\foreach \d/\i in {D1/I1,D2/I2,D3/I3,D4/I4} {
+  \draw[flecha] (\d.north) -- (\i.south);
+}
+
+%% Problema central -> efectos directos
+\foreach \d/\x in {D1/-8.4,D2/-2.8,D3/2.8,D4/8.4} {
+  \draw[flecha] (C.north -| \x,0) -- (\d.south);
+}
+
+%% Causas directas -> problema central
+\foreach \c/\x in {CD1/-8.4,CD2/-2.8,CD3/2.8,CD4/8.4} {
+  \draw[flecha] (\c.north) -- (C.south -| \x,0);
+}
+
+%% Causas indirectas -> causas directas
+\foreach \c/\d in {CI1/CD1,CI2/CD2,CI3/CD3,CI4/CD4} {
+  \draw[flecha] (\c.north) -- (\d.south);
+}
+
+%% --------------------------- Rótulos de nivel -------------------------
+\node[rotulo] at (-10.95,0)     {E. INDIRECTOS};
+\node[rotulo] at (-10.95,-2.6)  {E. DIRECTOS};
+\node[rotulo] at (-10.95,-5.2)  {PROBLEMA};
+\node[rotulo] at (-10.95,-7.8)  {C. DIRECTAS};
+\node[rotulo] at (-10.95,-10.4) {C. INDIRECTAS};
+
+\end{tikzpicture}

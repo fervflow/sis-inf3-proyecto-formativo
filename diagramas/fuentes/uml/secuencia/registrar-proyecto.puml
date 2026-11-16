@@ -1,0 +1,15 @@
+@startuml
+hide footbox
+actor Estudiante
+participant "Interfaz web" as UI
+participant "API REST" as API
+database "Base de datos" as DB
+
+Estudiante -> UI : Completa el formulario
+UI -> API : POST /api/proyectos
+API -> API : Valida los datos
+API -> DB : INSERT INTO proyectos
+DB --> API : Identificador generado
+API --> UI : 201 Created
+UI --> Estudiante : Confirmación del registro
+@enduml

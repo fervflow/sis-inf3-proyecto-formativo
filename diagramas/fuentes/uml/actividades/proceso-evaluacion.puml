@@ -1,0 +1,14 @@
+@startuml
+start
+:El docente abre la lista de avances pendientes;
+:Selecciona un avance;
+if (¿Entrega dentro del plazo?) then (sí)
+  :Registra la evaluación;
+else (no)
+  :Registra la evaluación con marca de retraso;
+endif
+:Agrega observaciones;
+:Guarda la evaluación;
+:El sistema notifica al estudiante;
+stop
+@enduml

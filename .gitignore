@@ -1,0 +1,21 @@
+# Archivos auxiliares de LaTeX
+_build/
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.lol
+
+# Archivos temporales
+*~
+.DS_Store
+Thumbs.db

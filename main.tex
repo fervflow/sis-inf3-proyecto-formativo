@@ -1,0 +1,64 @@
+%% =====================================================================
+%%  main.tex
+%%  Archivo maestro del informe. Compile con:  make
+%%  (o bien: latexmk -xelatex main.tex)
+%% =====================================================================
+\documentclass[
+  fuente=auto,              % auto | arial | liberation
+  alineacion=izquierda,     % izquierda (APA) | justificada
+  paginacion=institucional, % institucional | apa
+  interlineado=1.5,         % 1.5 | 2
+  capitulos=arabigos,       % romanos | arabigos | sin
+  portada=institucional     % institucional | apa | ninguna
+]{si3apa7}
+
+\usepackage{entornos-apa}
+
+\input{config/metadatos}
+\input{config/portada}
+
+\begin{document}
+
+%% ------------------------- Preliminares ------------------------------
+\portadaDocumento
+\iniciarPreliminares
+
+\input{preliminares/dedicatoria}
+\input{preliminares/agradecimientos}
+\input{preliminares/resumen}
+\input{preliminares/abstract}
+
+\clearpage
+\tableofcontents
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Índice de tablas}
+\listoftables
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Índice de figuras}
+\listoffigures
+
+%% ---------------------------- Cuerpo ---------------------------------
+\iniciarCuerpo
+
+\input{capitulos/01-introduccion}
+\input{capitulos/02-antecedentes}
+\input{capitulos/03-situacion-problematica}
+\input{capitulos/04-problema-cientifico}
+\input{capitulos/05-objeto-estudio}
+\input{capitulos/06-variables}
+\input{capitulos/07-objetivos}
+\input{capitulos/08-poblacion-muestra}
+\input{capitulos/09-justificacion-social}
+\input{capitulos/10-alcances-sistema}
+\input{capitulos/11-limites-proyecto}
+
+%% --------------------------- Finales ---------------------------------
+\input{finales/referencias}
+\input{finales/glosario}
+\input{finales/anexos}
+
+\end{document}

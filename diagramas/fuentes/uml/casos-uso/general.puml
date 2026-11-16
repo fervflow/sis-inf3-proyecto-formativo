@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+
+actor "Estudiante" as Est
+actor "Docente" as Doc
+actor "Coordinación" as Coord
+
+rectangle "Sistema web de proyectos formativos" {
+  usecase "Iniciar sesión" as UC01
+  usecase "Registrar proyecto" as UC02
+  usecase "Registrar avance" as UC03
+  usecase "Consultar estado" as UC04
+  usecase "Evaluar avance" as UC05
+  usecase "Generar reportes" as UC06
+  usecase "Gestionar usuarios" as UC07
+}
+
+Est --> UC01
+Est --> UC02
+Est --> UC03
+Est --> UC04
+Doc --> UC01
+Doc --> UC05
+Coord --> UC01
+Coord --> UC06
+Coord --> UC07
+@enduml

@@ -1,0 +1,14 @@
+@startuml
+node "Cliente\n(navegador web)" as Cliente
+
+node "Servidor de aplicaciones\n(Apache + PHP 8.3)" as Servidor {
+  component "Aplicación Laravel" as App
+}
+
+node "Servidor de base de datos\n(PostgreSQL 16)" as BDServer {
+  database "Base de datos\nproyectos_db" as DB
+}
+
+Cliente --> App : HTTPS
+App --> DB : TCP 5432
+@enduml

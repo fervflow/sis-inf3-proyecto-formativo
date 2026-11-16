@@ -1,0 +1,66 @@
+%% =====================================================================
+%%  portada.tex
+%%  Portada institucional UPDS y portada APA 7 alternativa.
+%%  Los datos se editan en config/metadatos.tex.
+%% =====================================================================
+
+%% ---------------------------------------------------------------------
+%%  Portada institucional (predeterminada)
+%% ---------------------------------------------------------------------
+\newcommand{\portadaInstitucional}{%
+  \begin{titlepage}%
+  \estiloPortada
+  \singlespacing
+  \begin{center}
+    \IfFileExists{imagenes/logos/upds.png}%
+      {\includegraphics[width=4.6cm]{imagenes/logos/upds.png}\par}%
+      {\fbox{\parbox[c][2cm][c]{5cm}{\centering \small Logotipo UPDS\\ (imagenes/logos/upds.png)}}\par}
+    \vspace{0.9cm}
+    {\bfseries\large \universidad\par}
+    \vspace{0.2cm}
+    {\bfseries\normalsize \facultad\par}
+    {\bfseries\normalsize \carrera\par}
+    {\normalsize \sede\par}
+    \vspace{1.3cm}
+    {\bfseries\large \tipotrabajo\par}
+    \vspace{0.2cm}
+    {\normalsize Materia: \materia\par}
+    \vspace{1.1cm}
+    {\bfseries\Large \titulo\par}
+    \vspace{0.4cm}
+    {\normalsize\itshape \subtitulo\par}
+    \vspace{1.2cm}
+    {\normalsize Presentado por:\par}
+    \vspace{0.15cm}
+    {\bfseries\normalsize \autor\par}
+    {\normalsize Registro universitario: \registro\par}
+    \vspace{1.0cm}
+    {\normalsize Docente:\par}
+    \vspace{0.15cm}
+    {\bfseries\normalsize \docente\par}
+    \vfill
+    {\normalsize \ciudad\par}
+    {\bfseries\normalsize \gestion\par}
+  \end{center}
+  \end{titlepage}%
+}
+
+%% ---------------------------------------------------------------------
+%%  Portada APA 7 de estudiante (opcional: portada=apa)
+%% ---------------------------------------------------------------------
+\newcommand{\portadaAPA}{%
+  \begin{titlepage}%
+  \estiloPortada
+  \singlespacing
+  \begin{center}
+    \vspace*{3.5cm}
+    {\bfseries\large \titulo\par}
+    \vspace{2.5cm}
+    {\normalsize \autor\par}
+    {\normalsize \filiacion\par}
+    {\normalsize \materia\par}
+    {\normalsize Docente: \docente\par}
+    {\normalsize \fechaentrega\par}
+  \end{center}
+  \end{titlepage}%
+}
