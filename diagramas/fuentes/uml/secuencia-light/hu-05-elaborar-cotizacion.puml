@@ -1,0 +1,21 @@
+@startuml
+' HU-05 · Elaboración de cotizaciones (versión ligera)
+hide footbox
+
+actor "Personal" as PER
+boundary "IU-05" as UI <<interfaz>>
+control "ControlCotizaciones" as CTRL <<control>>
+entity "Cotizacion" as E_COTIZACION <<entidad>>
+database "cotizacion" as T_COTIZACION <<tabla>>
+
+PER -> UI : datos de la cotización
+UI -> CTRL : crearCotizacion(datos)
+CTRL -> E_COTIZACION : calcularTotales()
+E_COTIZACION -> E_COTIZACION : subtotal y total
+CTRL -> E_COTIZACION : guardar()
+E_COTIZACION -> T_COTIZACION : INSERT ...
+T_COTIZACION --> E_COTIZACION : id_cotizacion
+E_COTIZACION --> CTRL : cotización creada
+CTRL --> UI : número y total
+UI --> PER : confirmación
+@enduml

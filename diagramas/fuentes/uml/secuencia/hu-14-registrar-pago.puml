@@ -1,0 +1,65 @@
+@startuml
+' HU-14 · Registrar anticipos y saldos de una reserva
+hide footbox
+autonumber
+skinparam maxMessageSize 170
+
+actor "Personal" as PER
+boundary "IU-14 · Registrar pago" as UI <<interfaz>>
+control "ControlPagos" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "Pago" as E_PAGO <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "pago" as T_PAGO <<tabla>>
+
+PER -> UI : selecciona una reserva
+UI -> CTRL : consultarSaldo(idReserva)
+CTRL -> E_RESERVA : obtenerReserva(idReserva)
+E_RESERVA -> T_RESERVA : SELECT monto_total, estado
+T_RESERVA --> E_RESERVA : reserva
+E_RESERVA --> CTRL : monto total
+
+CTRL -> E_PAGO : obtenerPagos(idReserva)
+E_PAGO -> T_PAGO : SELECT tipo, monto
+T_PAGO --> E_PAGO : anticipo y saldo
+E_PAGO --> CTRL : pagos registrados
+CTRL -> CTRL : calcularSaldoPendiente()
+CTRL --> UI : total, pagado y pendiente
+UI --> PER : muestra el saldo
+
+PER -> UI : registra monto, tipo, método y referencia
+UI -> CTRL : registrarPago(datos)
+
+group Transacción de pago
+    CTRL -> E_RESERVA : bloquear(idReserva)
+    E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+    T_RESERVA --> E_RESERVA : reserva actual
+    E_RESERVA --> CTRL : estado y monto
+
+    alt Reserva cancelada o monto inválido
+        CTRL --> UI : error «No se puede registrar el pago»
+        UI --> PER : mostrar el motivo
+    else Pago válido
+        CTRL -> E_PAGO : validarTipoYsaldo(tipo, monto)
+        E_PAGO -> E_PAGO : monto no supera el saldo pendiente
+        E_PAGO --> CTRL : validación correcta
+        CTRL -> E_PAGO : crear(pago)
+        E_PAGO -> T_PAGO : INSERT ...
+        T_PAGO --> E_PAGO : id_pago
+        E_PAGO --> CTRL : pago registrado
+
+        CTRL -> E_RESERVA : recalcularSaldo()
+        E_RESERVA -> T_PAGO : SELECT SUM(monto)
+        T_PAGO --> E_RESERVA : total pagado
+        E_RESERVA --> CTRL : nuevo saldo
+
+        CTRL --> UI : comprobante y saldo actualizado
+        UI --> PER : confirmación
+    end
+end
+
+note right of CTRL
+    Solo se permite un anticipo y un saldo por
+    reserva; la restricción UNIQUE lo garantiza.
+end note
+@enduml

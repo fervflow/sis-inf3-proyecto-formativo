@@ -1,0 +1,84 @@
+@startuml
+' HU-07 + HU-13 · Gestión del estado de la reserva (variante fusionada)
+hide footbox
+autonumber
+skinparam maxMessageSize 160
+
+actor "Personal" as PER
+actor "Administrador" as ADM
+actor "Turista" as TUR
+boundary "IU-07/13 · Gestión del estado de la reserva" as UI <<interfaz>>
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "Pago" as E_PAGO <<entidad>>
+entity "HistorialReserva" as E_HISTORIAL <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "pago" as T_PAGO <<tabla>>
+database "historial_reserva" as T_HISTORIAL <<tabla>>
+
+PER -> UI : busca reserva por código o cliente
+ADM -> UI : consulta de supervisión
+UI -> CTRL : consultarReserva(criterio)
+CTRL -> E_RESERVA : bloquearYBuscar(criterio)
+E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+T_RESERVA --> E_RESERVA : reserva actual
+E_RESERVA --> CTRL : datos y estado
+
+CTRL -> E_PAGO : obtenerPagos(idReserva)
+E_PAGO -> T_PAGO : SELECT tipo, monto
+T_PAGO --> E_PAGO : anticipo y saldo
+E_PAGO -> E_PAGO : calcularSaldo(monto_total)
+E_PAGO --> CTRL : pagos y saldo
+CTRL --> UI : ficha con estado y saldo
+UI --> PER : estado y saldo
+UI --> ADM : ficha para supervisión
+
+alt Confirmar o finalizar
+    PER -> UI : selecciona nuevo estado
+    UI -> CTRL : confirmarEstado(idReserva, nuevoEstado)
+
+    alt Transición no permitida
+        CTRL --> UI : error «Transición inválida»
+        UI --> PER : mostrar estados permitidos
+    else Transición permitida
+        CTRL -> E_RESERVA : cambiarEstado(nuevoEstado)
+        E_RESERVA -> T_RESERVA : UPDATE estado ...
+        T_RESERVA --> E_RESERVA : fila actualizada
+        CTRL -> E_HISTORIAL : registrarCambio(anterior, nuevo, usuario)
+        E_HISTORIAL -> T_HISTORIAL : INSERT ...
+        T_HISTORIAL --> E_HISTORIAL : id_historial
+        E_HISTORIAL --> CTRL : auditoría registrada
+        CTRL --> UI : estado actualizado
+        UI --> PER : confirmación
+    end
+else Cancelar reserva
+    TUR -> PER : solicita cancelación
+    PER -> UI : confirma cancelación y motivo
+    UI -> CTRL : cancelarReserva(idReserva, motivo)
+
+    alt Estado no cancelable
+        CTRL --> UI : error «La reserva no se puede cancelar»
+        UI --> PER : informar al turista
+    else Estado cancelable
+        CTRL -> E_RESERVA : cambiarEstado(cancelada, motivo)
+        E_RESERVA -> T_RESERVA : UPDATE estado, motivo y fecha_cancelacion
+        T_RESERVA --> E_RESERVA : fila actualizada
+        CTRL -> E_HISTORIAL : registrarCambio(anterior, cancelada)
+        E_HISTORIAL -> T_HISTORIAL : INSERT ...
+        T_HISTORIAL --> E_HISTORIAL : id_historial
+        E_HISTORIAL --> CTRL : auditoría registrada
+        CTRL --> UI : reserva cancelada y cupo liberado
+        UI --> PER : confirmación
+        PER --> TUR : cancelación confirmada
+    end
+end
+
+note right of CTRL
+    La fila de la reserva se bloquea con FOR UPDATE
+    antes de validar y cambiar el estado.
+end note
+note right of CTRL
+    Al cancelar, el cupo se libera porque la
+    disponibilidad solo cuenta reservas activas.
+end note
+@enduml

@@ -1,0 +1,87 @@
+@startuml
+' HU-03 + HU-05 · Consulta y cotización (variante fusionada)
+hide footbox
+autonumber
+skinparam maxMessageSize 130
+
+actor "Turista" as TUR
+actor "Personal" as PER
+boundary "IU-03/05 · Consulta y cotización" as UI <<interfaz>>
+control "ControlDisponibilidad" as CDISP <<control>>
+control "ControlCotizaciones" as CCOT <<control>>
+entity "Paquete" as E_PAQUETE <<entidad>>
+entity "Salida" as E_SALIDA <<entidad>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "Cliente" as E_CLIENTE <<entidad>>
+entity "Cotizacion" as E_COTIZACION <<entidad>>
+database "paquete" as T_PAQUETE <<tabla>>
+database "salida" as T_SALIDA <<tabla>>
+database "reserva" as T_RESERVA <<tabla>>
+database "cliente" as T_CLIENTE <<tabla>>
+database "cotizacion" as T_COTIZACION <<tabla>>
+
+TUR -> UI : consulta destino, fecha y pasajeros
+PER -> UI : consulta asistida
+UI -> CDISP : consultarDisponibilidad(criterios)
+CDISP -> E_PAQUETE : buscarPaquetes(criterios)
+E_PAQUETE -> T_PAQUETE : SELECT ...
+T_PAQUETE --> E_PAQUETE : paquetes
+E_PAQUETE --> CDISP : paquetes
+
+loop Para cada paquete encontrado
+    CDISP -> E_SALIDA : listarSalidas(idPaquete, fecha)
+    E_SALIDA -> T_SALIDA : SELECT ...
+    T_SALIDA --> E_SALIDA : salidas
+    E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
+    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)
+    T_RESERVA --> E_RESERVA : ocupados
+    E_RESERVA --> E_SALIDA : ocupados
+    E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
+    E_SALIDA --> CDISP : disponibilidad
+end
+
+CDISP --> UI : paquetes con cupo
+UI --> TUR : resultados
+UI --> PER : resultados
+
+alt Solo consulta
+    UI --> TUR : fin de la consulta
+else Generar cotización
+    PER -> UI : selecciona cliente y salida
+    UI -> CCOT : crearCotizacion(datos)
+    CCOT -> E_CLIENTE : obtenerCliente(idCliente)
+    E_CLIENTE -> T_CLIENTE : SELECT ...
+    T_CLIENTE --> E_CLIENTE : cliente
+    E_CLIENTE --> CCOT : cliente
+
+    alt Cliente no registrado
+        CCOT --> UI : solicitar alta del cliente
+        UI --> PER : completar ficha
+    else Cliente registrado
+        CCOT -> E_SALIDA : verificarCupo(idSalida, cantidad)
+        E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio
+        T_SALIDA --> E_SALIDA : datos
+        E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
+        E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)
+        T_RESERVA --> E_RESERVA : ocupados
+        E_RESERVA --> E_SALIDA : ocupados
+        E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
+
+        alt Cupo insuficiente
+            E_SALIDA --> CCOT : no disponible
+            CCOT --> UI : error «Cupo insuficiente»
+            UI --> PER : mostrar alternativas
+        else Cupo suficiente
+            E_SALIDA --> CCOT : disponible
+            CCOT -> E_COTIZACION : calcularTotales(precio, cantidad, descuento)
+            E_COTIZACION -> E_COTIZACION : subtotal y total
+            CCOT -> E_COTIZACION : guardar(cotizacion)
+            E_COTIZACION -> T_COTIZACION : INSERT ...
+            T_COTIZACION --> E_COTIZACION : id_cotizacion
+            E_COTIZACION --> CCOT : cotización creada
+            CCOT --> UI : número y total
+            UI --> PER : cotización lista
+        end
+    end
+end
+@enduml

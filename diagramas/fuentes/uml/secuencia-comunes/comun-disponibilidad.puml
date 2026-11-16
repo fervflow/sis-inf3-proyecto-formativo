@@ -1,0 +1,28 @@
+@startuml
+' Común · Calcular disponibilidad de una salida
+hide footbox
+autonumber
+skinparam maxMessageSize 150
+
+control "ControlDisponibilidad" as CTRL <<control>>
+entity "Salida" as E_SALIDA <<entidad>>
+entity "Reserva" as E_RESERVA <<entidad>>
+database "salida" as T_SALIDA <<tabla>>
+database "reserva" as T_RESERVA <<tabla>>
+
+CTRL -> E_SALIDA : obtenerDatos(idSalida)
+E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio, estado
+T_SALIDA --> E_SALIDA : datos de la salida
+E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
+E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)
+T_RESERVA --> E_RESERVA : pasajeros ocupados
+E_RESERVA --> E_SALIDA : ocupados
+E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
+E_SALIDA --> CTRL : salida con cupoDisponible
+
+note right of CTRL
+    En flujos de escritura, la fila de salida
+    debe bloquearse con SELECT ... FOR UPDATE
+    antes de contar los pasajeros.
+end note
+@enduml

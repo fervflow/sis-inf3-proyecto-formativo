@@ -1,0 +1,23 @@
+@startuml
+' HU-14 · Registrar pago (versión ligera)
+hide footbox
+
+actor "Personal" as PER
+boundary "IU-14" as UI <<interfaz>>
+control "ControlPagos" as CTRL <<control>>
+entity "Pago" as E_PAGO <<entidad>>
+database "pago" as T_PAGO <<tabla>>
+
+PER -> UI : monto y tipo de pago
+UI -> CTRL : registrarPago(datos)
+CTRL -> E_PAGO : validarSaldo(idReserva, monto)
+E_PAGO -> T_PAGO : SELECT anticipo y saldo
+T_PAGO --> E_PAGO : pagos registrados
+E_PAGO --> CTRL : saldo válido
+CTRL -> E_PAGO : crear(pago)
+E_PAGO -> T_PAGO : INSERT ...
+T_PAGO --> E_PAGO : id_pago
+E_PAGO --> CTRL : pago registrado
+CTRL --> UI : comprobante y saldo
+UI --> PER : confirmación
+@enduml

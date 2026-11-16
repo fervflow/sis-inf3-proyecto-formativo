@@ -1,0 +1,21 @@
+@startuml
+' Común · Buscar y validar cliente
+hide footbox
+autonumber
+skinparam maxMessageSize 150
+
+control "ControlClientes" as CTRL <<control>>
+entity "Cliente" as E_CLIENTE <<entidad>>
+database "cliente" as T_CLIENTE <<tabla>>
+
+CTRL -> E_CLIENTE : buscarPorDocumento(documento)
+E_CLIENTE -> T_CLIENTE : SELECT ...
+T_CLIENTE --> E_CLIENTE : cliente
+
+alt Cliente no encontrado
+    E_CLIENTE --> CTRL : no registrado
+else Cliente encontrado
+    E_CLIENTE -> E_CLIENTE : validarEstado()
+    E_CLIENTE --> CTRL : cliente válido
+end
+@enduml

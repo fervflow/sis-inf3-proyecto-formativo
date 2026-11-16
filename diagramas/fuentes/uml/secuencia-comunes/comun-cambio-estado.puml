@@ -1,0 +1,36 @@
+@startuml
+' Común · Cambiar estado de reserva y auditar
+hide footbox
+autonumber
+skinparam maxMessageSize 150
+
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "HistorialReserva" as E_HISTORIAL <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "historial_reserva" as T_HISTORIAL <<tabla>>
+
+CTRL -> E_RESERVA : bloquear(idReserva)
+E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+T_RESERVA --> E_RESERVA : reserva actual
+E_RESERVA --> CTRL : estado actual
+
+alt Transición no permitida
+    CTRL --> CTRL : rechazar cambio
+else Transición permitida
+    CTRL -> E_RESERVA : cambiarEstado(nuevoEstado)
+    E_RESERVA -> T_RESERVA : UPDATE estado ...
+    T_RESERVA --> E_RESERVA : fila actualizada
+    CTRL -> E_HISTORIAL : registrarCambio(anterior, nuevo, usuario)
+    E_HISTORIAL -> T_HISTORIAL : INSERT ...
+    T_HISTORIAL --> E_HISTORIAL : id_historial
+    E_HISTORIAL --> CTRL : auditoría registrada
+    CTRL --> CTRL : cambio confirmado
+end
+
+note right of CTRL
+    Transiciones válidas:
+    pendiente a confirmada o cancelada;
+    confirmada a finalizada o cancelada.
+end note
+@enduml

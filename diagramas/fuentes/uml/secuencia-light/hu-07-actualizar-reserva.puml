@@ -1,0 +1,28 @@
+@startuml
+' HU-07 · Seguimiento de reservas (versión ligera)
+hide footbox
+
+actor "Personal" as PER
+boundary "IU-07" as UI <<interfaz>>
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+
+PER -> UI : busca reserva
+UI -> CTRL : consultarReserva(criterio)
+CTRL -> E_RESERVA : buscar(criterio)
+E_RESERVA -> T_RESERVA : SELECT ...
+T_RESERVA --> E_RESERVA : reserva
+E_RESERVA --> CTRL : datos y estado
+CTRL --> UI : ficha
+UI --> PER : estado y saldo
+
+PER -> UI : nuevo estado
+UI -> CTRL : actualizarEstado(idReserva, estado)
+CTRL -> E_RESERVA : cambiarEstado(estado)
+E_RESERVA -> T_RESERVA : UPDATE ...
+T_RESERVA --> E_RESERVA : fila actualizada
+E_RESERVA --> CTRL : estado actualizado
+CTRL --> UI : confirmación
+UI --> PER : reserva actualizada
+@enduml

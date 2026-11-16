@@ -1,0 +1,57 @@
+@startuml
+' HU-07 · Seguimiento y actualización de reservas
+hide footbox
+autonumber
+skinparam maxMessageSize 170
+
+actor "Personal" as PER
+actor "Administrador" as ADM
+boundary "IU-07 · Seguimiento de reservas" as UI <<interfaz>>
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "HistorialReserva" as E_HISTORIAL <<entidad>>
+entity "Pago" as E_PAGO <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "historial_reserva" as T_HISTORIAL <<tabla>>
+database "pago" as T_PAGO <<tabla>>
+
+PER -> UI : busca reserva por código o cliente
+ADM -> UI : consulta de supervisión
+UI -> CTRL : consultarReserva(criterio)
+CTRL -> E_RESERVA : buscar(criterio)
+E_RESERVA -> T_RESERVA : SELECT ...
+T_RESERVA --> E_RESERVA : reserva
+E_RESERVA --> CTRL : datos de la reserva
+
+CTRL -> E_PAGO : obtenerPagos(idReserva)
+E_PAGO -> T_PAGO : SELECT tipo, monto
+T_PAGO --> E_PAGO : anticipo y saldo
+E_PAGO --> CTRL : pagos registrados
+CTRL -> CTRL : calcularSaldoPendiente()
+CTRL --> UI : ficha con estado y saldo
+UI --> PER : estado, pasajeros y saldo pendiente
+UI --> ADM : ficha para supervisión
+
+PER -> UI : selecciona nuevo estado y observación
+UI -> CTRL : actualizarEstado(idReserva, nuevoEstado)
+alt Transición no permitida
+    CTRL --> UI : error «Transición de estado inválida»
+    UI --> PER : mostrar estados permitidos
+else Transición permitida
+    CTRL -> E_RESERVA : cambiarEstado(nuevoEstado)
+    E_RESERVA -> T_RESERVA : UPDATE estado ...
+    T_RESERVA --> E_RESERVA : fila actualizada
+    CTRL -> E_HISTORIAL : registrarCambio(anterior, nuevo, usuario)
+    E_HISTORIAL -> T_HISTORIAL : INSERT ...
+    T_HISTORIAL --> E_HISTORIAL : id_historial
+    E_HISTORIAL --> CTRL : auditoría registrada
+    CTRL --> UI : estado actualizado
+    UI --> PER : confirmación
+end
+
+note right of CTRL
+    Transiciones válidas:
+    pendiente a confirmada o cancelada;
+    confirmada a finalizada o cancelada.
+end note
+@enduml

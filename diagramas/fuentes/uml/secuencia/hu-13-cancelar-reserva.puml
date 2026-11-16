@@ -1,0 +1,60 @@
+@startuml
+' HU-13 · Cancelar una reserva y liberar los cupos
+hide footbox
+autonumber
+skinparam maxMessageSize 170
+
+actor "Turista" as TUR
+actor "Personal" as PER
+boundary "IU-13 · Cancelar reserva" as UI <<interfaz>>
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "HistorialReserva" as E_HISTORIAL <<entidad>>
+entity "Pago" as E_PAGO <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "historial_reserva" as T_HISTORIAL <<tabla>>
+database "pago" as T_PAGO <<tabla>>
+
+TUR -> PER : solicita cancelación
+PER -> UI : busca la reserva y confirma
+UI -> CTRL : cancelarReserva(idReserva, motivo)
+
+group Transacción de cancelación
+    CTRL -> E_RESERVA : bloquear(idReserva)
+    E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+    T_RESERVA --> E_RESERVA : reserva actual
+    E_RESERVA --> CTRL : estado actual
+
+    alt Estado no cancelable
+        CTRL --> UI : error «La reserva no se puede cancelar»
+        UI --> PER : informar al turista
+    else Estado cancelable
+        CTRL -> E_RESERVA : cambiarEstado(cancelada, motivo)
+        E_RESERVA -> T_RESERVA : UPDATE estado, motivo y fecha_cancelacion
+        T_RESERVA --> E_RESERVA : fila actualizada
+        CTRL -> E_HISTORIAL : registrarCambio(anterior, cancelada)
+        E_HISTORIAL -> T_HISTORIAL : INSERT ...
+        T_HISTORIAL --> E_HISTORIAL : id_historial
+        E_HISTORIAL --> CTRL : auditoría registrada
+
+        CTRL -> E_PAGO : consultarPagos(idReserva)
+        E_PAGO -> T_PAGO : SELECT tipo, monto
+        T_PAGO --> E_PAGO : anticipo y saldo
+        E_PAGO --> CTRL : pagos registrados
+
+        CTRL --> UI : reserva cancelada y cupo liberado
+        UI --> PER : confirmación
+        PER --> TUR : cancelación confirmada
+    end
+end
+
+note right of CTRL
+    El cupo se libera porque la disponibilidad
+    solo cuenta reservas pendientes o confirmadas.
+end note
+
+note right of CTRL
+    Si existen pagos, la devolución se gestiona
+    fuera del sistema en esta versión.
+end note
+@enduml

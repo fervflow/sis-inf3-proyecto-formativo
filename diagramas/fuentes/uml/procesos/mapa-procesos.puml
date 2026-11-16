@@ -1,0 +1,48 @@
+@startuml
+' Mapa de procesos · Sistema de paquetes turísticos y reservas
+skinparam ActivityFontName Arial
+skinparam ActivityFontSize 11
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #333333
+skinparam ArrowColor #333333
+skinparam swimlaneWidth 220
+
+|Turista|
+start
+:Consulta paquetes, fechas y cupos\n(HU-03);
+|Personal|
+:Prepara la cotización\n(HU-05);
+|Turista|
+if (¿Acepta la cotización?) then (sí)
+  :Solicita la reserva\n(HU-06);
+else (no)
+  :Fin de la consulta;
+  stop
+endif
+
+|Personal|
+:Registra la reserva\ny el anticipo\n(HU-06, HU-14);
+:Realiza el seguimiento\n(HU-07);
+if (¿Cancela la reserva?) then (sí)
+  :Cancela la reserva\ny libera el cupo\n(HU-13);
+else (no)
+  :Registra el saldo\ny finaliza la reserva\n(HU-14);
+endif
+
+|Administrador|
+:Supervisa y modifica\nfechas o capacidad\n(HU-09);
+
+|Sistema|
+:Valida cupos, saldos\ne historiales;
+
+stop
+
+legend right
+  Actividades de soporte:
+  HU-01 Paquetes turísticos
+  HU-02 Salidas y cupos
+  HU-04 y HU-12 Clientes y pasajeros
+  HU-10 Proveedores
+  HU-11 Reportes
+end legend
+@enduml

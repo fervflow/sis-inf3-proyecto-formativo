@@ -1,0 +1,23 @@
+@startuml
+' HU-13 · Cancelar reserva (versión ligera)
+hide footbox
+
+actor "Personal" as PER
+boundary "IU-13" as UI <<interfaz>>
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+
+PER -> UI : cancela la reserva
+UI -> CTRL : cancelarReserva(idReserva, motivo)
+CTRL -> E_RESERVA : validarEstado()
+E_RESERVA -> T_RESERVA : SELECT estado
+T_RESERVA --> E_RESERVA : estado
+E_RESERVA --> CTRL : cancelable
+CTRL -> E_RESERVA : cambiarEstado(cancelada)
+E_RESERVA -> T_RESERVA : UPDATE ...
+T_RESERVA --> E_RESERVA : fila actualizada
+E_RESERVA --> CTRL : reserva cancelada
+CTRL --> UI : cupo liberado
+UI --> PER : confirmación
+@enduml

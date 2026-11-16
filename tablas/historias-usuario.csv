@@ -1,0 +1,16 @@
+﻿ID;Historia de usuario;Prioridad;Estimación;N° tareas
+HU-08;Iniciar sesión y acceder según el rol;Alta (riesgo alto);3 pts;3 tareas
+HU-01;Gestión de paquetes turísticos;Alta (riesgo medio);3 pts;2 tareas
+HU-02;Registro de fechas de salida y cupos;Alta (riesgo alto);2 pts;2 tareas
+HU-03;Consulta de disponibilidad;Alta (riesgo medio);2 pts;2 tareas
+HU-04;Registro de clientes;Alta (riesgo medio);2 pts;2 tareas
+HU-10;Registrar proveedores y vincularlos a los paquetes;Media (riesgo bajo);2 pts;2 tareas
+HU-05;Elaboración de cotizaciones;Media (riesgo medio);3 pts;2 tareas
+HU-06;Registro de reservas con validación de cupos;Alta (riesgo alto);5 pts;3 tareas
+HU-12;Registrar clientes y pasajeros;Alta (riesgo medio);3 pts;2 tareas
+HU-07;Seguimiento y actualización de reservas;Alta (riesgo medio);3 pts;3 tareas
+HU-09;Modificar fechas o capacidad de una salida;Alta (riesgo alto);3 pts;2 tareas
+HU-11;Consultar reportes de ocupación y reservas por fecha;Media (riesgo medio);2 pts;2 tareas
+HU-13;Cancelar una reserva y liberar los cupos;Alta (riesgo alto);2 pts;2 tareas
+HU-14;Registrar anticipos y saldos de una reserva;Alta (riesgo medio);3 pts;2 tareas
+TOTAL;14 historias de usuario;;38 pts;31 tareas

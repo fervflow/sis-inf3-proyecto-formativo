@@ -46,7 +46,7 @@
   "latex-workshop.latex.autoBuild.run": "onSave",
   "latex-workshop.view.pdf.viewer": "tab",
   "latex-workshop.latex.clean.subfolder.enabled": true,
-  "plantuml.jar": "/usr/share/java/plantuml/plantuml.jar",
+  "plantuml.jar": "C:/Users/Fer/scoop/apps/plantuml/current/plantuml.jar",
   "plantuml.render": "Local",
   "plantuml.exportFormat": "pdf",
   "plantuml.exportOutDir": "diagramas/generados",

@@ -1,0 +1,52 @@
+@startuml
+' HU-09 · Modificar fechas o capacidad de una salida
+hide footbox
+autonumber
+skinparam maxMessageSize 170
+
+actor "Administrador" as ADM
+boundary "IU-09 · Modificar salida" as UI <<interfaz>>
+control "ControlSalidas" as CTRL <<control>>
+entity "Salida" as E_SALIDA <<entidad>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "HistorialSalida" as E_HISTORIAL <<entidad>>
+database "salida" as T_SALIDA <<tabla>>
+database "reserva" as T_RESERVA <<tabla>>
+database "historial_salida" as T_HISTORIAL <<tabla>>
+
+ADM -> UI : selecciona salida y nuevos datos
+UI -> CTRL : modificarSalida(idSalida, cambios)
+
+group Transacción de actualización
+    CTRL -> E_SALIDA : bloquear(idSalida)
+    E_SALIDA -> T_SALIDA : SELECT ... FOR UPDATE
+    T_SALIDA --> E_SALIDA : salida actual
+    E_SALIDA --> CTRL : datos actuales
+
+    CTRL -> E_RESERVA : contarPasajerosActivos(idSalida)
+    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)
+    T_RESERVA --> E_RESERVA : pasajeros ocupados
+    E_RESERVA --> CTRL : ocupados
+
+    alt Nueva capacidad menor a los pasajeros reservados
+        CTRL --> UI : error «Capacidad menor a la reservada»
+        UI --> ADM : rechazar el cambio
+    else Cambio válido
+        CTRL -> E_SALIDA : aplicarCambios(cambios)
+        E_SALIDA -> T_SALIDA : UPDATE ...
+        T_SALIDA --> E_SALIDA : fila actualizada
+        CTRL -> E_HISTORIAL : registrarCambio(campo, anterior, nuevo)
+        E_HISTORIAL -> T_HISTORIAL : INSERT ...
+        T_HISTORIAL --> E_HISTORIAL : id_historial
+        E_HISTORIAL --> CTRL : auditoría registrada
+        CTRL --> UI : salida actualizada
+        UI --> ADM : confirmación y nuevo cupo
+    end
+end
+
+note right of CTRL
+    Si cambia la fecha, las reservas conservan
+    su vínculo con la salida. La capacidad no
+    puede ser menor que los pasajeros activos.
+end note
+@enduml

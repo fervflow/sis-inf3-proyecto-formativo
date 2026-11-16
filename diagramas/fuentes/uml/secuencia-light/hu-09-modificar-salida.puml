@@ -1,0 +1,23 @@
+@startuml
+' HU-09 · Modificar salida (versión ligera)
+hide footbox
+
+actor "Administrador" as ADM
+boundary "IU-09" as UI <<interfaz>>
+control "ControlSalidas" as CTRL <<control>>
+entity "Salida" as E_SALIDA <<entidad>>
+database "salida" as T_SALIDA <<tabla>>
+
+ADM -> UI : nueva fecha o capacidad
+UI -> CTRL : modificarSalida(idSalida, cambios)
+CTRL -> E_SALIDA : validarCapacidad(idSalida, nuevaCapacidad)
+E_SALIDA -> T_SALIDA : SELECT cupo y ocupados
+T_SALIDA --> E_SALIDA : datos
+E_SALIDA --> CTRL : capacidad válida
+CTRL -> E_SALIDA : aplicarCambios()
+E_SALIDA -> T_SALIDA : UPDATE ...
+T_SALIDA --> E_SALIDA : fila actualizada
+E_SALIDA --> CTRL : salida actualizada
+CTRL --> UI : confirmación
+UI --> ADM : nuevo cupo
+@enduml
