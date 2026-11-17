@@ -1,5 +1,5 @@
 @startuml
-' HU-13 · Solicitud y ejecución de la cancelación de una reserva
+title HU-13 · Solicitud y ejecución de la cancelación de una reserva
 ' El cliente solicita la cancelación y el personal la ejecuta. El estado
 ' de la reserva no cambia por la sola solicitud.
 hide footbox

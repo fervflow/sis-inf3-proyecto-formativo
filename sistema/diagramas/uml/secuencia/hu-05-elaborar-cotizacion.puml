@@ -1,5 +1,5 @@
 @startuml
-' HU-05 · Elaboración de cotizaciones
+title HU-05 · Elaboración de cotizaciones
 ' La cotización la prepara siempre el personal. Si el cliente necesita una
 ' propuesta, esta se emite a su nombre y puede originar la reserva posterior
 ' (HU-06).

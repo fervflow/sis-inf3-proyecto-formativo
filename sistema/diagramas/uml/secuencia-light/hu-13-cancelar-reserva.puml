@@ -1,5 +1,5 @@
 @startuml
-' HU-13 · Cancelación de una reserva (versión ligera)
+title HU-13 · Cancelación de una reserva (versión ligera)
 ' Muestra la ejecución por parte del personal, que es la que cambia el
 ' estado de la reserva.
 hide footbox

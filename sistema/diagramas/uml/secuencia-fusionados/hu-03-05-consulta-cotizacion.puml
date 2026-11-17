@@ -1,5 +1,5 @@
 @startuml
-' HU-03 + HU-05 · Consulta y cotización (variante fusionada)
+title HU-03 + HU-05 · Consulta y cotización (variante fusionada)
 ' El cliente consulta directamente y el personal formaliza la propuesta.
 ' Ambas acciones usan el mismo criterio de disponibilidad.
 hide footbox

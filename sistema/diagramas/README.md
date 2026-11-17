@@ -33,6 +33,24 @@ Los diagramas de secuencia deben conservar los estereotipos:
 Los diagramas comunes pueden omitir interfaz y actor porque son fragmentos
 técnicos.
 
+## Título del diagrama
+
+Cada diagrama lleva, en la parte superior y antes de los participantes, el
+título de la historia de usuario que representa, en la forma
+`HU-NN · Nombre de la historia`. Se declara con la palabra clave `title` de
+PlantUML, justo después de `@startuml`:
+
+```plantuml
+@startuml
+title HU-03 · Consulta de disponibilidad
+hide footbox
+```
+
+Las versiones ligeras añaden «(versión ligera)», las variantes fusionadas
+«(variante fusionada)» y los fragmentos comunes «Común · …». El título es
+único por diagrama y permite identificar la historia de un vistazo, sin
+abrir el archivo.
+
 ---
 
 ## Reglas del modelo que los diagramas deben respetar

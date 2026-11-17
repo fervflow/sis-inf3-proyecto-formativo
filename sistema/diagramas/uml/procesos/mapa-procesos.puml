@@ -1,5 +1,5 @@
 @startuml
-' Mapa de procesos · Sistema de paquetes turísticos y reservas
+title Mapa de procesos · Sistema de paquetes turísticos y reservas
 ' Dos canales de atención (consulta y solicitud directa del cliente, y
 ' atención del personal) que desembocan en el mismo proceso validado.
 skinparam ActivityFontName Arial

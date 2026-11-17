@@ -1,5 +1,5 @@
 @startuml
-' HU-06 · Registro de reservas (versión ligera)
+title HU-06 · Registro de reservas (versión ligera)
 hide footbox
 
 actor "Turista" as TUR

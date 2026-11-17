@@ -1,5 +1,5 @@
 @startuml
-' Común · Buscar y validar cliente
+title Común · Buscar y validar cliente
 hide footbox
 autonumber
 skinparam maxMessageSize 150

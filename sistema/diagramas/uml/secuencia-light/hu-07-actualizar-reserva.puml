@@ -1,5 +1,5 @@
 @startuml
-' HU-07 · Seguimiento y actualización de reservas (versión ligera)
+title HU-07 · Seguimiento y actualización de reservas (versión ligera)
 hide footbox
 
 actor "Personal" as PER

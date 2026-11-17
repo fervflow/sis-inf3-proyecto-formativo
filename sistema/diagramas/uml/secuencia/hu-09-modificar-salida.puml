@@ -1,5 +1,5 @@
 @startuml
-' HU-09 · Modificar fechas o capacidad de una salida
+title HU-09 · Modificar fechas o capacidad de una salida
 ' La capacidad no puede quedar por debajo de los pasajeros ya reservados y
 ' los clientes afectados reciben aviso (HU-16).
 hide footbox

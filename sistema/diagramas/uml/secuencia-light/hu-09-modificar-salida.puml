@@ -1,5 +1,5 @@
 @startuml
-' HU-09 · Modificar fechas o capacidad de una salida (versión ligera)
+title HU-09 · Modificar fechas o capacidad de una salida (versión ligera)
 hide footbox
 
 actor "Administrador" as ADM

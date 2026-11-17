@@ -1,5 +1,5 @@
 @startuml
-' Común · Cargar reserva y estado
+title Común · Cargar reserva y estado
 hide footbox
 autonumber
 skinparam maxMessageSize 150

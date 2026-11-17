@@ -1,5 +1,5 @@
 @startuml
-' HU-14 · Registro de anticipos y saldos (versión ligera)
+title HU-14 · Registro de anticipos y saldos (versión ligera)
 hide footbox
 
 actor "Turista" as TUR

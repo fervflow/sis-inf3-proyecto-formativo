@@ -1,5 +1,5 @@
 @startuml
-' Común · Calcular disponibilidad de una salida
+title Común · Calcular disponibilidad de una salida
 hide footbox
 autonumber
 skinparam maxMessageSize 150

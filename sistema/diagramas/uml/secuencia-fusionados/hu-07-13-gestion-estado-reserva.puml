@@ -1,5 +1,5 @@
 @startuml
-' HU-07 + HU-13 · Gestión del estado de la reserva (variante fusionada)
+title HU-07 + HU-13 · Gestión del estado de la reserva (variante fusionada)
 ' El cliente solicita la cancelación y el personal la ejecuta. La
 ' confirmación y el vencimiento de las solicitudes también se gestionan
 ' desde aquí (HU-17).

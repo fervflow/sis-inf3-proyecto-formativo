@@ -1,5 +1,5 @@
 @startuml
-' HU-05 · Elaboración de cotizaciones (versión ligera)
+title HU-05 · Elaboración de cotizaciones (versión ligera)
 hide footbox
 
 actor "Personal" as PER

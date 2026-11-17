@@ -1,5 +1,5 @@
 @startuml
-' HU-03 · Consulta de disponibilidad (versión ligera)
+title HU-03 · Consulta de disponibilidad (versión ligera)
 hide footbox
 
 actor "Turista" as TUR

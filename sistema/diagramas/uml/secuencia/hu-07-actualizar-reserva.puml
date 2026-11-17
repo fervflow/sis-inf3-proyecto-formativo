@@ -1,5 +1,5 @@
 @startuml
-' HU-07 · Seguimiento y actualización de reservas
+title HU-07 · Seguimiento y actualización de reservas
 ' El personal consulta el estado, el saldo y el historial, y actualiza los
 ' datos de una reserva. El cliente no modifica su reserva confirmada: lo
 ' solicita y el personal lo ejecuta.

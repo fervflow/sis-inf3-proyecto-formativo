@@ -1,5 +1,5 @@
 @startuml
-' Común · Cambiar estado de reserva y auditar
+title Común · Cambiar estado de reserva y auditar
 hide footbox
 autonumber
 skinparam maxMessageSize 150

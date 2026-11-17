@@ -1,5 +1,5 @@
 @startuml
-' HU-06 · Registro de reservas con validación de cupos
+title HU-06 · Registro de reservas con validación de cupos
 ' Dos canales de ingreso, un mismo proceso: la reserva nace pendiente,
 ' con fecha de vencimiento, y la confirma el personal (HU-17).
 hide footbox

@@ -1,5 +1,5 @@
 @startuml
-' HU-14 · Registro y validación de anticipos y saldos de una reserva
+title HU-14 · Registro y validación de anticipos y saldos de una reserva
 ' El cliente puede registrar su pago en el acceso directo; el personal lo
 ' valida. El pago no confirma la reserva por sí solo.
 hide footbox

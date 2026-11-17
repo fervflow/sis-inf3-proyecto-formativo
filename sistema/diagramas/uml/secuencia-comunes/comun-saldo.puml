@@ -1,5 +1,5 @@
 @startuml
-' Común · Consultar pagos y calcular saldo
+title Común · Consultar pagos y calcular saldo
 hide footbox
 autonumber
 skinparam maxMessageSize 150
