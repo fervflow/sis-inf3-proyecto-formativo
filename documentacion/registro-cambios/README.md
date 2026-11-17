@@ -62,3 +62,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-17 14:28 | `2026-11-17T142834_titulo-en-los-diagramas.md` | Título de la historia de usuario en la parte superior de los diagramas. |
 | 2026-11-17 15:04 | `2026-11-17T150433_colocacion-de-titulos-y-portada.md` | Colocación de los títulos sin huecos y portada con dos autores. |
 | 2026-11-17 17:16 | `2026-11-17T171611_criterios-y-desglose-de-tareas.md` | Criterios de aceptación de las 17 historias y desglose de las 39 tareas del backlog. |
+| 2026-11-17 17:53 | `2026-11-17T175303_tablero-kanban.md` | Tablero kanban generado desde el backlog, con comandos de regeneración, verificación y requisitos de visualización. |

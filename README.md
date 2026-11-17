@@ -37,6 +37,8 @@ sección vive en un archivo propio dentro de `informe/capitulos/`, con su
   orden de las secciones y flujo de trabajo.
 - **`sistema/diagramas/README.md`** — las reglas que deben respetar los
   diagramas del sistema.
+- **`sistema/tablero/README.md`** — cómo se genera y se usa el tablero
+  kanban de las 39 tareas.
 - **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados,
   con el detalle del contenido aplicado en cada uno.
 
@@ -171,6 +173,7 @@ proyecto-formativo/
 │   │   └── ejemplos-plantilla/  Ejemplos heredados, no del proyecto
 │   ├── base-de-datos/       Esquema SQL y diccionario de datos
 │   ├── historias-usuario/   Backlog de historias de usuario (CSV y MD)
+│   ├── tablero/             Tablero kanban generado desde el backlog
 │   ├── verificar-uml.py     Comprueba los diagramas UML
 │   └── verificar-rutas.py   Comprueba que las rutas existan
 ├── documentacion/           Guías y bitácora

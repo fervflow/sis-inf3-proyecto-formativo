@@ -2,6 +2,7 @@
   "recommendations": [
     "James-Yu.latex-workshop",
     "jebbs.plantuml",
-    "ms-ceintl.vscode-language-pack-es"
+    "ms-ceintl.vscode-language-pack-es",
+    "divisionseven.unified-kanban"
   ]
 }

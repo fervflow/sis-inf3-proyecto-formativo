@@ -443,7 +443,7 @@ programador B.
 - **T-HU-13.1** Registrar la solicitud de cancelación del cliente y
   conservar su historial, sin cambiar el estado de la reserva.
 - **T-HU-13.2** Ejecutar la cancelación indicando el motivo y la fecha,
-  liberar el cupo una sola vez y verificar el nuevo saldo.
+  liberar el cupo una sola vez y verificar la nueva disponibilidad.
 
 ### HU-14 · Registro y validación de anticipos y saldos de una reserva
 
@@ -473,6 +473,10 @@ programador B.
   observaciones de revisión.
 - El **desglose de tareas** se documenta solo en esta versión legible: el CSV
   conserva la cantidad de tareas por historia, no su detalle.
+- El desglose mantiene el formato `### HU-NN · título`,
+  `**Responsable:** Programador A · N tareas` y `- **T-HU-NN.n** texto`
+  porque `sistema/tablero/generar.py` lo lee para generar el tablero. Un
+  cambio de formato exige actualizar el generador.
 - Las historias **no se incluyen en `main.tex`** sin una instrucción
   explícita.
 - Los datos del backlog **no se corrigen** salvo que el usuario lo solicite.

@@ -41,6 +41,8 @@ acción, objetivo general y objetivos específicos.
 | Regenerar los diagramas | `make diagramas` | `.\build.ps1 -Diagramas` |
 | Exportar los diagramas a PNG | `make png` | `.\build.ps1 -Png` |
 | Verificar diagramas y rutas | `make verificar` | — |
+| Regenerar el tablero kanban | `make tablero` | `py sistema/tablero/generar.py` |
+| Verificar el tablero kanban | `make tablero-verificar` | `py sistema/tablero/generar.py --check` |
 | Republish el PDF | `make publicar` | — |
 | Limpiar | `make clean` / `make distclean` | `.\build.ps1 -Limpiar` / `-LimpiarTodo` |
 
@@ -50,6 +52,8 @@ nunca `pdflatex`.
 ## Fronteras
 
 - `entregables/` y `_build/` son salidas: no se editan a mano.
+- `sistema/tablero/tablero.md` es una salida generada: solo se mueven las
+  tarjetas de columna; el texto se cambia en el backlog y se regenera.
 - El problema, el objetivo y los datos de la tabla anterior no se tocan sin
   instrucción explícita del usuario.
 - No se reintroducen la dedicatoria, los agradecimientos ni la sección de
@@ -68,6 +72,7 @@ nunca `pdflatex`.
 | Crear o corregir diagramas | `sistema/diagramas/README.md` |
 | Tocar el esquema o las reglas de la base de datos | `sistema/base-de-datos/diccionario-datos.md` |
 | Tocar el backlog de historias de usuario | `sistema/historias-usuario/historias-usuario.md` |
+| Ver o mover el tablero kanban | `sistema/tablero/README.md` |
 | Registrar un trabajo aceptado | `documentacion/registro-cambios/README.md` |
 | Instalar el entorno en Windows | `documentacion/INSTALACION-WINDOWS.md` |
 | Entender el árbol completo del proyecto | `README.md` |

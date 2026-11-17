@@ -42,7 +42,7 @@ LATEXMK := $(shell command -v latexmk 2>/dev/null)
 SVG2PDF := $(shell command -v rsvg-convert 2>/dev/null)
 PDFTOPPM := $(shell command -v pdftoppm 2>/dev/null)
 
-.PHONY: all pdf diagramas png publicar verificar ver clean distclean ayuda
+.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar ver clean distclean ayuda
 
 all: pdf
 
@@ -138,6 +138,15 @@ verificar:
 	@python3 $(SISTEMA)/verificar-uml.py
 	@python3 $(SISTEMA)/verificar-rutas.py
 
+# --- Tablero kanban ----------------------------------------------------
+#  Las tarjetas se generan desde el backlog; el tablero solo conserva la
+#  columna de cada una. La verificacion no escribe: falla si quedo viejo.
+tablero:
+	python3 $(SISTEMA)/tablero/generar.py
+
+tablero-verificar:
+	python3 $(SISTEMA)/tablero/generar.py --check
+
 # --- Utilidades -------------------------------------------------------
 ver: pdf
 	pdfinfo $(BUILD)/$(MAIN).pdf | grep -E "Pages|Page size|File size"
@@ -160,6 +169,8 @@ ayuda:
 	@echo "make png        exporta los diagramas a PNG en $(ENTREGAS)/diagramas/png"
 	@echo "make publicar   copia el PDF a $(ENTREGAS)/ con el nombre definitivo"
 	@echo "make verificar  revisa los diagramas y las rutas del proyecto"
+	@echo "make tablero    regenera el tablero kanban desde el backlog"
+	@echo "make tablero-verificar  comprueba que el tablero este al dia"
 	@echo "make ver        inspecciona el PDF (paginas, tamano, fuentes)"
 	@echo "make clean      borra archivos auxiliares"
 	@echo "make distclean  borra auxiliares, diagramas y PNG"
