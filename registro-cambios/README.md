@@ -46,3 +46,4 @@ Cada archivo debe incluir, como mínimo:
 | Fecha | Archivo | Alcance |
 |---|---|---|
 | 2026-11-17 10:41 | `2026-11-17T104129_correcciones-formato-contenido.md` | Formato general y correcciones de contenido de las secciones 1 a 10. |
+| 2026-11-17 11:23 | `2026-11-17T112357_canal-autoservicio-turista.md` | Canal de autoservicio del cliente en el informe y en la base de datos temporal. |

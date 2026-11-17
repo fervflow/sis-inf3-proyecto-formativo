@@ -323,6 +323,14 @@ Reglas importantes:
   por cálculo.
 - Se permite un `anticipo` y un `saldo` por reserva.
 - `historial_reserva` e `historial_salida` registran auditoría.
+- Hay dos canales de ingreso: la atención del personal (`origen = 'personal'`)
+  y la solicitud directa del cliente (`origen = 'web'`). Ambos siguen el
+  mismo flujo: la reserva nace `pendiente` y la confirma el personal.
+- Toda reserva pendiente tiene `fecha_expiracion` (48 horas por omisión). Si
+  no se confirma a tiempo, pasa a `vencida` y libera el cupo de forma
+  automática mediante `fn_vencer_solicitudes_pendientes()`.
+- El índice único parcial `ux_reserva_solicitud_activa` admite una sola
+  solicitud pendiente por cliente y salida.
 
 Diccionario y reglas: `codigo/base-datos/diccionario-datos.md`.
 

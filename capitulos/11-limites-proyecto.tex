@@ -15,3 +15,30 @@ datos ficticios o autorizados, de modo que no se exponga información personal
 de los clientes. Se aplicarán medidas básicas de control de acceso y
 protección de datos, tomando como referencia las recomendaciones de OWASP
 Foundation \parencite{owasp2025}.
+
+\section{Límites del acceso directo del cliente}
+
+El acceso del cliente al sistema se limita a la consulta de la información de
+los paquetes y de la disponibilidad, a la solicitud de reservas, al
+seguimiento de sus propias reservas y al registro de pagos. El sistema no
+confirma reservas por sí solo: la verificación de la disponibilidad, la
+validación del pago y la confirmación de la reserva corresponden al personal de
+la agencia, de manera que el pago registrado por el cliente no produce por sí
+solo la confirmación de la reserva.
+
+El cliente podrá presentar una sola solicitud activa por salida. Las
+solicitudes que no son confirmadas dentro del plazo establecido quedan
+vencidas y liberan de manera automática los cupos reservados. Las
+modificaciones de una reserva ya confirmada, tales como el cambio de número de
+pasajeros o de fecha, las realiza el personal de la agencia.
+
+La cancelación solicitada por el cliente se registra como una solicitud y su
+ejecución corresponde al personal, quien aplica los criterios de penalidad y
+de devolución. La devolución de dinero por una cancelación se gestiona fuera
+del sistema. El acceso directo del cliente complementa la atención del
+personal y no la sustituye: las personas que no disponen de cuenta o que
+prefieren la atención presencial siguen siendo atendidas en la oficina.
+
+La apertura de una cuenta para el cliente exige datos de identificación
+básicos y aplica las mismas medidas de control de acceso y de protección de
+datos exigidas al personal.

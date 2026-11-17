@@ -8,7 +8,9 @@ de cupos, registrar clientes y pasajeros, elaborar cotizaciones, gestionar
 reservas, registrar anticipos y saldos, administrar proveedores y generar
 reportes. La prioridad será verificar los cupos y registrar correctamente las
 reservas; las demás funciones se incorporarán como apoyo a ese proceso
-principal.
+principal. El sistema será utilizado por el personal de la agencia y por los
+clientes, que accederán con una cuenta propia para consultar la información
+de los paquetes y solicitar sus reservas.
 
 \section{Módulos propuestos}
 
@@ -22,15 +24,46 @@ principal.
   \item \textbf{Cotizaciones:} preparación y consulta de propuestas según el
         paquete solicitado y sus condiciones.
   \item \textbf{Reservas:} creación, consulta, confirmación, modificación y
-        cancelación con validación de cupos.
+        cancelación con validación de cupos. La reserva puede originarse en la
+        atención del personal o en la solicitud del cliente; en ambos casos se
+        registra en estado pendiente y requiere la confirmación del personal.
   \item \textbf{Pagos:} registro de anticipos y saldos, con pago en efectivo y
         simulación de banca móvil o código QR, sin integración con pasarelas
-        bancarias reales.
+        bancarias reales. El pago registrado por el cliente queda pendiente de
+        validación por parte del personal.
+  \item \textbf{Acceso del cliente:} registro de cuenta, consulta de paquetes,
+        salidas y cupos disponibles, solicitud de reserva, seguimiento de sus
+        propias reservas y registro de pagos, con acceso restringido a la
+        información que le corresponde.
   \item \textbf{Proveedores:} datos básicos de transporte, hospedaje y guías
         vinculados a los paquetes.
   \item \textbf{Reportes y usuarios:} consultas por fecha, ocupación, reservas
-        y accesos según el rol de cada trabajador.
+        y accesos según el rol de cada usuario, sea trabajador o cliente.
 \end{itemize}
 
 Para facilitar su uso, se procurará una interfaz sencilla y adaptable a
 distintos tamaños de pantalla.
+
+\section{Canales de atención y confirmación}
+
+El sistema contempla dos canales de atención que desembocan en el mismo
+proceso de reserva. El primero es la atención presencial y telefónica, en la
+que el personal registra la consulta, prepara la cotización y confirma la
+reserva. El segundo es el acceso directo del cliente al sistema web, en el que
+consulta los paquetes, las salidas y los cupos disponibles, y remite su
+solicitud de reserva junto con el registro de su pago.
+
+En ambos casos la reserva se crea en estado pendiente y requiere la validación
+y la confirmación del personal, con la misma verificación de disponibilidad y
+el mismo registro de auditoría. Las solicitudes del cliente que no son
+confirmadas dentro del plazo establecido quedan vencidas y liberan
+automáticamente los cupos reservados. De esta manera, el acceso directo del
+cliente amplía la cobertura del proceso sin duplicar reglas ni alterar las
+tareas de confirmación, seguimiento y control que corresponden al personal.
+
+\section{Avisos al cliente}
+
+Los cambios en la fecha o en la capacidad de una salida Programada y las
+confirmaciones de reserva se comunicarán al cliente afectado a través de las
+pantallas del sistema, lo que reduce la demora en comunicar estas novedades y
+mantiene informada a la persona que viaja.

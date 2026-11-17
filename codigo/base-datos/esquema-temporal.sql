@@ -202,9 +202,15 @@ CREATE TABLE reserva (
     -- Vínculo opcional con una cotización aceptada.
     id_cotizacion       BIGINT UNIQUE REFERENCES cotizacion(id_cotizacion) ON DELETE SET NULL,
     id_usuario          BIGINT NOT NULL REFERENCES usuario(id_usuario) ON DELETE RESTRICT,
+    -- Canal por el que ingresa la reserva: atención del personal o
+    -- solicitud directa del cliente. Ambas siguen el mismo flujo.
+    origen              VARCHAR(15) NOT NULL DEFAULT 'personal',
     cantidad_pasajeros  SMALLINT NOT NULL,
     monto_total         NUMERIC(12, 2) NOT NULL,
     estado              VARCHAR(15) NOT NULL DEFAULT 'pendiente',
+    -- Fecha límite para confirmar una reserva pendiente. Al vencer, la
+    -- solicitud pasa a 'vencida' y los cupos se liberan solos.
+    fecha_expiracion    TIMESTAMPTZ DEFAULT (now() + INTERVAL '48 hours'),
     observaciones       TEXT,
     motivo_cancelacion  VARCHAR(200),
     fecha_cancelacion   TIMESTAMPTZ,
@@ -212,8 +218,14 @@ CREATE TABLE reserva (
     fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT ck_reserva_cantidad CHECK (cantidad_pasajeros > 0),
     CONSTRAINT ck_reserva_monto CHECK (monto_total >= 0),
+    CONSTRAINT ck_reserva_origen CHECK (origen IN ('personal', 'web')),
     CONSTRAINT ck_reserva_estado CHECK
-        (estado IN ('pendiente', 'confirmada', 'cancelada', 'finalizada')),
+        (estado IN ('pendiente', 'confirmada', 'vencida', 'cancelada', 'finalizada')),
+    -- Una reserva pendiente siempre tiene fecha de vencimiento.
+    CONSTRAINT ck_reserva_expiracion CHECK (
+        (estado = 'pendiente' AND fecha_expiracion IS NOT NULL)
+        OR (estado <> 'pendiente')
+    ),
     CONSTRAINT ck_reserva_cancelacion CHECK (
         (estado = 'cancelada'
             AND fecha_cancelacion IS NOT NULL
@@ -225,6 +237,15 @@ CREATE TABLE reserva (
 CREATE INDEX ix_reserva_salida_estado ON reserva (id_salida, estado);
 CREATE INDEX ix_reserva_cliente ON reserva (id_cliente);
 CREATE INDEX ix_reserva_fecha ON reserva (fecha_reserva);
+CREATE INDEX ix_reserva_vencimiento ON reserva (fecha_expiracion)
+    WHERE estado = 'pendiente';
+
+-- Una sola solicitud activa por cliente y salida, en cualquiera de los dos
+-- canales. Una segunda necesidad se gestiona modificando la solicitud
+-- existente, no creando otra.
+CREATE UNIQUE INDEX ux_reserva_solicitud_activa
+    ON reserva (id_cliente, id_salida)
+    WHERE estado = 'pendiente';
 
 CREATE TABLE reserva_pasajero (
     id_reserva          BIGINT NOT NULL REFERENCES reserva(id_reserva) ON DELETE CASCADE,
@@ -272,10 +293,10 @@ CREATE TABLE historial_reserva (
     observacion         VARCHAR(200),
     CONSTRAINT ck_historial_reserva_anterior CHECK (
         estado_anterior IS NULL
-        OR estado_anterior IN ('pendiente', 'confirmada', 'cancelada', 'finalizada')
+        OR estado_anterior IN ('pendiente', 'confirmada', 'vencida', 'cancelada', 'finalizada')
     ),
     CONSTRAINT ck_historial_reserva_nuevo CHECK
-        (estado_nuevo IN ('pendiente', 'confirmada', 'cancelada', 'finalizada'))
+        (estado_nuevo IN ('pendiente', 'confirmada', 'vencida', 'cancelada', 'finalizada'))
 );
 
 CREATE INDEX ix_historial_reserva ON historial_reserva (id_reserva, fecha_cambio);
@@ -326,10 +347,55 @@ CREATE TRIGGER tr_reserva_actualizacion
     FOR EACH ROW EXECUTE FUNCTION fn_actualizar_fecha_modificacion();
 
 -- ---------------------------------------------------------------------
--- 10. Vistas de apoyo
+--  10. Vencimiento de las solicitudes pendientes
+-- ---------------------------------------------------------------------
+--  Una reserva pendiente que no se confirma dentro del plazo previsto
+--  pasa a 'vencida'. Al cambiar de estado deja de computar en la
+--  disponibilidad, de modo que los cupos se liberan sin intervención
+--  manual, y el cambio queda auditado en el historial.
+--  El personal de la agencia puede ejecutar esta rutina periódicamente.
+
+CREATE OR REPLACE FUNCTION fn_vencer_solicitudes_pendientes()
+RETURNS INT AS $$
+DECLARE
+    v_vencidas INT := 0;
+    r RECORD;
+BEGIN
+    FOR r IN
+        SELECT id_reserva, id_usuario
+        FROM reserva
+        WHERE estado = 'pendiente'
+          AND fecha_expiracion IS NOT NULL
+          AND fecha_expiracion <= now()
+        FOR UPDATE
+    LOOP
+        UPDATE reserva
+        SET estado = 'vencida',
+            observaciones = COALESCE(observaciones || ' | ', '')
+                          || 'Vencida por falta de confirmación dentro del plazo previsto.'
+        WHERE id_reserva = r.id_reserva;
+
+        INSERT INTO historial_reserva (
+            id_reserva, estado_anterior, estado_nuevo, id_usuario, observacion
+        ) VALUES (
+            r.id_reserva, 'pendiente', 'vencida', r.id_usuario,
+            'Vencimiento automático de la solicitud pendiente.'
+        );
+
+        v_vencidas := v_vencidas + 1;
+    END LOOP;
+
+    RETURN v_vencidas;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ---------------------------------------------------------------------
+-- 11. Vistas de apoyo
 -- ---------------------------------------------------------------------
 
 -- Disponibilidad calculada: nunca se almacena un cupo duplicado.
+-- Las reservas vencidas no se cuentan, porque el filtro solo considera
+-- las que están pendientes o confirmadas.
 CREATE OR REPLACE VIEW vista_disponibilidad_salida AS
 SELECT
     s.id_salida,
@@ -341,8 +407,14 @@ SELECT
     s.cupo_maximo,
     COALESCE(SUM(r.cantidad_pasajeros)
         FILTER (WHERE r.estado IN ('pendiente', 'confirmada')), 0)::INT AS pasajeros_ocupados,
+    COALESCE(SUM(r.cantidad_pasajeros)
+        FILTER (WHERE r.estado = 'pendiente'), 0)::INT AS pasajeros_pendientes,
+    COALESCE(SUM(r.cantidad_pasajeros)
+        FILTER (WHERE r.estado = 'confirmada'), 0)::INT AS pasajeros_confirmados,
     (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
         FILTER (WHERE r.estado IN ('pendiente', 'confirmada')), 0))::INT AS cupo_disponible,
+    (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
+        FILTER (WHERE r.estado = 'confirmada'), 0))::INT AS cupo_disponible_sin_pendientes,
     s.precio,
     s.estado
 FROM salida s
@@ -370,13 +442,26 @@ GROUP BY r.id_reserva, r.codigo, r.id_cliente, r.id_salida,
          r.monto_total, r.estado;
 
 -- Resumen de ocupación por fecha para los reportes (HU-11).
+-- Las solicitudes pendientes se muestran aparte de las reservas
+-- confirmadas, para que el personal distinga la ocupación comprometida de
+-- la que todavía está por confirmar.
 CREATE OR REPLACE VIEW vista_reservas_por_fecha AS
 SELECT
     s.fecha_salida,
     s.id_salida,
     p.nombre AS paquete,
     COUNT(r.id_reserva)
+        FILTER (WHERE r.estado = 'pendiente') AS reservas_pendientes,
+    COUNT(r.id_reserva)
+        FILTER (WHERE r.estado = 'confirmada') AS reservas_confirmadas,
+    COUNT(r.id_reserva)
         FILTER (WHERE r.estado IN ('pendiente', 'confirmada')) AS reservas_activas,
+    COUNT(r.id_reserva)
+        FILTER (WHERE r.estado = 'vencida') AS reservas_vencidas,
+    COALESCE(SUM(r.cantidad_pasajeros)
+        FILTER (WHERE r.estado = 'pendiente'), 0)::INT AS pasajeros_pendientes,
+    COALESCE(SUM(r.cantidad_pasajeros)
+        FILTER (WHERE r.estado = 'confirmada'), 0)::INT AS pasajeros_confirmados,
     COALESCE(SUM(r.cantidad_pasajeros)
         FILTER (WHERE r.estado IN ('pendiente', 'confirmada')), 0)::INT AS pasajeros,
     s.cupo_maximo,
@@ -389,13 +474,13 @@ GROUP BY s.fecha_salida, s.id_salida, p.nombre, s.cupo_maximo
 ORDER BY s.fecha_salida;
 
 -- ---------------------------------------------------------------------
--- 11. Semilla mínima de roles
+-- 12. Semilla mínima de roles
 -- ---------------------------------------------------------------------
 
 INSERT INTO rol (codigo, nombre, descripcion) VALUES
     ('ADMIN',    'Administrador',      'Gestiona usuarios, paquetes, salidas y reportes.'),
-    ('PERSONAL', 'Personal de agencia', 'Consulta, cotiza, registra reservas y pagos.'),
-    ('TURISTA',  'Turista',             'Consulta disponibilidad y su información de reserva.')
+    ('PERSONAL', 'Personal de agencia', 'Consulta, cotiza, registra reservas y confirma pagos.'),
+    ('TURISTA',  'Turista',             'Consulta la disponibilidad, solicita reservas, registra pagos y sigue sus reservas.')
 ON CONFLICT (codigo) DO NOTHING;
 
 -- =====================================================================

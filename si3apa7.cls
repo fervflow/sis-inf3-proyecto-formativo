@@ -227,6 +227,12 @@
 \renewcommand{\cftsecaftersnum}{.}
 \renewcommand{\cftsubsecaftersnum}{.}
 
+%% Ancho de la caja del numero en el indice. El valor por omision queda
+%% corto para numeros de dos cifras como "10.1.", que se tocan con el
+%% titulo de la entrada.
+\setlength{\cftsecnumwidth}{2.4em}
+\setlength{\cftsubsecnumwidth}{2.8em}
+
 %% Titulos de los indices: centrados, negrita y del mismo tamano que el
 %% texto (nivel 1 de APA).
 \setlength{\cftbeforetoctitleskip}{0pt}

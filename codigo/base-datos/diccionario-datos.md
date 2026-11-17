@@ -41,6 +41,21 @@ CREATE SCHEMA turismo;
 | `historial_reserva` | Auditoría de cambios de estado de una reserva. | `id_reserva` → `reserva`. |
 | `historial_salida` | Auditoría de cambios de fecha, cupo, precio o estado. | `id_salida` → `salida`. |
 
+## Campos añadidos para el canal del cliente
+
+| Tabla | Campo | Propósito |
+|---|---|---|
+| `reserva` | `origen` | Canal de ingreso: `personal` o `web`. Permite conocer de qué vía proviene cada reserva sin duplicar el proceso. |
+| `reserva` | `fecha_expiracion` | Fecha límite para confirmar la reserva pendiente. Por omisión, `now() + 48 horas`. |
+| `reserva` | `estado = 'vencida'` | Resultado del vencimiento por falta de confirmación. |
+
+Índices asociados:
+
+| Índice | Propósito |
+|---|---|
+| `ix_reserva_vencimiento` | Localiza las solicitudes pendientes que ya vencieron. |
+| `ux_reserva_solicitud_activa` | Una sola solicitud pendiente por cliente y salida, en cualquiera de los dos canales. |
+
 ## Estados
 
 | Entidad | Valores permitidos |
@@ -50,7 +65,8 @@ CREATE SCHEMA turismo;
 | `paquete.estado` | `borrador`, `activo`, `inactivo` |
 | `salida.estado` | `programada`, `confirmada`, `realizada`, `cancelada` |
 | `cotizacion.estado` | `borrador`, `enviada`, `aceptada`, `rechazada`, `vencida` |
-| `reserva.estado` | `pendiente`, `confirmada`, `cancelada`, `finalizada` |
+| `reserva.estado` | `pendiente`, `confirmada`, `vencida`, `cancelada`, `finalizada` |
+| `reserva.origen` | `personal`, `web` |
 | `pago.tipo` | `anticipo`, `saldo` |
 | `pago.metodo` | `efectivo`, `transferencia`, `tarjeta`, `otro` |
 
@@ -70,6 +86,21 @@ CREATE SCHEMA turismo;
 6. **Los cambios quedan auditados.** `historial_reserva` e
    `historial_salida` registran usuario, fecha y valores anterior/nuevo.
 7. **Los pagos son informativos.** No se conecta ninguna pasarela bancaria.
+8. **Los dos canales siguen el mismo flujo.** Una reserva creada por
+   solicitud del cliente (`origen = 'web'`) nace en `pendiente` y requiere la
+   confirmación del personal, igual que una creada en la atención presencial
+   (`origen = 'personal'`). El sistema no confirma por sí solo.
+9. **Las solicitudes pendientes vencen.** A las 48 horas de creadas, o al
+   llegar a `fecha_expiracion`, pasan a `vencida` y liberan el cupo de forma
+   automática, sin intervención manual. La rutina
+   `fn_vencer_solicitudes_pendientes()` ejecuta el cambio y lo audita.
+10. **Una sola solicitud activa por cliente y salida.** El índice único
+    parcial `ux_reserva_solicitud_activa` impide crear dos solicitudes
+    pendientes para la misma salida. Una necesidad adicional se resuelve
+    modificando la solicitud existente.
+11. **El pago del cliente no confirma la reserva.** El pago registrado desde
+    el acceso directo del cliente queda pendiente de validación del personal,
+    igual que el resto de los pagos.
 
 ## Concurrencia
 
@@ -94,15 +125,30 @@ COMMIT;
 ```
 
 Así se evita que dos cajeros confirmen simultáneamente más pasajeros que el
-cupo disponible.
+cupo disponible. La misma transacción y el mismo bloqueo se aplican cuando la
+solicitud proviene del acceso directo del cliente: los dos canales compiten
+por el mismo cupo y ninguno puede reservarlo por encima de la capacidad.
+
+## Vencimiento de las solicitudes pendientes
+
+```sql
+-- Rutina que el personal ejecuta de forma periódica:
+SELECT turismo.fn_vencer_solicitudes_pendientes();
+```
+
+La rutina localiza las reservas `pendiente` cuya `fecha_expiracion` ya pasó,
+las cambia a `vencida` y registra el cambio en `historial_reserva`. Al dejar de
+computar en `vista_disponibilidad_salida`, los cupos quedan liberados sin
+intervención manual. La aplicación debe borrar `fecha_expiracion` al
+confirmar la reserva, porque el plazo deja de correr.
 
 ## Vistas
 
 | Vista | Uso |
 |---|---|
-| `vista_disponibilidad_salida` | Consulta de cupos para HU-03, HU-05 y HU-06. |
+| `vista_disponibilidad_salida` | Consulta de cupos para HU-03, HU-05 y HU-06. Separa pasajeros pendientes de confirmados y expone `cupo_disponible_sin_pendientes`. |
 | `vista_saldo_reserva` | Anticipo, saldo pagado y saldo pendiente para HU-07 y HU-14. |
-| `vista_reservas_por_fecha` | Reporte de ocupación y reservas por fecha para HU-11. |
+| `vista_reservas_por_fecha` | Reporte de ocupación y reservas por fecha para HU-11. Distingue pendientes, confirmadas y vencidas. |
 
 ## Supuestos de esta primera versión
 
@@ -115,3 +161,10 @@ cupo disponible.
   filas de `reserva_pasajero`.
 - La devolución de dinero por una cancelación se gestiona fuera del sistema
   en esta versión.
+- El plazo de 48 horas para confirmar una solicitud es un valor inicial y
+  puede ajustarse por la agencia; el esquema lo toma por omisión en
+  `fecha_expiracion` y permite fijarlo de forma explícita en cada reserva.
+- La cancelación solicitada por el cliente se registra y la ejecuta el
+  personal; el sistema no la procesa por sí solo.
+- La cuenta del cliente es opcional: un cliente sin cuenta sigue siendo
+  atendido por el personal, porque `cliente.id_usuario` admite valor nulo.
