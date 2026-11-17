@@ -21,6 +21,14 @@
     Exporta los diagramas a PNG en entregables\diagramas\png\ y compila.
 
 .EXAMPLE
+    .\build.ps1 -Estimacion
+    Compila la hoja de resumen de la estimación de dos páginas.
+
+.EXAMPLE
+    .\build.ps1 -EstimacionScrum
+    Compila la hoja de resumen de una página con metodología Scrum.
+
+.EXAMPLE
     .\build.ps1 -Ver
     Compila y muestra páginas, tamaño y fuentes del PDF.
 
@@ -36,6 +44,8 @@
 param(
     [switch]$Diagramas,
     [switch]$Png,
+    [switch]$Estimacion,
+    [switch]$EstimacionScrum,
     [switch]$Ver,
     [switch]$Limpiar,
     [switch]$LimpiarTodo,
@@ -324,6 +334,54 @@ function Compilar-Informe {
     Invoke-XeLaTeX
 }
 
+function Compilar-Estimacion {
+    if (-not (Get-Command xelatex -ErrorAction SilentlyContinue)) {
+        ErrorFatal "xelatex no está en el PATH. Abra una terminal nueva o revise la instalación de MiKTeX."
+    }
+
+    $carpeta = Join-Path $Compilacion "estimacion"
+    if (-not (Test-Path $carpeta)) {
+        New-Item -ItemType Directory -Force -Path $carpeta | Out-Null
+    }
+
+    Paso "XeLaTeX (hoja de resumen de la estimación)"
+    & xelatex -interaction=nonstopmode -halt-on-error -file-line-error `
+        "-output-directory=$carpeta" `
+        (Join-Path $Raiz "sistema/estimacion/resumen-estimacion.tex")
+    if ($LASTEXITCODE -ne 0) {
+        ErrorFatal "XeLaTeX falló. Revise $carpeta\resumen-estimacion.log"
+    }
+
+    $destino = Join-Path $Raiz "entregables/Estimacion de esfuerzo y costo.pdf"
+    New-Item -ItemType Directory -Force -Path (Split-Path $destino) | Out-Null
+    Copy-Item (Join-Path $carpeta "resumen-estimacion.pdf") $destino -Force
+    Paso "Hoja de resumen: $destino"
+}
+
+function Compilar-EstimacionScrum {
+    if (-not (Get-Command xelatex -ErrorAction SilentlyContinue)) {
+        ErrorFatal "xelatex no está en el PATH. Abra una terminal nueva o revise la instalación de MiKTeX."
+    }
+
+    $carpeta = Join-Path $Compilacion "estimacion/scrum"
+    if (-not (Test-Path $carpeta)) {
+        New-Item -ItemType Directory -Force -Path $carpeta | Out-Null
+    }
+
+    Paso "XeLaTeX (hoja de resumen con metodología Scrum)"
+    & xelatex -interaction=nonstopmode -halt-on-error -file-line-error `
+        "-output-directory=$carpeta" `
+        (Join-Path $Raiz "sistema/estimacion/scrum/resumen-scrum.tex")
+    if ($LASTEXITCODE -ne 0) {
+        ErrorFatal "XeLaTeX falló. Revise $carpeta\resumen-scrum.log"
+    }
+
+    $destino = Join-Path $Raiz "entregables/Estimacion Scrum de esfuerzo y costo.pdf"
+    New-Item -ItemType Directory -Force -Path (Split-Path $destino) | Out-Null
+    Copy-Item (Join-Path $carpeta "resumen-scrum.pdf") $destino -Force
+    Paso "Hoja de resumen (Scrum): $destino"
+}
+
 function Mostrar-Verificacion {
     $pdf = Join-Path $Compilacion "$Principal.pdf"
     if (-not (Test-Path $pdf)) {
@@ -368,6 +426,14 @@ if ($Png) {
 Compilar-Informe
 
 Publicar-Entregable
+
+if ($Estimacion) {
+    Compilar-Estimacion
+}
+
+if ($EstimacionScrum) {
+    Compilar-EstimacionScrum
+}
 
 if ($Ver) {
     Mostrar-Verificacion

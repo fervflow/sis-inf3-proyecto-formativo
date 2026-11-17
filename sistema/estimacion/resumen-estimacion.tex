@@ -1,0 +1,266 @@
+%% =====================================================================
+%%  resumen-estimacion.tex
+%%  Hoja de resumen de la estimación de esfuerzo y costo, para
+%%  presentar. Documento autónomo: no usa si3apa7.cls ni entra en
+%%  main.tex.
+%%
+%%  Compilar:  make estimacion
+%%  Salida:    entregables/Estimacion de esfuerzo y costo.pdf
+%% =====================================================================
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage[
+  letterpaper,
+  top=1.9cm, bottom=1.9cm, left=2.2cm, right=2.2cm
+]{geometry}
+\usepackage{fontspec}
+\IfFontExistsTF{Arial}
+  {\setmainfont{Arial}\setsansfont{Arial}}
+  {\setmainfont{Liberation Sans}\setsansfont{Liberation Sans}}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage[hidelinks]{hyperref}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\renewcommand{\arraystretch}{1.04}
+\setlist{nosep,leftmargin=1.1em}
+
+\definecolor{azul}{HTML}{1F3A5F}
+\definecolor{gris}{HTML}{555555}
+\definecolor{linea}{HTML}{BBBBBB}
+
+% --- Encabezados ------------------------------------------------------
+\newcommand{\seccion}[1]{%
+  \par\vspace{7pt}%
+  {\color{azul}\bfseries\large #1}\par
+  \vspace{1pt}%
+  {\color{linea}\hrule height 0.6pt}\vspace{4pt}%
+}
+
+% --- Tablas ------------------------------------------------------------
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\RaggedLeft\arraybackslash}p{#1}}
+\newenvironment{resumen}{%
+  \small
+  \begin{tabular}{@{}L{0.30\textwidth}L{0.40\textwidth}R{0.24\textwidth}@{}}%
+}{\end{tabular}}
+
+\begin{document}
+
+% =====================================================================
+{\color{azul}\bfseries\LARGE Estimación de esfuerzo y costo}\par
+\vspace{1pt}
+{\large Sistema web de gestión de paquetes turísticos y reservas \textperiodcentered\
+ Vizcacha Tours, Potosí}\par
+\vspace{3pt}
+{\small\color{gris} Método ágil: puntos de historia como unidad de tamaño y tablero
+Kanban para medir el flujo \textperiodcentered\ 17 de noviembre de 2026 \textperiodcentered\
+ 1,18 mes-persona \textperiodcentered\ 5.875 Bs}\par
+\vspace{3pt}
+{\color{linea}\hrule height 0.6pt}\vspace{4pt}
+
+% =====================================================================
+\seccion{1. Las cifras}
+
+{\small
+\begin{tabular}{@{}L{0.50\textwidth}R{0.44\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries Magnitud} & {\color{azul}\bfseries Valor} \\
+\midrule
+Producto mínimo viable de la ventana 1 & 8 pts \textperiodcentered\ 7 tareas \textperiodcentered\ HU-08, HU-01, HU-04 \\
+Costo del producto mínimo viable & 2.500 Bs \\
+Ritmo medido & 1,75 tareas por día de equipo \\
+Esfuerzo unitario & 4,00 horas-persona por punto de historia \\
+Esfuerzo del alcance completo & 188 horas-persona = 1,18 mes-persona \\
+Costo estimado del alcance completo & \textbf{5.875 Bs} \\
+Cierre estimado & 15/12/2026 (2,35 ventanas de 2 semanas) \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\small\color{gris} El indicador que resume la estimación: \textbf{un punto de
+historia cuesta 4,00 horas-persona}. Con ese único dato se estima cualquier
+alcance nuevo: una historia de 3 puntos son 12 horas-persona.}
+
+% =====================================================================
+\seccion{2. Unidades y supuestos}
+
+{\small
+\begin{tabular}{@{}L{0.24\textwidth}L{0.20\textwidth}L{0.50\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries Unidad} & {\color{azul}\bfseries Valor} & {\color{azul}\bfseries Por qué} \\
+\midrule
+Dedicación diaria & 4 h por persona y día hábil & Proyecto universitario: el trabajo es de tiempo parcial. \\
+Mes-persona & 160 h & Mes de tiempo completo: 20 días hábiles por 8 h. \\
+Tarifa & 5.000 Bs por mes-persona & Equivale a 31,25 Bs por hora. \\
+Tamaño relativo & 1 punto de historia & Escala Fibonacci del backlog (valores 2, 3 y 5). \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\small\color{gris} La tarifa se toma como \textbf{mes-persona de tiempo completo}:
+un salario es un salario de tiempo completo. La dedicación parcial alarga el
+plazo, no abarata a la persona. La ventana de análisis es de 2 semanas: del 12
+al 25 de noviembre de 2026.}
+
+% =====================================================================
+\seccion{3. Datos de partida}
+
+\begin{minipage}[t]{0.49\textwidth}
+{\small\textbf{Del backlog}\par}
+\vspace{2pt}
+{\small
+\begin{tabular}{@{}L{0.62\linewidth}R{0.32\linewidth}@{}}
+\toprule
+Historias de usuario & 17 \\
+Puntos de historia & 47 \\
+Tareas & 39 \\
+Puntos de riesgo alto & 22 de 47 \\
+Reparto del trabajo & 20 a RE, 19 a EV \\
+\bottomrule
+\end{tabular}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+{\small\textbf{Del tablero de trabajo}\par}
+\vspace{2pt}
+{\small
+\begin{tabular}{@{}L{0.62\linewidth}R{0.32\linewidth}@{}}
+\toprule
+Tareas terminadas & 7 \\
+Tareas en curso & 4 (en el límite) \\
+Tareas por hacer & 28 \\
+Límite de trabajo en curso & 4 tarjetas \\
+\bottomrule
+\end{tabular}}
+\end{minipage}
+
+% =====================================================================
+\seccion{4. Del MVP al alcance completo}
+
+{\small
+\begin{tabular}{@{}L{0.30\textwidth}L{0.38\textwidth}R{0.26\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries Paso} & {\color{azul}\bfseries Cálculo} & {\color{azul}\bfseries Resultado} \\
+\midrule
+Capacidad de la ventana 1 & $2 \times 10$ días hábiles $\times 4$ h & 80 h-persona \\
+Costo de la ventana 1 & $0{,}50 \times 5.000$ Bs & 2.500 Bs \\
+Ritmo medido (4 días hábiles) & $7 \div 4$ & 1,75 tareas/día \\
+Esfuerzo unitario & $32 \div 8$ puntos & 4,00 h por punto \\
+Esfuerzo restante & $39 \times 4{,}00$ & 156 h-persona \\
+Esfuerzo total & $32 + 156$ & 188 h-persona \\
+En mes-persona & $188 \div 160$ & 1,18 mes-persona \\
+\textbf{Costo} & $1{,}18 \times 5.000$ Bs & \textbf{5.875 Bs} \\
+Calendario & $188 \div 8$ h por día de equipo & 23,5 días \\
+\rowcolor{azul!4}
+Contraste con Scrum & $47 \div 20$ puntos por sprint & 2,35 sprints \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\small\color{gris} Los dos caminos coinciden: 23,5 días de equipo son 2,35
+ventanas de dos semanas, y 47 puntos a 20 por sprint son 2,35 sprints. Dos
+cálculos independientes que dan el mismo número es el mejor control de una
+estimación.}
+
+% =====================================================================
+\seccion{5. El límite de trabajo en curso}
+
+La ley de Little relaciona las tres magnitudes del flujo:
+$WIP = Throughput \times Tiempo\ de\ ciclo$. Con el throughput medido de
+1,75 tareas por día, cada límite implica un tiempo de ciclo distinto:
+
+{\small
+\begin{tabular}{@{}L{0.34\textwidth}L{0.30\textwidth}L{0.30\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries Límite de trabajo en curso} &
+{\color{azul}\bfseries Tiempo de ciclo} &
+{\color{azul}\bfseries Cuándo conviene} \\
+\midrule
+2 & 1,14 días & Muy estricto: expone los bloqueos antes, pero parte el rendimiento. \\
+\textbf{4 (el aplicado)} & \textbf{2,29 días} & Dos tareas por desarrollador: una en código y otra bloqueada. \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\small\color{gris} El límite es lo que impone la política de \emph{pull}: no se
+toma trabajo nuevo si la columna de trabajo está llena. Y es lo que hace
+sostenible el ritmo observado.}
+
+% =====================================================================
+\seccion{6. Riesgos y qué falta medir}
+
+\begin{minipage}[t]{0.49\textwidth}
+{\small\textbf{Riesgos de la estimación}\par}
+\vspace{2pt}
+{\small
+\begin{itemize}
+\item \textbf{Muestra mínima.} Cuatro días hábiles y tres historias no
+  representan todo el alcance.
+\item \textbf{WIP no medido.} El ritmo se obtuvo antes de fijar el límite
+  de trabajo en curso.
+\item \textbf{Perfil de riesgo.} 22 de los 47 puntos pendientes son de
+  riesgo alto.
+\item \textbf{El alcance del MVP puede crecer.}
+\end{itemize}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+{\small\textbf{Métricas a medir desde el 25/11}\par}
+\vspace{2pt}
+{\small
+\begin{itemize}
+\item \textbf{Throughput:} tarjetas que se terminan por semana.
+\item \textbf{Tiempo de ciclo:} días entre empezar una tarea y terminarla.
+\item \textbf{Espera:} días que una tarea espera la revisión.
+\item \textbf{Puntos cerrados:} suma de los puntos de las historias
+  cerradas.
+\end{itemize}}
+\end{minipage}
+
+% =====================================================================
+\seccion{7. Sensibilidad del costo}
+
+La estimación depende de un solo supuesto medido: las 4,00 horas-persona por
+punto. Si el ritmo real resultara otro, el costo y el plazo se mueven así:
+
+{\small
+\begin{tabular}{@{}L{0.26\textwidth}L{0.22\textwidth}L{0.20\textwidth}L{0.20\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries h por punto} &
+{\color{azul}\bfseries Esfuerzo total} &
+{\color{azul}\bfseries Costo} &
+{\color{azul}\bfseries Cierre} \\
+\midrule
+3,00 (más rápido) & 149 h & 4.656 Bs & 08/12/2026 \\
+\textbf{4,00 (el medido)} & \textbf{188 h} & \textbf{5.875 Bs} & \textbf{15/12/2026} \\
+5,00 (algo más lento) & 227 h & 7.094 Bs & 21/12/2026 \\
+6,00 (más lento) & 266 h & 8.313 Bs & 28/12/2026 \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\small\color{gris} El costo se mueve poco porque la tarifa es baja; lo que
+cambia de verdad es la fecha. Y el plazo sigue siendo corto en los cuatro
+escenarios: el alcance completo cabe en un mes de trabajo, no en los catorce
+días del horizonte del MVP.}
+
+\vspace{5pt}
+{\color{linea}\hrule height 0.6pt}\vspace{3pt}
+{\footnotesize\color{gris}
+Estimación fechada el 17 de noviembre de 2026. Para recalcularla:
+\texttt{Esfuerzo restante = puntos pendientes × (horas-persona gastadas ÷ puntos cerrados)}.
+No cubre el mantenimiento posterior al despliegue, ni el costo del hardware,
+ni el esfuerzo de documentación y pruebas como tareas aparte: las historias
+ya incluyen sus criterios de aceptación.}
+
+\end{document}

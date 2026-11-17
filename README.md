@@ -39,6 +39,8 @@ sección vive en un archivo propio dentro de `informe/capitulos/`, con su
   diagramas del sistema.
 - **`sistema/tablero/README.md`** — cómo se genera y se usa el tablero
   kanban de las 39 tareas.
+- **`sistema/estimacion/README.md`** — cómo se calcula el costo del sistema
+  con el método ágil y de dónde sale cada cifra.
 - **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados,
   con el detalle del contenido aplicado en cada uno.
 
@@ -94,6 +96,9 @@ make diagramas  # convierte todos los .puml a PDF
 make png        # exporta todos los diagramas a PNG en entregables/diagramas/png/
 make publicar   # vuelve a copiar el PDF a entregables/ con su nombre definitivo
 make verificar  # revisa que los diagramas no tengan participantes sueltos
+make tablero    # regenera el tablero kanban desde el backlog
+make estimacion # compila la hoja de resumen de la estimación de dos páginas
+make estimacion-scrum  # compila la hoja de una página con metodología Scrum
 make ver        # muestra páginas, tamaño y fuentes del PDF
 make clean      # borra archivos auxiliares
 make distclean  # borra también los diagramas generados y los PNG
@@ -174,6 +179,7 @@ proyecto-formativo/
 │   ├── base-de-datos/       Esquema SQL y diccionario de datos
 │   ├── historias-usuario/   Backlog de historias de usuario (CSV y MD)
 │   ├── tablero/             Tablero kanban generado desde el backlog
+│   ├── estimacion/          Estimación de costos del sistema
 │   ├── verificar-uml.py     Comprueba los diagramas UML
 │   └── verificar-rutas.py   Comprueba que las rutas existan
 ├── documentacion/           Guías y bitácora
@@ -275,6 +281,8 @@ Por tipo de diagrama:
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan historias |
 | `uml/estructural/` | El diagrama de clases y el de objetos, completos y simplificados |
+| `uml/casos-uso/` | El diagrama de casos de uso, con sus `include` y `extend` |
+| `uml/procesos/` | El mapa de actividades, el flujo del tablero Kanban y el proceso de estimación |
 | `uml/procesos/` | El mapa de actividades con carriles |
 
 Para diagramas que no son UML (DER, arquitectura o prototipos de interfaz)

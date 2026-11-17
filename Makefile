@@ -42,7 +42,7 @@ LATEXMK := $(shell command -v latexmk 2>/dev/null)
 SVG2PDF := $(shell command -v rsvg-convert 2>/dev/null)
 PDFTOPPM := $(shell command -v pdftoppm 2>/dev/null)
 
-.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar ver clean distclean ayuda
+.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar estimacion estimacion-scrum ver clean distclean ayuda
 
 all: pdf
 
@@ -61,6 +61,33 @@ pdf: diagramas
 	$(LATEXMK) -xelatex $(MAIN).tex
 	@$(MAKE) --no-print-directory publicar
 endif
+
+# --- Hoja de resumen de la estimacion ----------------------------------
+#  Documento autonomo de dos paginas, para presentar. No depende del
+#  informe: se compila aparte para que un error aqui no bloquee la
+#  compilacion del PDF final.
+PDF_ESTIMACION := $(ENTREGAS)/Estimacion de esfuerzo y costo.pdf
+
+estimacion:
+	@mkdir -p $(BUILD)/estimacion
+	xelatex -interaction=nonstopmode -halt-on-error \
+		-output-directory=$(BUILD)/estimacion \
+		sistema/estimacion/resumen-estimacion.tex
+	@mkdir -p "$(ENTREGAS)"
+	@cp "$(BUILD)/estimacion/resumen-estimacion.pdf" "$(PDF_ESTIMACION)"
+	@echo ">> Hoja de resumen: $(PDF_ESTIMACION)"
+
+# --- Hoja de resumen de la estimacion con metodologia scrum ------------
+PDF_ESTIMACION_SCRUM := $(ENTREGAS)/Estimacion Scrum de esfuerzo y costo.pdf
+
+estimacion-scrum:
+	@mkdir -p $(BUILD)/estimacion/scrum
+	xelatex -interaction=nonstopmode -halt-on-error \
+		-output-directory=$(BUILD)/estimacion/scrum \
+		sistema/estimacion/scrum/resumen-scrum.tex
+	@mkdir -p "$(ENTREGAS)"
+	@cp "$(BUILD)/estimacion/scrum/resumen-scrum.pdf" "$(PDF_ESTIMACION_SCRUM)"
+	@echo ">> Hoja de resumen (Scrum): $(PDF_ESTIMACION_SCRUM)"
 
 # --- Publicacion del entregable ----------------------------------------
 #  Copia el PDF compilado a entregables/ con el nombre definitivo.
@@ -171,6 +198,8 @@ ayuda:
 	@echo "make verificar  revisa los diagramas y las rutas del proyecto"
 	@echo "make tablero    regenera el tablero kanban desde el backlog"
 	@echo "make tablero-verificar  comprueba que el tablero este al dia"
+	@echo "make estimacion compila la hoja de resumen de la estimacion"
+	@echo "make estimacion-scrum  compila la hoja de resumen con metodologia scrum"
 	@echo "make ver        inspecciona el PDF (paginas, tamano, fuentes)"
 	@echo "make clean      borra archivos auxiliares"
 	@echo "make distclean  borra auxiliares, diagramas y PNG"

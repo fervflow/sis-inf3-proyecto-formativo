@@ -25,8 +25,22 @@ DOCUMENTO = RAIZ / 'sistema' / 'historias-usuario' / 'historias-usuario.md'
 DATOS = RAIZ / 'sistema' / 'historias-usuario' / 'historias-usuario.csv'
 TABLERO = RAIZ / 'sistema' / 'tablero' / 'tablero.md'
 
-COLUMNAS = ['Pendiente', 'En curso', 'En revisión', 'Hecho']
-INICIAL = 'Pendiente'
+COLUMNAS = ['Por hacer', 'En curso', 'En pruebas / QA',
+            'Listo para producción', 'Hecho']
+INICIAL = 'Por hacer'
+
+# Límites de trabajo en curso por columna. None significa que la columna
+# no tiene tope: es la cola de entrada o el histórico, donde acumular no
+# estorba. El límite va escrito en el encabezado de la columna, para que
+# se lea sin necesidad de ninguna extensión.
+LIMITES = {
+    'En curso': 4,
+    'En pruebas / QA': 2,
+    'Listo para producción': 1,
+}
+
+# Sufijo opcional del encabezado: «## En curso (WIP 4)».
+RE_LIMITE = re.compile(r'\s*\(WIP\s+(\d+)\)\s*$')
 
 
 class Error(Exception):
@@ -180,7 +194,9 @@ def leer_tablero():
     for numero, linea in enumerate(texto.splitlines(), 1):
         encabezado = re.match(r'^##\s+(.+?)\s*$', linea)
         if encabezado:
-            actual = encabezado.group(1)
+            # Se descarta el sufijo del límite: «En curso (WIP 4)» es la
+            # columna «En curso».
+            actual = RE_LIMITE.sub('', encabezado.group(1)).strip()
             continue
 
         tarjeta = re.match(
@@ -190,7 +206,8 @@ def leer_tablero():
         if actual not in COLUMNAS:
             raise Error(
                 f'tablero.md, línea {numero}: la tarjeta {tarjeta.group(1)} '
-                f'está en una columna desconocida ({actual or "sin columna"})')
+                f'está en una columna desconocida ({actual or "sin columna"}). '
+                f'Las columnas son: {", ".join(COLUMNAS)}')
         if tarjeta.group(1) in columnas:
             raise Error(
                 f'tablero.md, línea {numero}: tarjeta repetida '
@@ -239,7 +256,9 @@ def construir(historias, datos, estado, ajustes=''):
 
     lineas = ['---', '', 'kanban-plugin: basic', '', '---', '']
     for columna in COLUMNAS:
-        lineas.append(f'## {columna}')
+        limite = LIMITES.get(columna)
+        sufijo = f' (WIP {limite})' if limite else ''
+        lineas.append(f'## {columna}{sufijo}')
         lineas.append('')
         for tarjeta in por_columna[columna]:
             lineas.append(
@@ -254,6 +273,22 @@ def construir(historias, datos, estado, ajustes=''):
         texto += '\n' + ajustes + '\n'
 
     return texto, por_columna, tarjetas
+
+
+def comprobar_wip(por_columna):
+    """Comprueba que ninguna columna supere su límite de trabajo en curso.
+
+    Devuelve la lista de columnas que lo superan, con el detalle.
+    """
+    fallos = []
+    for columna, limite in LIMITES.items():
+        tarjetas = len(por_columna.get(columna, []))
+        if tarjetas > limite:
+            fallos.append(
+                f'«{columna}» tiene {tarjetas} tarjetas y su límite es {limite}: '
+                f'sobran {tarjetas - limite}. Termine o mueva tarjetas antes '
+                f'de tomar trabajo nuevo')
+    return fallos
 
 
 def main():
@@ -280,6 +315,10 @@ def main():
         print(f'AVISO: {sobrante} ya no existe en el backlog y se descarta',
               file=sys.stderr)
 
+    excedidos = comprobar_wip(por_columna)
+    for exceso in excedidos:
+        print(f'ERROR: {exceso}', file=sys.stderr)
+
     if verificar:
         actual = TABLERO.read_text(encoding='utf-8') if TABLERO.exists() else ''
         if actual != contenido:
@@ -287,13 +326,19 @@ def main():
                   'Ejecutá «make tablero».', file=sys.stderr)
             return 1
         print('El tablero está al día.')
+    elif excedidos:
+        print('ERROR: el tablero no se escribe porque hay columnas que '
+              'superan su límite de WIP.', file=sys.stderr)
+        return 1
     else:
         TABLERO.parent.mkdir(parents=True, exist_ok=True)
         TABLERO.write_bytes(contenido.encode('utf-8'))
         print(f'Tablero generado: {TABLERO.relative_to(RAIZ)}')
 
     resumen = ', '.join(
-        f'{columna}: {len(por_columna[columna])}' for columna in COLUMNAS)
+        f'{columna}: {len(por_columna[columna])}'
+        + (f'/{LIMITES[columna]}' if columna in LIMITES else '')
+        for columna in COLUMNAS)
     a = sum(1 for tarjeta in tarjetas if tarjeta['responsable'] == 'A')
     b = len(tarjetas) - a
     print(f'{len(tarjetas)} tarjetas ({a} de A, {b} de B) · {resumen}')

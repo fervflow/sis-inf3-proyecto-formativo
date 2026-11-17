@@ -43,6 +43,8 @@ acción, objetivo general y objetivos específicos.
 | Verificar diagramas y rutas | `make verificar` | — |
 | Regenerar el tablero kanban | `make tablero` | `py sistema/tablero/generar.py` |
 | Verificar el tablero kanban | `make tablero-verificar` | `py sistema/tablero/generar.py --check` |
+| Compilar la hoja de resumen de la estimación | `make estimacion` | `.\build.ps1 -Estimacion` |
+| Compilar la hoja de resumen con metodología Scrum | `make estimacion-scrum` | `.\build.ps1 -EstimacionScrum` |
 | Republish el PDF | `make publicar` | — |
 | Limpiar | `make clean` / `make distclean` | `.\build.ps1 -Limpiar` / `-LimpiarTodo` |
 
@@ -73,6 +75,7 @@ nunca `pdflatex`.
 | Tocar el esquema o las reglas de la base de datos | `sistema/base-de-datos/diccionario-datos.md` |
 | Tocar el backlog de historias de usuario | `sistema/historias-usuario/historias-usuario.md` |
 | Ver o mover el tablero kanban | `sistema/tablero/README.md` |
+| Ver o recalcular la estimación de costos | `sistema/estimacion/README.md` |
 | Registrar un trabajo aceptado | `documentacion/registro-cambios/README.md` |
 | Instalar el entorno en Windows | `documentacion/INSTALACION-WINDOWS.md` |
 | Entender el árbol completo del proyecto | `README.md` |

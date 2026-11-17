@@ -16,7 +16,8 @@ redactarlos hay que respetar el modelo que se describe más abajo.
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables, sin actor ni interfaz |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan HU-03 + HU-05 y HU-07 + HU-13 |
 | `uml/estructural/` | El diagrama de clases y el de objetos, en versión completa y simplificada |
-| `uml/procesos/` | El mapa de actividades con carriles |
+| `uml/casos-uso/` | El diagrama de casos de uso, con sus `include` y `extend` |
+| `uml/procesos/` | El mapa de actividades con carriles, el flujo del tablero Kanban y el proceso de estimación |
 | `tikz/` | El árbol de problemas del Anexo A, dibujado en LaTeX |
 | `estilos/` | `tema-apa.puml`, el tema visual de PlantUML |
 | `otros/` | DER, arquitectura y mockups |
@@ -54,7 +55,8 @@ abrir el archivo.
 
 Los diagramas estructurales (`uml/estructural/`) no representan una historia,
 sino el modelo: su título sigue la forma «Tipo · Descripción», como el del
-mapa de procesos.
+mapa de procesos. El diagrama de casos de uso (`uml/casos-uso/`) lleva el
+mismo tipo de título.
 
 ---
 

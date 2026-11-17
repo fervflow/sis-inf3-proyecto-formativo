@@ -1,0 +1,199 @@
+%% =====================================================================
+%%  resumen-scrum.tex
+%%  Hoja de una pagina con la estimacion de esfuerzo y costo bajo
+%%  metodologia Scrum. Documento autonomo: no usa si3apa7.cls ni entra
+%%  en main.tex.
+%%
+%%  Compilar:  make estimacion-scrum
+%%  Salida:    entregables/Estimacion Scrum de esfuerzo y costo.pdf
+%% =====================================================================
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage[
+  letterpaper,
+  top=1.6cm, bottom=1.4cm, left=1.9cm, right=1.9cm
+]{geometry}
+\usepackage{fontspec}
+\IfFontExistsTF{Arial}
+  {\setmainfont{Arial}\setsansfont{Arial}}
+  {\setmainfont{Liberation Sans}\setsansfont{Liberation Sans}}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage[hidelinks]{hyperref}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\renewcommand{\arraystretch}{1.03}
+\setlist{nosep,leftmargin=1.1em}
+
+\definecolor{azul}{HTML}{1F3A5F}
+\definecolor{gris}{HTML}{555555}
+\definecolor{linea}{HTML}{BBBBBB}
+\definecolor{borde}{HTML}{5A6B80}
+\definecolor{relleno}{HTML}{F2F5F9}
+
+% --- Encabezados ------------------------------------------------------
+\newcommand{\seccion}[1]{%
+  \par\vspace{6pt}%
+  {\color{azul}\bfseries\large #1}\par
+  \vspace{1pt}%
+  {\color{linea}\hrule height 0.6pt}\vspace{3pt}%
+}
+
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\RaggedLeft\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% --- Cajas del flujo del sprint ----------------------------------------
+\newcommand{\caja}[3][]{%
+  \node[draw=borde, fill=relleno, rounded corners=2pt, line width=0.5pt,
+        inner sep=2.5pt, align=center, font=\scriptsize, #1] (#2) {#3};}
+
+\begin{document}
+
+% =====================================================================
+{\color{azul}\bfseries\LARGE Estimación de esfuerzo y costo}\par
+\vspace{1pt}
+{\large Metodología Scrum \textperiodcentered\ Sistema web de gestión de paquetes
+turísticos y reservas \textperiodcentered\ Vizcacha Tours, Potosí}\par
+\vspace{2pt}
+{\small\color{gris} Sprint 1 del 12 al 25 de noviembre de 2026 \textperiodcentered\
+17 de noviembre de 2026 \textperiodcentered\ 1,18 mes-persona \textperiodcentered\
+5.875 Bs}\par
+\vspace{2pt}
+{\color{linea}\hrule height 0.6pt}\vspace{3pt}
+
+% =====================================================================
+\seccion{1. El sprint 1 y su compromiso}
+
+{\small
+\begin{tabular}{@{}L{0.36\textwidth}L{0.30\textwidth}L{0.28\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries Concepto} & {\color{azul}\bfseries Cálculo} &
+{\color{azul}\bfseries Valor} \\
+\midrule
+Duración & 10 días hábiles & del 12 al 25 de noviembre \\
+Equipo & 2 desarrolladores (RE y EV) × 4 h por día & 8 h-persona por día \\
+Capacidad del sprint & 10 días × 8 h & 80 h-persona \\
+Capacidad en puntos & 80 h ÷ 4 h por punto & 20 puntos \\
+Compromiso inicial & HU-08, HU-01 y HU-04 & 8 puntos \\
+Ampliación a mitad de sprint & HU-02, HU-03, HU-10 y HU-05 & +9 puntos \\
+\textbf{Compromiso del sprint} & 8 + 9 & \textbf{17 puntos} \\
+Estado al 17 de noviembre & 7 tareas terminadas, 4 historias en curso & 8 pts entregados \\
+\bottomrule
+\end{tabular}}
+
+\vspace{2pt}
+{\small\color{gris} El compromiso ocupa el 85 \% de la capacidad del sprint: hay
+margen para imprevistos, pero no para ampliar más.}
+
+% =====================================================================
+\seccion{2. El flujo del sprint}
+
+\begin{center}
+\begin{tikzpicture}[
+  font=\scriptsize,
+  flecha/.style={-{Stealth[length=3pt,width=3pt]}, draw=borde,
+                 line width=0.5pt, shorten >=2pt, shorten <=2pt},
+  rotulo/.style={font=\tiny\itshape, text=gris, inner sep=1pt}]
+  \caja{bl}{Backlog del producto\\17 historias \textperiodcentered\ 47 puntos}
+  \caja[right=14mm of bl]{sp}{Sprint 1\\7 historias \textperiodcentered\ 17 pts}
+  \caja[right=10mm of sp]{ec}{En curso\\4 historias}
+  \caja[right=10mm of ec]{re}{Revisión}
+  \caja[right=10mm of re]{he}{Hecho\\8 pts \textperiodcentered\ incremento}
+
+  % Frontera del sprint: línea vertical punteada entre el backlog y el sprint.
+  \coordinate (frontera) at ($(bl.east)!0.5!(sp.west)$);
+  \draw[gris, dashed, line width=0.6pt]
+    ($(frontera)+(0,-0.62)$) -- ($(frontera)+(0,0.62)$);
+
+  \draw[flecha] (bl.east) -- node[rotulo, above, xshift=9pt] {compromete} (sp.west);
+  \draw[flecha] (sp.east) -- node[rotulo, above] {toma} (ec.west);
+  \draw[flecha] (ec.east) -- node[rotulo, above] {termina} (re.west);
+  \draw[flecha] (re.east) -- node[rotulo, above] {acepta} (he.west);
+  \draw[flecha, dashed] (he.south) -- ++(0,-0.62)
+        -- node[rotulo, below] {se planifica el sprint 2} ($(bl.south)+(0,-0.62)$)
+        -- (bl.south);
+\end{tikzpicture}
+\end{center}
+
+\vspace{-4pt}
+{\small\color{gris} La línea punteada marca la frontera del sprint: lo que está
+a su derecha se entrega el 25 de noviembre como incremento, y lo que queda a
+la izquierda vuelve al backlog del producto.}
+
+% =====================================================================
+\seccion{3. La estimación del alcance completo}
+
+{\small
+\begin{tabular}{@{}L{0.34\textwidth}L{0.32\textwidth}R{0.28\textwidth}@{}}
+\toprule
+\rowcolor{azul!8}
+{\color{azul}\bfseries Magnitud} & {\color{azul}\bfseries Cálculo} &
+{\color{azul}\bfseries Valor} \\
+\midrule
+Esfuerzo unitario & 32 h ÷ 8 puntos entregados & 4,00 h por punto \\
+Esfuerzo del alcance & 32 h + 39 pts × 4,00 h & 188 h-persona \\
+En mes-persona & 188 h ÷ 160 h & 1,18 mes-persona \\
+\textbf{Costo} & 1,18 × 5.000 Bs & \textbf{5.875 Bs} \\
+Velocidad por sprint & 80 h ÷ 4 h por punto & 20 pts \\
+Sprints del alcance & 47 pts ÷ 20 pts por sprint & 2,35 sprints \\
+Cierre estimado & 23,5 días hábiles de trabajo & 15/12/2026 \\
+Costo del sprint 1 & 0,50 mes-persona × 5.000 Bs & 2.500 Bs \\
+\bottomrule
+\end{tabular}}
+
+\vspace{2pt}
+{\small\color{gris} La velocidad de 20 puntos es la que corresponde a la
+capacidad completa del sprint: se confirma en la revisión del 25 de
+noviembre. Si el sprint cierra por debajo, los sprints del alcance suben y
+la fecha se retrasa.}
+
+% =====================================================================
+\seccion{4. Qué se revisa el 25 de noviembre}
+
+\begin{minipage}[t]{0.49\textwidth}
+{\small\textbf{Riesgos de la estimación}\par}
+\vspace{2pt}
+{\small
+\begin{itemize}
+\item \textbf{Velocidad sin medir.} 20 puntos es la capacidad, no un
+  promedio observado.
+\item \textbf{Muestra mínima.} El ritmo se midió en 4 días hábiles.
+\item \textbf{Poco margen.} El compromiso ocupa el 85 \% de la capacidad.
+\item \textbf{Ampliación a mitad de sprint.} Admisible mientras no
+  comprometa el objetivo del sprint.
+\end{itemize}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+{\small\textbf{Métricas de la revisión}\par}
+\vspace{2pt}
+{\small
+\begin{itemize}
+\item \textbf{Velocidad real:} puntos cerrados en el sprint.
+\item \textbf{Burndown:} puntos restantes frente a los días que quedan.
+\item \textbf{Trabajo sin terminar:} lo que se arrastra al sprint 2.
+\item \textbf{Objetivo:} si el MVP está completo y es usable.
+\end{itemize}}
+\end{minipage}
+
+\vspace{4pt}
+{\color{linea}\hrule height 0.6pt}\vspace{3pt}
+{\footnotesize\color{gris}
+Estimación fechada el 17 de noviembre de 2026. Unidades: 1 día-persona = 4 h;
+1 mes-persona = 160 h (tiempo completo); tarifa = 5.000 Bs por mes-persona
+(31,25 Bs/h); tamaño relativo = 1 punto de historia (escala Fibonacci).
+Para recalcularla:
+\texttt{Esfuerzo restante = puntos pendientes × (horas-persona gastadas ÷ puntos cerrados)}.
+No cubre el mantenimiento posterior al despliegue, ni el costo del hardware,
+ni el esfuerzo de documentación y pruebas como tareas aparte.}
+
+\end{document}

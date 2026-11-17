@@ -1,0 +1,71 @@
+@startuml
+title Flujo del tablero Kanban · Sistema de gestión de paquetes turísticos y reservas
+' Recorrido de una tarjeta por el tablero. El limite de trabajo en curso va
+' en el encabezado de cada columna y es lo que impone la politica de pull.
+hide footbox
+skinparam ArrowColor #333333
+skinparam ArrowFontSize 10
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  FontSize 11
+  FontName Arial
+}
+
+state "Por hacer" as PorHacer
+state "En curso\n(WIP 4)" as EnCurso
+state "En pruebas / QA\n(WIP 2)" as EnPruebas
+state "Listo para producción\n(WIP 1)" as Listo
+state "Hecho" as Hecho
+
+[*] --> PorHacer
+PorHacer --> EnCurso : se toma la tarjeta\n<<cuando hay cupo en «En curso»>>
+EnCurso --> EnPruebas : la tarea está terminada\ny pasa a revisión
+EnPruebas --> EnCurso : la revisión no pasa\n<<se devuelve con el motivo>>
+EnPruebas --> Listo : la revisión pasa
+Listo --> Hecho : se publica
+Hecho --> [*]
+
+note right of EnCurso
+  Limite de 4 tarjetas en curso:
+  dos por desarrollador.
+  Es el limite que fija el
+  rendimiento maximo del equipo.
+end note
+
+note right of EnPruebas
+  Limite de 2 tarjetas en revision.
+  Si la cola se llena, el equipo
+  deja de tomar trabajo nuevo y
+  el problema se ve en el tablero.
+end note
+
+note bottom of Listo
+  Limite de 1: un solo candidato
+  a publicacion a la vez.
+end note
+
+note bottom of PorHacer
+  Cola de entrada, sin limite.
+  Acumular aqui no estorba: es
+  donde debe sobrar el trabajo.
+end note
+
+legend right
+  | Metricas que se miden
+  | * Throughput: tarjetas que
+  |   salen de «Hecho» por semana.
+  | * Tiempo de ciclo: dias entre
+  |   entrar en «En curso» y
+  |   llegar a «Hecho».
+  | * Espera: dias dentro de
+  |   «En pruebas / QA».
+  | * Puntos cerrados: suma de los
+  |   puntos de las historias
+  |   cerradas, por la regla de
+  |   cierre de historias.
+  | --
+  | Ley de Little:
+  | WIP = Throughput x Ciclo
+end legend
+@enduml

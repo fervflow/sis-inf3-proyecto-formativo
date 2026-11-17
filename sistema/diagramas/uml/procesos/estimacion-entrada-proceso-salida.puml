@@ -1,0 +1,65 @@
+@startuml
+title Estimación de costos · Entradas, proceso y salidas
+' Diagrama de entrada-proceso-salida del proceso de estimacion. Las tres
+' entradas de la izquierda son las que se leen del backlog y del tablero; el
+' proceso es el calculo; las salidas de la derecha son las cifras que se
+' declaran en el informe.
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+rectangle "Alcance del sistema\n17 historias de usuario\n47 pts · 39 tareas" as E1 <<entrada>>
+rectangle "Ritmo medido\n1,75 tareas por dia\n4,00 h-persona por punto" as E2 <<entrada>>
+rectangle "Condiciones del equipo\n2 desarrolladores\n4 h por dia habil" as E3 <<entrada>>
+rectangle "Tarifa\n5.000 Bs por\nmes-persona" as E4 <<entrada>>
+
+rectangle "Proceso de estimacion" {
+  rectangle "Esfuerzo unitario\nhoras-persona por punto" as P1
+  rectangle "Proyeccion\npuntos pendientes x\nhoras-persona por punto" as P2
+  rectangle "Esfuerzo total\nhoras-persona / 160\n= mes-persona" as P3
+  rectangle "Costo\nesfuerzo x tarifa" as P4
+  rectangle "Plazo\nhoras-persona / horas\npor dia de equipo" as P5
+}
+
+rectangle "Esfuerzo total\n188 horas-persona\n1,18 mes-persona" as S1 <<salida>>
+rectangle "Costo estimado\n5.875 Bs" as S2 <<salida>>
+rectangle "Cierre estimado\n15/12/2026\n2,35 ventanas" as S3 <<salida>>
+rectangle "Costo del MVP\n2.500 Bs\n(ventana 1)" as S4 <<salida>>
+
+E1 --> P1
+E2 --> P1
+E3 --> P2
+E4 --> P4
+P1 --> P2
+P2 --> P3
+P3 --> P4
+P3 --> P5
+P4 --> S2
+P5 --> S3
+P3 --> S1
+P2 --> S4
+
+note bottom of E2
+  Se mide del tablero kanban:
+  tareas en «Hecho» y horas
+  acumuladas desde el inicio.
+  Es el dato que se vuelve a
+  medir en cada ventana.
+end note
+
+note bottom of P1
+  Es el indicador que hace
+  falta para estimar alcance
+  nuevo: si se agrega una
+  historia de 3 puntos, se
+  agregan 12 horas-persona.
+end note
+
+note bottom of P3
+  El mes-persona es de tiempo
+  completo (160 h). La
+  dedicacion parcial alarga el
+  plazo, no abarata a la
+  persona.
+end note
+@enduml

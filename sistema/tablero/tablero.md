@@ -4,25 +4,14 @@ kanban-plugin: basic
 
 ---
 
-## Pendiente
+## Por hacer
 
-- [ ] **T-HU-08.1** Crear el inicio de sesión y validar las credenciales. · HU-08 · A · Alta/Alto
-- [ ] **T-HU-08.2** Aplicar permisos de administrador y personal de ventas/reservas. · HU-08 · A · Alta/Alto
-- [ ] **T-HU-08.3** Comprobar accesos válidos, inválidos y sin autorización. · HU-08 · A · Alta/Alto
 - [ ] **T-HU-15.1** Registrar la cuenta del cliente con correo, documento, nombre y teléfono, sin repetir el documento ni duplicar la ficha. · HU-15 · B · Alta/Alto
 - [ ] **T-HU-15.2** Vincular la cuenta con la ficha del cliente y mostrarle solo sus reservas, sus pagos y el estado de sus solicitudes. · HU-15 · B · Alta/Alto
 - [ ] **T-HU-15.3** Comprobar el acceso del cliente, el bloqueo de la cuenta y la restricción a información ajena. · HU-15 · B · Alta/Alto
-- [ ] **T-HU-01.1** Registrar y editar paquetes con destino, itinerario, servicios y precio. · HU-01 · A · Alta/Medio
-- [ ] **T-HU-01.2** Mostrar el listado y validar campos obligatorios y precios. · HU-01 · A · Alta/Medio
-- [ ] **T-HU-02.1** Registrar las fechas de salida y la capacidad de cada paquete. · HU-02 · A · Alta/Alto
 - [ ] **T-HU-02.2** Validar cupos positivos y evitar salidas duplicadas. · HU-02 · A · Alta/Alto
-- [ ] **T-HU-03.1** Consultar cupos por paquete y fecha de salida, desde la web o en la oficina. · HU-03 · A · Alta/Medio
 - [ ] **T-HU-03.2** Calcular los disponibles descontando las reservas pendientes y confirmadas, y comprobar el resultado. · HU-03 · A · Alta/Medio
-- [ ] **T-HU-04.1** Registrar clientes con documento y datos de contacto, evitando duplicados. · HU-04 · B · Alta/Medio
-- [ ] **T-HU-04.2** Consultar y actualizar la información de los clientes. · HU-04 · B · Alta/Medio
-- [ ] **T-HU-10.1** Registrar, consultar y editar proveedores de servicios. · HU-10 · B · Media/Bajo
 - [ ] **T-HU-10.2** Vincular uno o varios proveedores a los paquetes turísticos. · HU-10 · B · Media/Bajo
-- [ ] **T-HU-05.1** Seleccionar cliente y paquete y calcular el precio de la cotización. · HU-05 · B · Media/Medio
 - [ ] **T-HU-05.2** Mostrar servicios, importe y condiciones, sin descontar cupos. · HU-05 · B · Media/Medio
 - [ ] **T-HU-06.1** Crear una reserva desde la atención del personal o como solicitud del cliente, con su origen, el cliente, la salida y la cantidad de pasajeros. · HU-06 · A · Alta/Alto
 - [ ] **T-HU-06.2** Verificar los cupos antes de guardar y rechazar las reservas que excedan la capacidad. · HU-06 · A · Alta/Alto
@@ -46,8 +35,23 @@ kanban-plugin: basic
 - [ ] **T-HU-16.1** Generar el aviso al cliente afectado cuando cambia la fecha o la capacidad de una salida. · HU-16 · B · Alta/Medio
 - [ ] **T-HU-16.2** Mostrar el aviso con el valor anterior y el nuevo, y comprobar que solo lo vea el cliente afectado. · HU-16 · B · Alta/Medio
 
-## En curso
+## En curso (WIP 4)
 
-## En revisión
+- [ ] **T-HU-02.1** Registrar las fechas de salida y la capacidad de cada paquete. · HU-02 · A · Alta/Alto
+- [ ] **T-HU-03.1** Consultar cupos por paquete y fecha de salida, desde la web o en la oficina. · HU-03 · A · Alta/Medio
+- [ ] **T-HU-10.1** Registrar, consultar y editar proveedores de servicios. · HU-10 · B · Media/Bajo
+- [ ] **T-HU-05.1** Seleccionar cliente y paquete y calcular el precio de la cotización. · HU-05 · B · Media/Medio
+
+## En pruebas / QA (WIP 2)
+
+## Listo para producción (WIP 1)
 
 ## Hecho
+
+- [ ] **T-HU-08.1** Crear el inicio de sesión y validar las credenciales. · HU-08 · A · Alta/Alto
+- [ ] **T-HU-08.2** Aplicar permisos de administrador y personal de ventas/reservas. · HU-08 · A · Alta/Alto
+- [ ] **T-HU-08.3** Comprobar accesos válidos, inválidos y sin autorización. · HU-08 · A · Alta/Alto
+- [ ] **T-HU-01.1** Registrar y editar paquetes con destino, itinerario, servicios y precio. · HU-01 · A · Alta/Medio
+- [ ] **T-HU-01.2** Mostrar el listado y validar campos obligatorios y precios. · HU-01 · A · Alta/Medio
+- [ ] **T-HU-04.1** Registrar clientes con documento y datos de contacto, evitando duplicados. · HU-04 · B · Alta/Medio
+- [ ] **T-HU-04.2** Consultar y actualizar la información de los clientes. · HU-04 · B · Alta/Medio

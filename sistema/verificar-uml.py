@@ -32,13 +32,14 @@ DECL = re.compile(
 MSG = re.compile(r'^\s*([\w]+)\s*(?:-+>?|>>?-)\s*([\w]+)\s*:')
 
 CARPETAS = ['secuencia', 'secuencia-light', 'secuencia-comunes',
-            'secuencia-fusionados', 'procesos']
+            'secuencia-fusionados']
 
 # --- Diagramas estructurales -------------------------------------------
-# Declaracion: class|enum|object, con etiqueta opcional y alias opcional.
+# Declaracion: class|enum|object|usecase|actor|state|rectangle, con etiqueta
+# opcional y alias opcional.
 DECL_ESTRUCT = re.compile(
-    r'^\s*(?:class|enum|object|interface|abstract)\s+'
-    r'(?:"[^"]+"\s+as\s+)?(\w+)')
+    r'^\s*(?:class|enum|object|interface|abstract|usecase|actor|state'
+    r'|rectangle)\s+(?:"[^"]+"\s+as\s+)?(\w+)')
 # Relacion: A [multiplicidad] operador [multiplicidad] B [: etiqueta]
 # Se admiten <--, --, *--, --> y ..> (dependencia).
 REL_ESTRUCT = re.compile(
@@ -46,7 +47,7 @@ REL_ESTRUCT = re.compile(
     r'(?:<--|\*--|-->|\.\.>|--)\s*'
     r'(?:"[^"]*"\s*)?(\w+)\s*(?::.*)?$')
 
-CARPETAS_ESTRUCT = ['estructural']
+CARPETAS_ESTRUCT = ['estructural', 'procesos', 'casos-uso']
 
 
 def analizar(ruta):

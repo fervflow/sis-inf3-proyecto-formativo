@@ -1,0 +1,70 @@
+@startuml
+title Diagrama de casos de uso · Sistema de gestión de paquetes turísticos y reservas
+' Los 17 casos de uso del backlog se agrupan en 14 casos de uso del
+' sistema: lo que el actor quiere conseguir, no las tareas internas.
+left to right direction
+actor "Cliente (turista)" as CLI
+actor "Personal de agencia" as PER
+actor "Administrador" as ADM
+
+usecase "Acceder al sistema" as UC1
+usecase "Abrir cuenta de cliente" as UC2
+usecase "Administrar la oferta" as UC3
+usecase "Programar y modificar salidas" as UC4
+usecase "Consultar disponibilidad" as UC5
+usecase "Elaborar cotización" as UC6
+usecase "Registrar reserva" as UC7
+usecase "Registrar pasajeros" as UC8
+usecase "Gestionar la reserva" as UC9
+usecase "Confirmar solicitudes" as UC10
+usecase "Cancelar reserva" as UC11
+usecase "Registrar y validar pagos" as UC12
+usecase "Consultar reportes" as UC13
+usecase "Recibir avisos de cambios" as UC14
+
+CLI -- UC1
+CLI -- UC2
+CLI -- UC5
+CLI -- UC7
+CLI -- UC8
+CLI -- UC11
+CLI -- UC12
+CLI -- UC14
+
+PER -- UC1
+PER -- UC5
+PER -- UC6
+PER -- UC7
+PER -- UC8
+PER -- UC9
+PER -- UC10
+PER -- UC11
+PER -- UC12
+PER -- UC13
+
+ADM -- UC1
+ADM -- UC3
+ADM -- UC4
+ADM -- UC13
+
+' --- Relaciones entre casos de uso ------------------------------------
+UC6 ..> UC5 : <<include>>
+UC7 ..> UC5 : <<include>>
+UC7 ..> UC8 : <<include>>
+UC13 ..> UC5 : <<include>>
+UC10 ..> UC9 : <<extend>>
+UC11 ..> UC9 : <<extend>>
+UC12 ..> UC9 : <<extend>>
+UC14 ..> UC4 : <<extend>>
+
+note right of UC9
+  Gestionar la reserva es el caso
+  general. Tres acciones lo
+  extienden con su precondición:
+  confirmar (pendiente y dentro
+  del plazo), cancelar (no
+  finalizada) y registrar pagos
+  (reserva confirmada).
+end note
+
+@enduml
