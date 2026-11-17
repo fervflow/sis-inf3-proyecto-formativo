@@ -12,7 +12,7 @@ formato APA 7 adaptado por la cátedra.
 
 | Carpeta | Contenido |
 |---|---|
-| `configuracion/` | `metadatos.tex` (título, autor, docente, gestión) y `portada.tex` |
+| `configuracion/` | `metadatos.tex` (título, autores, docente, gestión) y `portada.tex` |
 | `preliminares/` | El resumen, que es el único preliminar incluido. Los demás archivos quedan como respaldo |
 | `capitulos/` | Las secciones 01 a 11 del informe |
 | `finales/` | `referencias.tex`, `glosario.tex` y `anexos.tex` |
@@ -83,6 +83,13 @@ el formato desde los capítulos.
 - `\chapter` está parcheado en `si3apa7.cls` para no ejecutar `\clearpage`;
   se reemplaza por `\par`. No revertir este parche sin revisar los saltos de
   página.
+- La colocación de los títulos está parcheada en `si3apa7.cls`. `titlesec`
+  y `tocloft` arman el título con `\vspace*`, un espacio que no es
+  descartable: el hueco sobrevive aunque el título quede al principio de
+  una página y no se permite cortar antes del título, lo que obliga a
+  partir el párrafo anterior dejando una sola línea en la página
+  siguiente. El parche usa `\addvspace` (descartable) y añade
+  `\@secpenalty`, que es la solución que LaTeX ya aplica a las secciones.
 - `\iniciarSeccionesFinales` cambia el formato de `\chapter` a centrado antes
   de referencias, glosario y anexos.
 - `\preliminar` genera títulos centrados para resumen y glosario.

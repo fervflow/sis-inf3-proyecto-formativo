@@ -170,7 +170,8 @@ Edite `informe/configuracion/metadatos.tex`:
 
 ```latex
 \newcommand{\titulo}{Mi nuevo título}
-\newcommand{\autor}{Mi Nombre}
+\newcommand{\autorUno}{Nombre del primer autor}
+\newcommand{\autorDos}{Nombre del segundo autor}
 \newcommand{\docente}{Nombre del docente}
 \newcommand{\gestion}{2026}
 ```

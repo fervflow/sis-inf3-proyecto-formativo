@@ -189,7 +189,7 @@ proyecto-formativo/
 
 | Archivo | ¿Editar? | Para qué |
 |---|---|---|
-| `informe/configuracion/metadatos.tex` | Sí | Portada, autor, docente, gestión |
+| `informe/configuracion/metadatos.tex` | Sí | Portada, autores, docente, gestión |
 | `informe/capitulos/*.tex` | Sí | Contenido del informe |
 | `informe/bibliografia/referencias.bib` | Sí | Agregar fuentes |
 | `informe/finales/glosario.tex` | Sí | Términos y acrónimos |
@@ -211,9 +211,9 @@ proyecto-formativo/
 
 ### 4.1 Datos generales
 
-Edite **`informe/configuracion/metadatos.tex`**: título, subtítulo, autor, registro,
-docente, gestión, ciudad y fecha de entrega. La portada, los metadatos del
-PDF y la bibliografía se actualizan solos.
+Edite **`informe/configuracion/metadatos.tex`**: título, subtítulo, autores
+(`\autorUno` y `\autorDos`), docente, gestión, ciudad y fecha de entrega. La
+portada, los metadatos del PDF y la bibliografía se actualizan solos.
 
 ### 4.2 Secciones principales
 

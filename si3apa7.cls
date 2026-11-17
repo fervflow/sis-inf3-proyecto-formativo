@@ -249,6 +249,56 @@
 \setlength{\cftafterloftitleskip}{1\baselineskip}
 
 %% ---------------------------------------------------------------------
+%%  Colocacion de los titulos: sin huecos y con cortes de pagina
+%%
+%%  titlesec arma el titulo de capitulo con \vspace*, un espacio que no
+%%  es descartable. Por eso el espacio sobrevive aunque el titulo quede
+%%  al principio de una pagina (queda un hueco en blanco sobre el
+%%  titulo) y, ademas, no se puede cambiar de pagina justo antes del
+%%  titulo: el parrafo anterior se ve obligado a partirse y deja una
+%%  sola linea en la pagina siguiente.
+%%
+%%  Se sustituye por la solucion que LaTeX ya aplica a las secciones:
+%%  el espacio se agrega con \addvspace (descartable, de modo que
+%%  desaparece al inicio de la pagina) y se precede del castigo
+%%  \@secpenalty, que permite el corte de pagina antes del titulo.
+%%
+%%  tocloft construye los titulos de los indices (indice, indice de
+%%  tablas e indice de figuras) con el mismo \vspace*, asi que se
+%%  corrigen de la misma manera.
+%%
+%%  Nota: en un archivo .cls el caracter @ ya es de tipo letra, de modo
+%%  que no se usa \makeatletter ni \makeatother en este bloque.
+%% ---------------------------------------------------------------------
+\patchcmd{\ttl@mkchap@i}
+  {\vspace*{\@tempskipa}}
+  {\addpenalty{\@secpenalty}\addvspace{\@tempskipa}}
+  {}
+  {\PackageWarning{si3apa7}{%
+     No se pudo ajustar la colocacion de los titulos de capitulo}}
+
+\patchcmd{\@cftmaketoctitle}
+  {\vspace*{\cftbeforetoctitleskip}}
+  {\addvspace{\cftbeforetoctitleskip}}
+  {}
+  {\PackageWarning{si3apa7}{%
+     No se pudo ajustar la colocacion del titulo del indice}}
+
+\patchcmd{\@cftmakelottitle}
+  {\vspace*{\cftbeforelottitleskip}}
+  {\addvspace{\cftbeforelottitleskip}}
+  {}
+  {\PackageWarning{si3apa7}{%
+     No se pudo ajustar la colocacion del titulo del indice de tablas}}
+
+\patchcmd{\@cftmakeloftitle}
+  {\vspace*{\cftbeforeloftitleskip}}
+  {\addvspace{\cftbeforeloftitleskip}}
+  {}
+  {\PackageWarning{si3apa7}{%
+     No se pudo ajustar la colocacion del titulo del indice de figuras}}
+
+%% ---------------------------------------------------------------------
 %%  Tablas y figuras con formato APA
 %% ---------------------------------------------------------------------
 \RequirePackage{graphicx}
