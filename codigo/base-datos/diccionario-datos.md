@@ -48,6 +48,9 @@ CREATE SCHEMA turismo;
 | `reserva` | `origen` | Canal de ingreso: `personal` o `web`. Permite conocer de qué vía proviene cada reserva sin duplicar el proceso. |
 | `reserva` | `fecha_expiracion` | Fecha límite para confirmar la reserva pendiente. Por omisión, `now() + 48 horas`. |
 | `reserva` | `estado = 'vencida'` | Resultado del vencimiento por falta de confirmación. |
+| `reserva` | `fecha_solicitud_cancelacion` | Marca que el cliente pidió la cancelación. El estado de la reserva no cambia hasta que el personal la ejecuta. |
+| `pago` | `estado` | `registrado`, `validado` o `anulado`. Un pago registrado por el cliente queda `registrado` hasta que el personal lo valida. |
+| `pago` | `id_usuario_validacion`, `fecha_validacion` | Usuario que validó el pago y fecha de la validación. |
 
 Índices asociados:
 
@@ -69,6 +72,7 @@ CREATE SCHEMA turismo;
 | `reserva.origen` | `personal`, `web` |
 | `pago.tipo` | `anticipo`, `saldo` |
 | `pago.metodo` | `efectivo`, `transferencia`, `tarjeta`, `otro` |
+| `pago.estado` | `registrado`, `validado`, `anulado` |
 
 ## Reglas de negocio reflejadas en el esquema
 
@@ -99,8 +103,14 @@ CREATE SCHEMA turismo;
     pendientes para la misma salida. Una necesidad adicional se resuelve
     modificando la solicitud existente.
 11. **El pago del cliente no confirma la reserva.** El pago registrado desde
-    el acceso directo del cliente queda pendiente de validación del personal,
-    igual que el resto de los pagos.
+    el acceso directo del cliente queda en estado `registrado` hasta que el
+    personal lo valida. El saldo pendiente se calcula sobre los pagos
+    `validados`, de modo que un pago no verificado todavía no se considera
+    cobrado.
+12. **La cancelación del cliente es una solicitud.** El cliente registra su
+    petición en `reserva.fecha_solicitud_cancelacion`; el estado de la
+    reserva no cambia hasta que el personal ejecuta la cancelación, registra
+    el motivo y la fecha.
 
 ## Concurrencia
 
@@ -147,7 +157,7 @@ confirmar la reserva, porque el plazo deja de correr.
 | Vista | Uso |
 |---|---|
 | `vista_disponibilidad_salida` | Consulta de cupos para HU-03, HU-05 y HU-06. Separa pasajeros pendientes de confirmados y expone `cupo_disponible_sin_pendientes`. |
-| `vista_saldo_reserva` | Anticipo, saldo pagado y saldo pendiente para HU-07 y HU-14. |
+| `vista_saldo_reserva` | Anticipo, saldo pagado, total validado y saldo pendiente para HU-07 y HU-14. El saldo pendiente se calcula sobre los pagos validados. |
 | `vista_reservas_por_fecha` | Reporte de ocupación y reservas por fecha para HU-11. Distingue pendientes, confirmadas y vencidas. |
 
 ## Supuestos de esta primera versión

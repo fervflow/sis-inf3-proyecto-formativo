@@ -1,27 +1,35 @@
 @startuml
 ' Mapa de procesos · Sistema de paquetes turísticos y reservas
+' Dos canales de atención (consulta y solicitud directa del cliente, y
+' atención del personal) que desembocan en el mismo proceso validado.
 skinparam ActivityFontName Arial
 skinparam ActivityFontSize 11
 skinparam ActivityBackgroundColor #FFFFFF
 skinparam ActivityBorderColor #333333
 skinparam ArrowColor #333333
-skinparam swimlaneWidth 220
+skinparam swimlaneWidth 230
 
 |Turista|
 start
 :Consulta paquetes, fechas y cupos\n(HU-03);
-|Personal|
-:Prepara la cotización\n(HU-05);
-|Turista|
-if (¿Acepta la cotización?) then (sí)
-  :Solicita la reserva\n(HU-06);
+if (¿Necesita cotización formal?) then (sí)
+  |Personal|
+  :Prepara la cotización\n(HU-05);
+  |Turista|
+  if (¿Acepta la cotización?) then (sí)
+    :Solicita la reserva\n(HU-06);
+  else (no)
+    :Fin de la consulta;
+    stop
+  endif
 else (no)
-  :Fin de la consulta;
-  stop
+  :Solicita la reserva\n(HU-06);
 endif
+:Registra su pago\n(HU-14);
 
 |Personal|
-:Registra la reserva\ny el anticipo\n(HU-06, HU-14);
+:Revisa y valida el pago\n(HU-14);
+:Confirma la solicitud\ndentro del plazo\n(HU-17);
 :Realiza el seguimiento\n(HU-07);
 if (¿Cancela la reserva?) then (sí)
   :Cancela la reserva\ny libera el cupo\n(HU-13);
@@ -31,9 +39,11 @@ endif
 
 |Administrador|
 :Supervisa y modifica\nfechas o capacidad\n(HU-09);
+:Avisa a los clientes\nafectados (HU-16);
 
 |Sistema|
 :Valida cupos, saldos\ne historiales;
+:Vence las solicitudes\nsin confirmar (HU-17);
 
 stop
 
@@ -41,8 +51,10 @@ legend right
   Actividades de soporte:
   HU-01 Paquetes turísticos
   HU-02 Salidas y cupos
-  HU-04 y HU-12 Clientes y pasajeros
+  HU-04 Ficha del cliente
+  HU-12 Pasajeros
   HU-10 Proveedores
   HU-11 Reportes
+  HU-15 Cuenta de cliente
 end legend
 @enduml

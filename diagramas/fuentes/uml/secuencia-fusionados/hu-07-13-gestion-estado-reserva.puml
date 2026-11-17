@@ -1,5 +1,8 @@
 @startuml
 ' HU-07 + HU-13 · Gestión del estado de la reserva (variante fusionada)
+' El cliente solicita la cancelación y el personal la ejecuta. La
+' confirmación y el vencimiento de las solicitudes también se gestionan
+' desde aquí (HU-17).
 hide footbox
 autonumber
 skinparam maxMessageSize 160
@@ -25,7 +28,7 @@ T_RESERVA --> E_RESERVA : reserva actual
 E_RESERVA --> CTRL : datos y estado
 
 CTRL -> E_PAGO : obtenerPagos(idReserva)
-E_PAGO -> T_PAGO : SELECT tipo, monto
+E_PAGO -> T_PAGO : SELECT tipo, monto, estado
 T_PAGO --> E_PAGO : anticipo y saldo
 E_PAGO -> E_PAGO : calcularSaldo(monto_total)
 E_PAGO --> CTRL : pagos y saldo
@@ -33,8 +36,8 @@ CTRL --> UI : ficha con estado y saldo
 UI --> PER : estado y saldo
 UI --> ADM : ficha para supervisión
 
-alt Confirmar o finalizar
-    PER -> UI : selecciona nuevo estado
+alt Confirmar, finalizar o actualizar
+    PER -> UI : selecciona el nuevo estado
     UI -> CTRL : confirmarEstado(idReserva, nuevoEstado)
 
     alt Transición no permitida
@@ -51,14 +54,21 @@ alt Confirmar o finalizar
         CTRL --> UI : estado actualizado
         UI --> PER : confirmación
     end
-else Cancelar reserva
-    TUR -> PER : solicita cancelación
+else Solicitar y ejecutar una cancelación
+    TUR -> UI : solicita cancelar su reserva
+    UI -> CTRL : solicitarCancelacion(idReserva)
+    CTRL -> E_RESERVA : registrarSolicitudCancelacion()
+    E_RESERVA -> T_RESERVA : UPDATE fecha_solicitud_cancelacion
+    T_RESERVA --> E_RESERVA : fila actualizada
+    CTRL --> UI : solicitud registrada
+    UI --> TUR : el personal ejecutará la cancelación
+
     PER -> UI : confirma cancelación y motivo
-    UI -> CTRL : cancelarReserva(idReserva, motivo)
+    UI -> CTRL : ejecutarCancelacion(idReserva, motivo)
 
     alt Estado no cancelable
         CTRL --> UI : error «La reserva no se puede cancelar»
-        UI --> PER : informar al turista
+        UI --> PER : informar al cliente
     else Estado cancelable
         CTRL -> E_RESERVA : cambiarEstado(cancelada, motivo)
         E_RESERVA -> T_RESERVA : UPDATE estado, motivo y fecha_cancelacion
@@ -69,7 +79,7 @@ else Cancelar reserva
         E_HISTORIAL --> CTRL : auditoría registrada
         CTRL --> UI : reserva cancelada y cupo liberado
         UI --> PER : confirmación
-        PER --> TUR : cancelación confirmada
+        UI --> TUR : cancelación confirmada
     end
 end
 
@@ -80,5 +90,7 @@ end note
 note right of CTRL
     Al cancelar, el cupo se libera porque la
     disponibilidad solo cuenta reservas activas.
+    Una solicitud no confirmada vence y libera
+    el cupo de forma automática (HU-17).
 end note
 @enduml

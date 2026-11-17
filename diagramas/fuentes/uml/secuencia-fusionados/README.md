@@ -14,9 +14,12 @@ agregan como **alternativas**, no reemplazan a los diagramas individuales de
 - El diagrama de HU-03 + HU-05 usa dos controles: disponibilidad y
   cotizaciones.
 - El diagrama de HU-07 + HU-13 agrega `SELECT ... FOR UPDATE` antes de
-  validar y cambiar el estado. En el diagrama original de HU-07 ese bloqueo
-  no estaba explícito.
+  validar y cambiar el estado.
 - La cancelación conserva el motivo, el historial y el aviso al turista.
+  La solicitud de cancelación del cliente se registra antes de que el
+  personal la ejecute, porque el estado no cambia por la sola petición.
+- El aviso al cliente se emite cuando cambia la fecha o la capacidad de una
+  salida (HU-16).
 
 ## Generación
 

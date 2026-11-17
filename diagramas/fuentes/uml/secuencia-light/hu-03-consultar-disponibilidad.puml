@@ -8,13 +8,13 @@ control "ControlDisponibilidad" as CTRL <<control>>
 entity "Salida" as E_SALIDA <<entidad>>
 database "salida" as T_SALIDA <<tabla>>
 
-TUR -> UI : consulta destino y fecha
+TUR -> UI : consulta destino, fecha y pasajeros
 UI -> CTRL : consultarDisponibilidad(criterios)
 CTRL -> E_SALIDA : obtenerSalidas(criterios)
 E_SALIDA -> T_SALIDA : SELECT ...
 T_SALIDA --> E_SALIDA : salidas
 E_SALIDA -> E_SALIDA : calcularCupoDisponible()
-E_SALIDA --> CTRL : salidas con cupo
+E_SALIDA --> CTRL : salidas con cupo disponible
 CTRL --> UI : resultados
 UI --> TUR : disponibilidad
 @enduml

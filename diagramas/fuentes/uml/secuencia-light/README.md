@@ -13,6 +13,9 @@ diagrama completo correspondiente.
 - No incluyen fragmentos `alt`, `group`, `loop` ni notas.
 - Las validaciones y excepciones quedan en la versión completa de
   `../secuencia/`.
+- En HU-03, HU-06 y HU-14 el actor principal es el cliente, porque su
+  consulta y su solicitud son el canal directo. En HU-13 se muestra la
+  ejecución del personal, que es la que cambia el estado de la reserva.
 
 ## Generación
 

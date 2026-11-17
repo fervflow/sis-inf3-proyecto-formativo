@@ -1,8 +1,10 @@
 @startuml
 ' HU-09 · Modificar fechas o capacidad de una salida
+' La capacidad no puede quedar por debajo de los pasajeros ya reservados y
+' los clientes afectados reciben aviso (HU-16).
 hide footbox
 autonumber
-skinparam maxMessageSize 170
+skinparam maxMessageSize 175
 
 actor "Administrador" as ADM
 boundary "IU-09 · Modificar salida" as UI <<interfaz>>
@@ -10,6 +12,7 @@ control "ControlSalidas" as CTRL <<control>>
 entity "Salida" as E_SALIDA <<entidad>>
 entity "Reserva" as E_RESERVA <<entidad>>
 entity "HistorialSalida" as E_HISTORIAL <<entidad>>
+entity "Notificacion" as E_NOTIFICACION <<entidad>>
 database "salida" as T_SALIDA <<tabla>>
 database "reserva" as T_RESERVA <<tabla>>
 database "historial_salida" as T_HISTORIAL <<tabla>>
@@ -24,7 +27,7 @@ group Transacción de actualización
     E_SALIDA --> CTRL : datos actuales
 
     CTRL -> E_RESERVA : contarPasajerosActivos(idSalida)
-    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)
+    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
     T_RESERVA --> E_RESERVA : pasajeros ocupados
     E_RESERVA --> CTRL : ocupados
 
@@ -44,9 +47,24 @@ group Transacción de actualización
     end
 end
 
+alt Cambió la fecha o la capacidad
+    CTRL -> E_RESERVA : listarReservasAfectadas(idSalida)
+    E_RESERVA -> T_RESERVA : SELECT ... WHERE estado IN ('pendiente', 'confirmada')
+    T_RESERVA --> E_RESERVA : reservas afectadas
+    E_RESERVA --> CTRL : clientes vinculados
+    CTRL -> E_NOTIFICACION : avisarClientes(idSalida, cambios)
+    E_NOTIFICACION -> E_NOTIFICACION : aviso por fecha, cupo o código
+    E_NOTIFICACION --> CTRL : avisos enviados
+    CTRL --> UI : resumen de avisos enviados
+    UI --> ADM : clientes notificados
+else No cambió la fecha ni la capacidad
+    CTRL --> UI : sin avisos pendientes
+end
+
 note right of CTRL
     Si cambia la fecha, las reservas conservan
     su vínculo con la salida. La capacidad no
-    puede ser menor que los pasajeros activos.
+    puede ser menor que los pasajeros activos,
+    contados en los dos canales.
 end note
 @enduml

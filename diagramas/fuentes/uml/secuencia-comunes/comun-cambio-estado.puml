@@ -30,7 +30,8 @@ end
 
 note right of CTRL
     Transiciones válidas:
-    pendiente a confirmada o cancelada;
+    pendiente a confirmada, vencida o cancelada;
     confirmada a finalizada o cancelada.
+    Solo el personal confirma y cancela.
 end note
 @enduml

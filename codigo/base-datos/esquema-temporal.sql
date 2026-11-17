@@ -211,6 +211,9 @@ CREATE TABLE reserva (
     -- Fecha límite para confirmar una reserva pendiente. Al vencer, la
     -- solicitud pasa a 'vencida' y los cupos se liberan solos.
     fecha_expiracion    TIMESTAMPTZ DEFAULT (now() + INTERVAL '48 hours'),
+    -- Marca la solicitud de cancelación del cliente. La cancelación la
+    -- ejecuta el personal, de modo que el estado no cambia por sí solo.
+    fecha_solicitud_cancelacion TIMESTAMPTZ,
     observaciones       TEXT,
     motivo_cancelacion  VARCHAR(200),
     fecha_cancelacion   TIMESTAMPTZ,
@@ -268,12 +271,25 @@ CREATE TABLE pago (
     referencia          VARCHAR(100),
     fecha_pago          TIMESTAMPTZ NOT NULL DEFAULT now(),
     id_usuario          BIGINT NOT NULL REFERENCES usuario(id_usuario) ON DELETE RESTRICT,
+    -- Un pago registrado por el cliente queda 'registrado' hasta que el
+    -- personal lo valida. El pago no confirma la reserva por sí solo.
+    estado              VARCHAR(15) NOT NULL DEFAULT 'registrado',
+    id_usuario_validacion BIGINT REFERENCES usuario(id_usuario) ON DELETE SET NULL,
+    fecha_validacion    TIMESTAMPTZ,
     observacion         VARCHAR(200),
     CONSTRAINT uq_pago_reserva_tipo UNIQUE (id_reserva, tipo),
     CONSTRAINT ck_pago_tipo CHECK (tipo IN ('anticipo', 'saldo')),
     CONSTRAINT ck_pago_monto CHECK (monto > 0),
     CONSTRAINT ck_pago_metodo CHECK
-        (metodo IN ('efectivo', 'transferencia', 'tarjeta', 'otro'))
+        (metodo IN ('efectivo', 'transferencia', 'tarjeta', 'otro')),
+    CONSTRAINT ck_pago_estado CHECK
+        (estado IN ('registrado', 'validado', 'anulado')),
+    CONSTRAINT ck_pago_validacion CHECK (
+        (estado = 'validado'
+            AND id_usuario_validacion IS NOT NULL
+            AND fecha_validacion IS NOT NULL)
+        OR (estado <> 'validado')
+    )
 );
 
 CREATE INDEX ix_pago_reserva ON pago (id_reserva);
@@ -424,6 +440,8 @@ GROUP BY s.id_salida, s.id_paquete, p.codigo, p.nombre,
          s.fecha_salida, s.fecha_retorno, s.cupo_maximo, s.precio, s.estado;
 
 -- Saldo de cada reserva a partir del anticipo y del saldo registrados.
+-- El saldo pendiente se calcula sobre los pagos validados por el personal:
+-- un pago solo registrado por el cliente todavía no se considera cobrado.
 CREATE OR REPLACE VIEW vista_saldo_reserva AS
 SELECT
     r.id_reserva,
@@ -431,10 +449,11 @@ SELECT
     r.id_cliente,
     r.id_salida,
     r.monto_total,
-    COALESCE(MAX(pg.monto) FILTER (WHERE pg.tipo = 'anticipo'), 0) AS anticipo,
-    COALESCE(MAX(pg.monto) FILTER (WHERE pg.tipo = 'saldo'), 0) AS saldo_pagado,
-    COALESCE(SUM(pg.monto), 0) AS total_pagado,
-    r.monto_total - COALESCE(SUM(pg.monto), 0) AS saldo_pendiente,
+    COALESCE(MAX(pg.monto) FILTER (WHERE pg.tipo = 'anticipo' AND pg.estado <> 'anulado'), 0) AS anticipo,
+    COALESCE(MAX(pg.monto) FILTER (WHERE pg.tipo = 'saldo' AND pg.estado <> 'anulado'), 0) AS saldo_pagado,
+    COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado <> 'anulado'), 0) AS total_pagado,
+    COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'validado'), 0) AS total_validado,
+    r.monto_total - COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'validado'), 0) AS saldo_pendiente,
     r.estado
 FROM reserva r
 LEFT JOIN pago pg ON pg.id_reserva = r.id_reserva

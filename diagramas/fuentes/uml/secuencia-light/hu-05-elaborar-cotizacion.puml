@@ -8,14 +8,14 @@ control "ControlCotizaciones" as CTRL <<control>>
 entity "Cotizacion" as E_COTIZACION <<entidad>>
 database "cotizacion" as T_COTIZACION <<tabla>>
 
-PER -> UI : datos de la cotización
+PER -> UI : cliente, salida y N.º de pasajeros
 UI -> CTRL : crearCotizacion(datos)
-CTRL -> E_COTIZACION : calcularTotales()
-E_COTIZACION -> E_COTIZACION : subtotal y total
-CTRL -> E_COTIZACION : guardar()
+CTRL -> E_COTIZACION : calcularTotales(precio, cantidad, descuento)
+E_COTIZACION -> E_COTIZACION : subtotal, descuento y total
+CTRL -> E_COTIZACION : guardar(cotizacion, fechaValidez)
 E_COTIZACION -> T_COTIZACION : INSERT ...
 T_COTIZACION --> E_COTIZACION : id_cotizacion
 E_COTIZACION --> CTRL : cotización creada
-CTRL --> UI : número y total
-UI --> PER : confirmación
+CTRL --> UI : número, total y validez
+UI --> PER : cotización lista para enviar
 @enduml

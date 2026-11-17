@@ -1,8 +1,10 @@
 @startuml
 ' HU-03 · Consulta de disponibilidad
+' Cliente en acceso directo y consulta asistida por el personal.
+' El mismo criterio de disponibilidad se aplica a los dos canales.
 hide footbox
 autonumber
-skinparam maxMessageSize 160
+skinparam maxMessageSize 170
 
 actor "Turista" as TUR
 actor "Personal" as PER
@@ -15,32 +17,48 @@ database "paquete" as T_PAQUETE <<tabla>>
 database "salida" as T_SALIDA <<tabla>>
 database "reserva" as T_RESERVA <<tabla>>
 
-TUR -> UI : ingresa destino, fecha y N.º de pasajeros
-PER -> UI : consulta asistida
-UI -> CTRL : consultarDisponibilidad(criterios)
-CTRL -> E_PAQUETE : buscarPaquetes(criterios)
-E_PAQUETE -> T_PAQUETE : SELECT ...
-T_PAQUETE --> E_PAQUETE : paquetes
-E_PAQUETE --> CTRL : lista de paquetes
+TUR -> UI : iniciar sesión (HU-08)
+UI -> CTRL : autenticar(credenciales)
 
-loop Para cada paquete encontrado
-    CTRL -> E_SALIDA : listarSalidas(idPaquete, fecha)
-    E_SALIDA -> T_SALIDA : SELECT ...
-    T_SALIDA --> E_SALIDA : salidas
-    E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
-    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)
-    T_RESERVA --> E_RESERVA : ocupados
-    E_RESERVA --> E_SALIDA : ocupados
-    E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
-    E_SALIDA --> CTRL : salida con disponibilidad
+alt Credenciales no válidas
+    CTRL --> UI : error «Acceso denegado»
+    UI --> TUR : volver a intentarlo
+else Sesión iniciada
+    TUR -> UI : indica destino, fecha y N.º de pasajeros
+    PER -> UI : consulta asistida en la oficina
+    UI -> CTRL : consultarDisponibilidad(criterios)
+    CTRL -> E_PAQUETE : buscarPaquetes(criterios)
+    E_PAQUETE -> T_PAQUETE : SELECT ... WHERE estado = 'activo'
+    T_PAQUETE --> E_PAQUETE : paquetes activos
+    E_PAQUETE --> CTRL : lista de paquetes
+
+    alt Sin coincidencias
+        CTRL --> UI : lista vacía
+        UI --> TUR : mensaje «No hay disponibilidad»
+    else Hay coincidencias
+        loop Por cada paquete encontrado
+            CTRL -> E_SALIDA : listarSalidas(idPaquete, fecha)
+            E_SALIDA -> T_SALIDA : SELECT ... WHERE estado IN ('programada', 'confirmada')
+            T_SALIDA --> E_SALIDA : salidas programadas
+            E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
+            E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
+            T_RESERVA --> E_RESERVA : pasajeros ocupados
+            E_RESERVA --> E_SALIDA : ocupados
+            E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
+            E_SALIDA --> CTRL : salida con cupo disponible
+        end
+
+        CTRL --> UI : paquetes, salidas y cupos disponibles
+        UI --> TUR : resultados de la consulta
+        UI --> PER : resultados para la atención en oficina
+    end
 end
 
-CTRL --> UI : paquetes y cupos disponibles
-UI --> TUR : resultados de la consulta
-UI --> PER : resultados de la consulta
-
-alt Sin coincidencias
-    CTRL --> UI : lista vacía
-    UI --> TUR : mensaje «No hay disponibilidad»
-end
+note right of CTRL
+    El cálculo no distingue el canal: una
+    solicitud pendiente del cliente ocupa
+    cupo igual que una reserva del personal.
+    Las reservas vencidas y canceladas no
+    se cuentan (vista_disponibilidad_salida).
+end note
 @enduml

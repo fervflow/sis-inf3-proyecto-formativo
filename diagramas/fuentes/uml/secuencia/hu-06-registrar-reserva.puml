@@ -1,8 +1,10 @@
 @startuml
 ' HU-06 · Registro de reservas con validación de cupos
+' Dos canales de ingreso, un mismo proceso: la reserva nace pendiente,
+' con fecha de vencimiento, y la confirma el personal (HU-17).
 hide footbox
 autonumber
-skinparam maxMessageSize 170
+skinparam maxMessageSize 175
 
 actor "Turista" as TUR
 actor "Personal" as PER
@@ -18,9 +20,19 @@ database "reserva" as T_RESERVA <<tabla>>
 database "pasajero" as T_PASAJERO <<tabla>>
 database "reserva_pasajero" as T_RESERVA_PASAJERO <<tabla>>
 
-TUR -> PER : solicita reserva
-PER -> UI : selecciona cliente, salida y pasajeros
-UI -> CTRL : registrarReserva(datos)
+TUR -> UI : iniciar sesión (HU-08)
+UI -> CTRL : autenticar(credenciales)
+
+alt Credenciales no válidas
+    CTRL --> UI : error «Acceso denegado»
+    UI --> TUR : volver a intentarlo
+else Sesión del cliente válida
+    TUR -> UI : solicita la reserva desde su cuenta
+    UI -> CTRL : registrarReserva(datos, origen = 'web')
+else Registro en la atención del personal
+    PER -> UI : selecciona cliente, salida y pasajeros
+    UI -> CTRL : registrarReserva(datos, origen = 'personal')
+end
 
 group Transacción de registro
     CTRL -> E_CLIENTE : validarCliente(idCliente)
@@ -31,38 +43,59 @@ group Transacción de registro
     CTRL -> E_SALIDA : bloquearSalida(idSalida)
     E_SALIDA -> T_SALIDA : SELECT ... FOR UPDATE
     T_SALIDA --> E_SALIDA : cupo_maximo
-    E_SALIDA -> T_RESERVA : contarPasajerosActivos(idSalida)
+    E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
+    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
     T_RESERVA --> E_SALIDA : pasajeros ocupados
     E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
 
     alt Cupo insuficiente
         E_SALIDA --> CTRL : no disponible
         CTRL --> UI : error «Cupo insuficiente»
-        UI --> PER : informar al turista
+        UI --> PER : informar al cliente
     else Cupo suficiente
         E_SALIDA --> CTRL : disponible
-        CTRL -> E_RESERVA : crear(idSalida, cantidad, monto)
-        E_RESERVA -> T_RESERVA : INSERT ... estado pendiente
-        T_RESERVA --> E_RESERVA : id_reserva
-        E_RESERVA --> CTRL : reserva creada
+        CTRL -> E_RESERVA : verificarSolicitudUnica(idCliente, idSalida)
+        E_RESERVA -> T_RESERVA : SELECT ... WHERE estado = 'pendiente'
+        T_RESERVA --> E_RESERVA : solicitud existente
 
-        loop Por cada pasajero
-            CTRL -> E_PASAJERO : registrarPasajero(datos)
-            E_PASAJERO -> T_PASAJERO : INSERT ...
-            T_PASAJERO --> E_PASAJERO : id_pasajero
-            E_PASAJERO -> T_RESERVA_PASAJERO : INSERT (id_reserva, id_pasajero)
-            T_RESERVA_PASAJERO --> E_PASAJERO : vínculo creado
-            E_PASAJERO --> CTRL : pasajero vinculado
+        alt Ya existe una solicitud activa del mismo cliente
+            E_RESERVA --> CTRL : solicitud duplicada
+            CTRL --> UI : error «Ya existe una solicitud para esta salida»
+            UI --> PER : ofrecer modificar la solicitud existente
+            UI --> TUR : ofrecer modificar la solicitud existente
+        else Sin duplicidad
+            E_RESERVA --> CTRL : sin duplicidad
+            CTRL -> E_RESERVA : crear(idSalida, cantidad, monto, origen)
+            E_RESERVA -> T_RESERVA : INSERT ... estado 'pendiente',\nfecha_expiracion = now() + 48 h
+            T_RESERVA --> E_RESERVA : id_reserva
+            E_RESERVA --> CTRL : reserva creada
+
+            loop Por cada pasajero
+                CTRL -> E_PASAJERO : registrarPasajero(datos)
+                E_PASAJERO -> T_PASAJERO : INSERT ...
+                T_PASAJERO --> E_PASAJERO : id_pasajero
+                CTRL -> E_RESERVA_PASAJERO : vincular(idReserva, idPasajero)
+                E_RESERVA_PASAJERO -> T_RESERVA_PASAJERO : INSERT ...
+                T_RESERVA_PASAJERO --> E_RESERVA_PASAJERO : vínculo creado
+            end
+
+            CTRL --> UI : código de reserva y fecha de vencimiento
+            UI --> PER : reserva pendiente registrada
+            UI --> TUR : solicitud registrada y en espera de confirmación
         end
-
-        CTRL --> UI : reserva pendiente y código
-        UI --> PER : confirmación del registro
-        PER --> TUR : reserva registrada
     end
 end
 
 note right of CTRL
-    Si la reserva proviene de una cotización,
-    se actualiza su estado a «aceptada».
+    La reserva nace pendiente en los dos
+    canales. La confirma el personal (HU-17).
+    Si no se confirma dentro del plazo, pasa
+    a vencida y libera el cupo.
+end note
+
+note right of E_RESERVA
+    El bloqueo de la fila de salida impide
+    que dos registros simultáneos superen la
+    capacidad, sin importar el canal.
 end note
 @enduml

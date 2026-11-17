@@ -1,5 +1,5 @@
 @startuml
-' HU-07 · Seguimiento de reservas (versión ligera)
+' HU-07 · Seguimiento y actualización de reservas (versión ligera)
 hide footbox
 
 actor "Personal" as PER
@@ -8,21 +8,16 @@ control "ControlReservas" as CTRL <<control>>
 entity "Reserva" as E_RESERVA <<entidad>>
 database "reserva" as T_RESERVA <<tabla>>
 
-PER -> UI : busca reserva
-UI -> CTRL : consultarReserva(criterio)
-CTRL -> E_RESERVA : buscar(criterio)
-E_RESERVA -> T_RESERVA : SELECT ...
-T_RESERVA --> E_RESERVA : reserva
-E_RESERVA --> CTRL : datos y estado
-CTRL --> UI : ficha
-UI --> PER : estado y saldo
-
-PER -> UI : nuevo estado
-UI -> CTRL : actualizarEstado(idReserva, estado)
-CTRL -> E_RESERVA : cambiarEstado(estado)
+PER -> UI : busca la reserva y actualiza sus datos
+UI -> CTRL : actualizarReserva(idReserva, cambios)
+CTRL -> E_RESERVA : bloquear(idReserva)
+E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+T_RESERVA --> E_RESERVA : reserva actual
+E_RESERVA --> CTRL : estado y pasajeros
+CTRL -> E_RESERVA : aplicarCambios(cambios)
 E_RESERVA -> T_RESERVA : UPDATE ...
 T_RESERVA --> E_RESERVA : fila actualizada
-E_RESERVA --> CTRL : estado actualizado
-CTRL --> UI : confirmación
-UI --> PER : reserva actualizada
+E_RESERVA --> CTRL : reserva actualizada
+CTRL --> UI : estado, saldo e historial
+UI --> PER : confirmación
 @enduml

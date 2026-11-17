@@ -274,6 +274,28 @@ Los diagramas de secuencia deben conservar los estereotipos:
 Los diagramas comunes pueden omitir interfaz y actor porque son fragmentos
 técnicos.
 
+### Reglas del modelo que los diagramas deben respetar
+
+Los diagramas se derivan del informe y del backlog, no al revés. Al
+redactarlos hay que respetar:
+
+- **Dos canales, un proceso.** La consulta, la solicitud de reserva y el
+  registro del pago pueden llegar del acceso directo del cliente
+  (`origen = 'web'`) o de la atención del personal (`origen = 'personal'`).
+  Los dos caminos terminan en la misma validación.
+- **La reserva nace pendiente.** Ningún camino confirma por sí solo. La
+  confirmación, la cancelación y la validación del pago corresponden al
+  personal.
+- **El bloqueo transaccional.** Toda validación o modificación de cupos
+  bloquea la fila de `salida` o de `reserva` con `SELECT ... FOR UPDATE`.
+- **El vencimiento.** Toda reserva pendiente tiene fecha de vencimiento; si
+  no se confirma a tiempo, pasa a `vencida` y libera el cupo.
+- **Una sola solicitud activa** por cliente y salida.
+- **La cancelación del cliente es una solicitud.** El personal la ejecuta.
+- **El pago del cliente queda registrado** hasta que el personal lo valida.
+- **Los avisos al cliente** se emiten cuando cambia la fecha o la capacidad
+  de una salida.
+
 ### Diagramas de ejemplo de la plantilla
 
 Estos archivos son ejemplos heredados y **no representan el sistema
@@ -339,11 +361,17 @@ Diccionario y reglas: `codigo/base-datos/diccionario-datos.md`.
 - `tablas/historias-usuario.csv`: fuente tabular, UTF-8 con BOM y separador
   `;`.
 - `tablas/historias-usuario.md`: versión legible, totales y observaciones.
-- 14 historias, 38 puntos, 31 tareas.
+- 17 historias, 47 puntos, 39 tareas.
 - El orden actual comienza en HU-08 y no sigue el orden de los ID; se
   conservó porque parece reflejar priorización.
-- Hay observaciones pendientes, por ejemplo el posible solapamiento entre
-  HU-04 y HU-12.
+- Las columnas son: ID, historia, actor, canal, prioridad, riesgo,
+  estimación y tareas. La prioridad y el riesgo van separadas.
+- La escala de estimación es Fibonacci (1, 2, 3, 5, 8, 13); se usan 2, 3
+  y 5.
+- El solapamiento entre HU-04 y HU-12 quedó resuelto: HU-04 cubre la ficha
+  del cliente y HU-12 los pasajeros.
+- Siete historias tienen criterios de aceptación redactados; el resto
+  sigue pendiente.
 - **No incluir estas historias en `main.tex`** sin una instrucción explícita.
 - No corregir los datos del backlog sin que el usuario lo solicite.
 

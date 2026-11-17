@@ -1,8 +1,11 @@
 @startuml
 ' HU-07 · Seguimiento y actualización de reservas
+' El personal consulta el estado, el saldo y el historial, y actualiza los
+' datos de una reserva. El cliente no modifica su reserva confirmada: lo
+' solicita y el personal lo ejecuta.
 hide footbox
 autonumber
-skinparam maxMessageSize 170
+skinparam maxMessageSize 175
 
 actor "Personal" as PER
 actor "Administrador" as ADM
@@ -15,7 +18,7 @@ database "reserva" as T_RESERVA <<tabla>>
 database "historial_reserva" as T_HISTORIAL <<tabla>>
 database "pago" as T_PAGO <<tabla>>
 
-PER -> UI : busca reserva por código o cliente
+PER -> UI : busca reserva por código o por cliente
 ADM -> UI : consulta de supervisión
 UI -> CTRL : consultarReserva(criterio)
 CTRL -> E_RESERVA : buscar(criterio)
@@ -24,34 +27,67 @@ T_RESERVA --> E_RESERVA : reserva
 E_RESERVA --> CTRL : datos de la reserva
 
 CTRL -> E_PAGO : obtenerPagos(idReserva)
-E_PAGO -> T_PAGO : SELECT tipo, monto
+E_PAGO -> T_PAGO : SELECT tipo, monto, estado
 T_PAGO --> E_PAGO : anticipo y saldo
 E_PAGO --> CTRL : pagos registrados
 CTRL -> CTRL : calcularSaldoPendiente()
-CTRL --> UI : ficha con estado y saldo
-UI --> PER : estado, pasajeros y saldo pendiente
+CTRL -> E_HISTORIAL : obtenerHistorial(idReserva)
+E_HISTORIAL -> T_HISTORIAL : SELECT ... ORDER BY fecha_cambio
+T_HISTORIAL --> E_HISTORIAL : cambios registrados
+E_HISTORIAL --> CTRL : historial de la reserva
+CTRL --> UI : ficha con estado, saldo e historial
+UI --> PER : estado, pasajeros, saldo pendiente y avisos
 UI --> ADM : ficha para supervisión
 
-PER -> UI : selecciona nuevo estado y observación
-UI -> CTRL : actualizarEstado(idReserva, nuevoEstado)
-alt Transición no permitida
-    CTRL --> UI : error «Transición de estado inválida»
-    UI --> PER : mostrar estados permitidos
-else Transición permitida
-    CTRL -> E_RESERVA : cambiarEstado(nuevoEstado)
-    E_RESERVA -> T_RESERVA : UPDATE estado ...
-    T_RESERVA --> E_RESERVA : fila actualizada
-    CTRL -> E_HISTORIAL : registrarCambio(anterior, nuevo, usuario)
-    E_HISTORIAL -> T_HISTORIAL : INSERT ...
-    T_HISTORIAL --> E_HISTORIAL : id_historial
-    E_HISTORIAL --> CTRL : auditoría registrada
-    CTRL --> UI : estado actualizado
-    UI --> PER : confirmación
+PER -> UI : actualiza datos y observación de la reserva
+UI -> CTRL : actualizarReserva(idReserva, cambios)
+
+group Transacción de actualización
+    CTRL -> E_RESERVA : bloquear(idReserva)
+    E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+    T_RESERVA --> E_RESERVA : reserva actual
+    E_RESERVA --> CTRL : estado y cantidad de pasajeros
+
+    alt La reserva está vencida o cancelada
+        CTRL --> UI : error «La reserva no admite cambios»
+        UI --> PER : mostrar el motivo
+    else La reserva admite cambios
+        alt Cambia la cantidad de pasajeros
+            CTRL -> E_RESERVA : contarPasajerosActivos(idSalida)
+            E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
+            T_RESERVA --> E_RESERVA : pasajeros ocupados
+            E_RESERVA --> CTRL : ocupados
+            CTRL --> CTRL : validarCupo(idSalida, nuevaCantidad)
+        end
+
+        alt El cambio supera el cupo disponible
+            CTRL --> UI : error «Cupo insuficiente»
+            UI --> PER : ajustar la cantidad
+        else El cambio es válido
+            CTRL -> E_RESERVA : aplicarCambios(cambios)
+            E_RESERVA -> T_RESERVA : UPDATE ...
+            T_RESERVA --> E_RESERVA : fila actualizada
+            CTRL -> E_HISTORIAL : registrarCambio(estado, usuario, observación)
+            E_HISTORIAL -> T_HISTORIAL : INSERT ...
+            T_HISTORIAL --> E_HISTORIAL : id_historial
+            E_HISTORIAL --> CTRL : auditoría registrada
+            CTRL --> UI : reserva actualizada
+            UI --> PER : confirmación
+        end
+    end
 end
 
 note right of CTRL
     Transiciones válidas:
-    pendiente a confirmada o cancelada;
+    pendiente a confirmada, vencida o cancelada;
     confirmada a finalizada o cancelada.
+    La confirmación y el vencimiento se
+    gestionan en HU-17.
+end note
+
+note right of E_RESERVA
+    El cliente no modifica por sí mismo una
+    reserva confirmada. La cancelación se
+    solicita y la ejecuta el personal (HU-13).
 end note
 @enduml

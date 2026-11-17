@@ -1,9 +1,12 @@
 @startuml
-' HU-14 · Registrar anticipos y saldos de una reserva
+' HU-14 · Registro y validación de anticipos y saldos de una reserva
+' El cliente puede registrar su pago en el acceso directo; el personal lo
+' valida. El pago no confirma la reserva por sí solo.
 hide footbox
 autonumber
-skinparam maxMessageSize 170
+skinparam maxMessageSize 175
 
+actor "Turista" as TUR
 actor "Personal" as PER
 boundary "IU-14 · Registrar pago" as UI <<interfaz>>
 control "ControlPagos" as CTRL <<control>>
@@ -12,54 +15,79 @@ entity "Pago" as E_PAGO <<entidad>>
 database "reserva" as T_RESERVA <<tabla>>
 database "pago" as T_PAGO <<tabla>>
 
-PER -> UI : selecciona una reserva
-UI -> CTRL : consultarSaldo(idReserva)
-CTRL -> E_RESERVA : obtenerReserva(idReserva)
-E_RESERVA -> T_RESERVA : SELECT monto_total, estado
-T_RESERVA --> E_RESERVA : reserva
-E_RESERVA --> CTRL : monto total
+TUR -> UI : iniciar sesión (HU-08)
+UI -> CTRL : autenticar(credenciales)
 
-CTRL -> E_PAGO : obtenerPagos(idReserva)
-E_PAGO -> T_PAGO : SELECT tipo, monto
-T_PAGO --> E_PAGO : anticipo y saldo
-E_PAGO --> CTRL : pagos registrados
-CTRL -> CTRL : calcularSaldoPendiente()
-CTRL --> UI : total, pagado y pendiente
-UI --> PER : muestra el saldo
+alt Credenciales no válidas
+    CTRL --> UI : error «Acceso denegado»
+    UI --> TUR : volver a intentarlo
+else Sesión iniciada
+    TUR -> UI : registra monto, tipo, método y referencia
+    UI -> CTRL : registrarPago(datos)
 
-PER -> UI : registra monto, tipo, método y referencia
-UI -> CTRL : registrarPago(datos)
+    group Transacción de pago
+        CTRL -> E_RESERVA : bloquear(idReserva)
+        E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+        T_RESERVA --> E_RESERVA : reserva actual
+        E_RESERVA --> CTRL : estado y monto total
 
-group Transacción de pago
-    CTRL -> E_RESERVA : bloquear(idReserva)
-    E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
-    T_RESERVA --> E_RESERVA : reserva actual
-    E_RESERVA --> CTRL : estado y monto
+        alt Reserva cancelada o vencida, o monto inválido
+            CTRL --> UI : error «No se puede registrar el pago»
+            UI --> TUR : mostrar el motivo
+        else Pago válido
+            CTRL -> E_PAGO : validarTipoYMonto(tipo, monto)
+            E_PAGO -> E_PAGO : solo un anticipo y un saldo por reserva
+            E_PAGO -> E_PAGO : monto no supera el saldo pendiente
+            E_PAGO --> CTRL : validación correcta
+            CTRL -> E_PAGO : crear(pago, estado = 'registrado')
+            E_PAGO -> T_PAGO : INSERT ...
+            T_PAGO --> E_PAGO : id_pago
+            E_PAGO --> CTRL : pago registrado
 
-    alt Reserva cancelada o monto inválido
-        CTRL --> UI : error «No se puede registrar el pago»
-        UI --> PER : mostrar el motivo
-    else Pago válido
-        CTRL -> E_PAGO : validarTipoYsaldo(tipo, monto)
-        E_PAGO -> E_PAGO : monto no supera el saldo pendiente
-        E_PAGO --> CTRL : validación correcta
-        CTRL -> E_PAGO : crear(pago)
-        E_PAGO -> T_PAGO : INSERT ...
-        T_PAGO --> E_PAGO : id_pago
-        E_PAGO --> CTRL : pago registrado
+            CTRL -> E_RESERVA : recalcularSaldo()
+            E_RESERVA -> T_PAGO : SELECT SUM(monto) WHERE estado = 'validado'
+            T_PAGO --> E_RESERVA : total validado
+            E_RESERVA --> CTRL : saldo pendiente
 
-        CTRL -> E_RESERVA : recalcularSaldo()
-        E_RESERVA -> T_PAGO : SELECT SUM(monto)
-        T_PAGO --> E_RESERVA : total pagado
-        E_RESERVA --> CTRL : nuevo saldo
-
-        CTRL --> UI : comprobante y saldo actualizado
-        UI --> PER : confirmación
+            CTRL --> UI : comprobante y saldo pendiente
+            UI --> TUR : pago registrado, pendiente de validación
+        end
     end
 end
+
+PER -> UI : revisa los pagos registrados por el cliente
+UI -> CTRL : listarPagosPorValidar(idReserva)
+CTRL -> E_PAGO : obtenerPagos(idReserva)
+E_PAGO -> T_PAGO : SELECT ... WHERE estado = 'registrado'
+T_PAGO --> E_PAGO : pagos por validar
+E_PAGO --> CTRL : pagos registrados
+CTRL --> UI : pagos por validar
+UI --> PER : listado con referencia y monto
+
+PER -> UI : valida el pago
+UI -> CTRL : validarPago(idPago)
+CTRL -> E_PAGO : verificarReferenciaYMonto(idPago)
+E_PAGO --> CTRL : comprobación correcta
+CTRL -> E_PAGO : cambiarEstado('validado', idUsuario)
+E_PAGO -> T_PAGO : UPDATE estado, id_usuario_validacion, fecha_validacion
+T_PAGO --> E_PAGO : fila actualizada
+CTRL -> E_RESERVA : recalcularSaldo()
+E_RESERVA -> T_PAGO : SELECT SUM(monto) WHERE estado = 'validado'
+T_PAGO --> E_RESERVA : total validado
+E_RESERVA --> CTRL : saldo pendiente actualizado
+CTRL --> UI : pago validado
+UI --> PER : confirmación
+UI --> TUR : su pago quedó validado
 
 note right of CTRL
     Solo se permite un anticipo y un saldo por
     reserva; la restricción UNIQUE lo garantiza.
+end note
+
+note right of E_PAGO
+    El pago registrado no confirma la reserva.
+    La confirmación corresponde al personal
+    (HU-17) y el saldo pendiente se calcula
+    sobre los pagos validados.
 end note
 @enduml

@@ -1,8 +1,10 @@
 @startuml
-' HU-13 · Cancelar una reserva y liberar los cupos
+' HU-13 · Solicitud y ejecución de la cancelación de una reserva
+' El cliente solicita la cancelación y el personal la ejecuta. El estado
+' de la reserva no cambia por la sola solicitud.
 hide footbox
 autonumber
-skinparam maxMessageSize 170
+skinparam maxMessageSize 175
 
 actor "Turista" as TUR
 actor "Personal" as PER
@@ -15,9 +17,39 @@ database "reserva" as T_RESERVA <<tabla>>
 database "historial_reserva" as T_HISTORIAL <<tabla>>
 database "pago" as T_PAGO <<tabla>>
 
-TUR -> PER : solicita cancelación
-PER -> UI : busca la reserva y confirma
-UI -> CTRL : cancelarReserva(idReserva, motivo)
+== Solicitud del cliente ==
+TUR -> UI : iniciar sesión (HU-08)
+UI -> CTRL : autenticar(credenciales)
+
+alt Credenciales no válidas
+    CTRL --> UI : error «Acceso denegado»
+    UI --> TUR : volver a intentarlo
+else Sesión iniciada
+    TUR -> UI : solicita la cancelación de su reserva
+    UI -> CTRL : solicitarCancelacion(idReserva)
+    CTRL -> E_RESERVA : cargar(idReserva)
+    E_RESERVA -> T_RESERVA : SELECT ...
+    T_RESERVA --> E_RESERVA : reserva y titular
+    E_RESERVA --> CTRL : datos de la reserva
+
+    alt La reserva no es del cliente o no admite cancelación
+        E_RESERVA --> CTRL : no cancelable
+        CTRL --> UI : error «La reserva no se puede cancelar»
+        UI --> TUR : informar el motivo
+    else La reserva admite cancelación
+        E_RESERVA --> CTRL : cancelable
+        CTRL -> E_RESERVA : registrarSolicitudCancelacion()
+        E_RESERVA -> T_RESERVA : UPDATE fecha_solicitud_cancelacion
+        T_RESERVA --> E_RESERVA : fila actualizada
+        E_RESERVA --> CTRL : solicitud registrada
+        CTRL --> UI : solicitud registrada
+        UI --> TUR : el personal ejecutará la cancelación
+    end
+end
+
+== Ejecución por el personal ==
+PER -> UI : busca la reserva con solicitud de cancelación
+UI -> CTRL : ejecutarCancelacion(idReserva, motivo)
 
 group Transacción de cancelación
     CTRL -> E_RESERVA : bloquear(idReserva)
@@ -27,34 +59,36 @@ group Transacción de cancelación
 
     alt Estado no cancelable
         CTRL --> UI : error «La reserva no se puede cancelar»
-        UI --> PER : informar al turista
+        UI --> PER : informar el motivo
     else Estado cancelable
-        CTRL -> E_RESERVA : cambiarEstado(cancelada, motivo)
+        CTRL -> E_RESERVA : cambiarEstado('cancelada', motivo)
         E_RESERVA -> T_RESERVA : UPDATE estado, motivo y fecha_cancelacion
         T_RESERVA --> E_RESERVA : fila actualizada
-        CTRL -> E_HISTORIAL : registrarCambio(anterior, cancelada)
+        CTRL -> E_HISTORIAL : registrarCambio(anterior, 'cancelada', usuario)
         E_HISTORIAL -> T_HISTORIAL : INSERT ...
         T_HISTORIAL --> E_HISTORIAL : id_historial
         E_HISTORIAL --> CTRL : auditoría registrada
 
         CTRL -> E_PAGO : consultarPagos(idReserva)
-        E_PAGO -> T_PAGO : SELECT tipo, monto
+        E_PAGO -> T_PAGO : SELECT tipo, monto, estado
         T_PAGO --> E_PAGO : anticipo y saldo
         E_PAGO --> CTRL : pagos registrados
 
-        CTRL --> UI : reserva cancelada y cupo liberado
+        CTRL --> UI : cancelación confirmada y cupo liberado
         UI --> PER : confirmación
-        PER --> TUR : cancelación confirmada
+        UI --> TUR : la reserva quedó cancelada
     end
 end
 
 note right of CTRL
     El cupo se libera porque la disponibilidad
-    solo cuenta reservas pendientes o confirmadas.
+    solo cuenta reservas pendientes o
+    confirmadas.
 end note
 
-note right of CTRL
-    Si existen pagos, la devolución se gestiona
-    fuera del sistema en esta versión.
+note right of E_PAGO
+    La devolución del dinero se gestiona fuera
+    del sistema y no se registra como un pago
+    nuevo. Los pagos existentes se conservan.
 end note
 @enduml

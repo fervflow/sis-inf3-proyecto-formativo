@@ -6,11 +6,15 @@ completos: muestran solo la interacción entre control, entidad y tabla.
 
 | Archivo | Contenido | Se usa en |
 |---|---|---|
-| `comun-disponibilidad.puml` | Ocupación, cupo y disponibilidad | HU-03, HU-05, HU-06, HU-09 |
+| `comun-disponibilidad.puml` | Ocupación, cupo y disponibilidad | HU-03, HU-05, HU-06, HU-07, HU-09 |
 | `comun-cliente.puml` | Búsqueda y validación de cliente | HU-05, HU-06 |
 | `comun-reserva.puml` | Carga de reserva y estado | HU-07, HU-13, HU-14 |
 | `comun-saldo.puml` | Anticipo, saldo y pendiente | HU-07, HU-14 |
-| `comun-cambio-estado.puml` | Bloqueo, cambio de estado y auditoría | HU-07, HU-13 |
+| `comun-cambio-estado.puml` | Bloqueo, cambio de estado y auditoría | HU-07, HU-13, HU-17 |
+
+Los fragmentos reflejan el modelo vigente: el cupo se calcula sobre las
+reservas pendientes y confirmadas, las solicitudes vencidas liberan el cupo
+y solo el personal confirma o cancela.
 
 ## Uso en el informe
 

@@ -18,4 +18,10 @@ else Cliente encontrado
     E_CLIENTE -> E_CLIENTE : validarEstado()
     E_CLIENTE --> CTRL : cliente válido
 end
+
+note right of CTRL
+    La ficha del cliente puede existir sin
+    cuenta: el acceso directo del cliente es
+    opcional (HU-15).
+end note
 @enduml

@@ -11,10 +11,11 @@ database "reserva" as T_RESERVA <<tabla>>
 CTRL -> E_RESERVA : buscar(idReserva)
 E_RESERVA -> T_RESERVA : SELECT ...
 T_RESERVA --> E_RESERVA : reserva
-E_RESERVA --> CTRL : datos y estado
+E_RESERVA --> CTRL : datos, estado, origen y vencimiento
 
 note right of CTRL
     Si la reserva se va a modificar, la fila
     debe bloquearse con SELECT ... FOR UPDATE.
+    El campo origen indica el canal de ingreso.
 end note
 @enduml

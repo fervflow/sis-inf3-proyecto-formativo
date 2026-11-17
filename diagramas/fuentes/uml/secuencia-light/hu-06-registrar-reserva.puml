@@ -2,22 +2,22 @@
 ' HU-06 · Registro de reservas (versión ligera)
 hide footbox
 
-actor "Personal" as PER
+actor "Turista" as TUR
 boundary "IU-06" as UI <<interfaz>>
 control "ControlReservas" as CTRL <<control>>
 entity "Reserva" as E_RESERVA <<entidad>>
 database "reserva" as T_RESERVA <<tabla>>
 
-PER -> UI : datos de la reserva
-UI -> CTRL : registrarReserva(datos)
+TUR -> UI : solicita la reserva
+UI -> CTRL : registrarReserva(datos, origen = 'web')
 CTRL -> E_RESERVA : validarCupo(idSalida, cantidad)
-E_RESERVA -> T_RESERVA : SELECT cupo y ocupados
-T_RESERVA --> E_RESERVA : cupo disponible
+E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+T_RESERVA --> E_RESERVA : cupo y pasajeros ocupados
 E_RESERVA --> CTRL : cupo suficiente
 CTRL -> E_RESERVA : crear(datos)
-E_RESERVA -> T_RESERVA : INSERT ...
+E_RESERVA -> T_RESERVA : INSERT ... estado 'pendiente'
 T_RESERVA --> E_RESERVA : id_reserva
 E_RESERVA --> CTRL : reserva pendiente
-CTRL --> UI : código de reserva
-UI --> PER : confirmación
+CTRL --> UI : código de reserva y vencimiento
+UI --> TUR : solicitud registrada
 @enduml

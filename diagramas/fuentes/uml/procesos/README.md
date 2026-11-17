@@ -7,21 +7,21 @@ rol y muestra el recorrido principal del sistema.
 
 | Carril | Actividades |
 |---|---|
-| Turista | Consulta, aceptación de la cotización, solicitud de reserva y cancelación. |
-| Personal | Cotización, registro de reserva, anticipo, seguimiento y saldo. |
-| Administrador | Supervisión y modificación de fechas o capacidad. |
-| Sistema | Validación de cupos, saldos e historiales. |
+| Turista | Consulta, aceptación de la cotización, solicitud de reserva, registro de su pago y solicitud de cancelación. |
+| Personal | Cotización, registro de reserva, validación del pago, confirmación de la solicitud, seguimiento, cancelación y saldo. |
+| Administrador | Supervisión, modificación de fechas o capacidad y aviso a los clientes afectados. |
+| Sistema | Validación de cupos, saldos e historiales, y vencimiento de las solicitudes sin confirmar. |
 
 ## Recorrido
 
 ```text
-Consulta → Cotización → Reserva → Anticipo → Seguimiento → Saldo → Fin
-                                                ├── Cancelar reserva
-                                                └── Modificar salida
+Consulta → [Cotización] → Solicitud de reserva → Pago → Validación del pago
+    → Confirmación → Seguimiento ─┬─ Cancelación
+                                  └─ Saldo y finalización
 ```
 
-El diagrama incluye una leyenda con las HU de soporte: paquetes, salidas,
-clientes/pasajeros, proveedores y reportes.
+El mapa incluye una leyenda con las HU de soporte: paquetes, salidas,
+ficha del cliente, pasajeros, proveedores, reportes y cuenta de cliente.
 
 ## Generación
 

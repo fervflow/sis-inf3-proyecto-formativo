@@ -9,9 +9,15 @@ entity "Pago" as E_PAGO <<entidad>>
 database "pago" as T_PAGO <<tabla>>
 
 CTRL -> E_PAGO : calcularSaldo(idReserva, monto_total)
-E_PAGO -> T_PAGO : SELECT tipo, monto
-T_PAGO --> E_PAGO : anticipo y saldo
-E_PAGO -> E_PAGO : totalPagado = anticipo + saldo
-E_PAGO -> E_PAGO : saldoPendiente = monto_total - totalPagado
-E_PAGO --> CTRL : totalPagado y saldoPendiente
+E_PAGO -> T_PAGO : SELECT tipo, monto, estado
+T_PAGO --> E_PAGO : anticipo, saldo y estado del pago
+E_PAGO -> E_PAGO : totalValidado = SUM(monto) WHERE estado = 'validado'
+E_PAGO -> E_PAGO : saldoPendiente = monto_total - totalValidado
+E_PAGO --> CTRL : totalValidado y saldoPendiente
+
+note right of CTRL
+    El saldo pendiente se calcula sobre los
+    pagos validados. Un pago registrado por el
+    cliente todavía no se considera cobrado.
+end note
 @enduml
