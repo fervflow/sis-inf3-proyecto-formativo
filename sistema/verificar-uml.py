@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-"""Verifica los diagramas de secuencia de PlantUML.
+"""Verifica los diagramas UML de PlantUML del proyecto.
 
-Comprueba que cada participante este bien conectado:
+Hay dos grupos de comprobaciones.
+
+**Diagramas de secuencia** (`uml/secuencia/`, `uml/secuencia-light/`,
+`uml/secuencia-comunes/`, `uml/secuencia-fusionados/`): se comprueba que
+cada participante este bien conectado:
 
 - que no se use un participante sin declararlo (PlantUML lo crea sin
   estereotipo y muestra el alias en vez de la etiqueta);
 - que todo participante declarado aparezca en algún mensaje;
 - que las entidades y las tablas se llamen entre sí, de modo que la línea
   de vida no quede colgando.
+
+**Diagramas estructurales** (`uml/estructural/`): se comprueba que cada
+clase, enumeración u objeto declarado participe en alguna relación y que
+ninguna relación use un elemento sin declarar.
 
 Uso:
 
@@ -25,6 +33,21 @@ MSG = re.compile(r'^\s*([\w]+)\s*(?:-+>?|>>?-)\s*([\w]+)\s*:')
 
 CARPETAS = ['secuencia', 'secuencia-light', 'secuencia-comunes',
             'secuencia-fusionados', 'procesos']
+
+# --- Diagramas estructurales -------------------------------------------
+# Declaracion: class|enum|object, con etiqueta opcional y alias opcional.
+DECL_ESTRUCT = re.compile(
+    r'^\s*(?:class|enum|object|interface|abstract)\s+'
+    r'(?:"[^"]+"\s+as\s+)?(\w+)')
+# Relacion: A [multiplicidad] operador [multiplicidad] B [: etiqueta]
+# Se admiten <--, --, *--, --> y ..> (dependencia).
+REL_ESTRUCT = re.compile(
+    r'^\s*(\w+)\s*(?:"[^"]*"\s*)?'
+    r'(?:<--|\*--|-->|\.\.>|--)\s*'
+    r'(?:"[^"]*"\s*)?(\w+)\s*(?::.*)?$')
+
+CARPETAS_ESTRUCT = ['estructural']
+
 
 def analizar(ruta):
     """Devuelve la lista de problemas de un archivo .puml."""
@@ -62,6 +85,37 @@ def analizar(ruta):
     return fallos
 
 
+def analizar_estructural(ruta):
+    """Devuelve la lista de problemas de un diagrama de clases u objetos."""
+    declarados, relacionados = set(), set()
+
+    for linea in ruta.read_text(encoding='utf-8').splitlines():
+        texto = linea.strip()
+        if not texto or texto.startswith("'") or texto.startswith('//'):
+            continue
+        # Las aristas ocultas solo guian la disposicion.
+        if '-[hidden]->' in texto:
+            continue
+        d = DECL_ESTRUCT.match(linea)
+        if d:
+            declarados.add(d.group(1))
+            continue
+        m = REL_ESTRUCT.match(linea)
+        if m:
+            relacionados.add(m.group(1))
+            relacionados.add(m.group(2))
+
+    fallos = []
+
+    for alias in sorted(relacionados - declarados):
+        fallos.append(f"{alias} aparece en una relacion pero no esta declarado")
+
+    for alias in sorted(declarados - relacionados):
+        fallos.append(f"{alias} esta declarado pero no participa en ninguna relacion")
+
+    return fallos
+
+
 def main():
     raiz = Path(__file__).resolve().parent.parent
     total = 0
@@ -74,6 +128,19 @@ def main():
         for ruta in sorted(directorio.glob('*.puml')):
             examinados += 1
             fallos = analizar(ruta)
+            if fallos:
+                total += len(fallos)
+                print(f"\n{ruta.relative_to(raiz)}")
+                for fallo in fallos:
+                    print(f"   - {fallo}")
+
+    for carpeta in CARPETAS_ESTRUCT:
+        directorio = raiz / 'sistema/diagramas/uml' / carpeta
+        if not directorio.is_dir():
+            continue
+        for ruta in sorted(directorio.glob('*.puml')):
+            examinados += 1
+            fallos = analizar_estructural(ruta)
             if fallos:
                 total += len(fallos)
                 print(f"\n{ruta.relative_to(raiz)}")

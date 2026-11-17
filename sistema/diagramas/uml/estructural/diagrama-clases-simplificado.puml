@@ -1,0 +1,182 @@
+@startuml
+title Diagrama de clases (simplificado) · Sistema de gestión de paquetes turísticos y reservas
+' Version reducida del modelo, pensada para publicarse como figura.
+' Se centra en el flujo de reserva: paquete y salida, cliente y pasajeros,
+' cotizacion, reserva y pago. El grupo de estados y las notas resumen las
+' reglas que el modelo completo distribuye entre mas elementos.
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Acceso" {
+  class Usuario {
+    - idUsuario : Long
+    - nombres : String
+    - apellidos : String
+    - correo : String
+    - estado : String
+    + autenticar(credenciales) : Boolean
+  }
+}
+
+package "Clientes" {
+  class Cliente {
+    - idCliente : Long
+    - tipoDocumento : String
+    - numeroDocumento : String
+    - nombres : String
+    - apellidos : String
+    - telefono : String
+    + buscarPorDocumento(tipo, numero) : Cliente
+  }
+
+  class Pasajero {
+    - idPasajero : Long
+    - tipoDocumento : String
+    - numeroDocumento : String
+    - nombres : String
+    - apellidos : String
+    + registrar(datos) : Pasajero
+  }
+}
+
+package "Catalogo" {
+  class Paquete {
+    - idPaquete : Long
+    - codigo : String
+    - nombre : String
+    - duracionDias : Integer
+    - precioBase : Decimal
+    + activar() : void
+  }
+
+  class Salida {
+    - idSalida : Long
+    - fechaSalida : Date
+    - fechaRetorno : Date
+    - cupoMaximo : Integer
+    - precio : Decimal
+    + bloquearSalida(idSalida) : Salida
+    + verificarCupo(cantidad) : Boolean
+  }
+}
+
+package "Operacion" {
+  class Cotizacion {
+    - idCotizacion : Long
+    - numero : String
+    - cantidadPasajeros : Integer
+    - precioUnitario : Decimal
+    - total : Decimal
+    + calcularTotales() : void
+  }
+
+  class Reserva {
+    - idReserva : Long
+    - codigo : String
+    - origen : String
+    - cantidadPasajeros : Integer
+    - montoTotal : Decimal
+    - estado : EstadoReserva
+    - fechaExpiracion : DateTime
+    + crear(salida, cantidad, monto, origen) : Reserva
+    + verificarSolicitudUnica(cliente, salida) : Boolean
+    + cambiarEstado(estado, usuario) : void
+  }
+
+  class ReservaPasajero {
+    - idReserva : Long
+    - idPasajero : Long
+    + vincular() : void
+  }
+
+  class Pago {
+    - idPago : Long
+    - tipo : String
+    - monto : Decimal
+    - metodo : String
+    - estado : EstadoPago
+    - fechaValidacion : DateTime
+    + validarTipoYMonto(tipo, monto) : Boolean
+  }
+}
+
+package "Consultas" {
+  class Disponibilidad <<vista>> {
+    - idSalida : Long
+    - cupoMaximo : Integer
+    - pasajerosOcupados : Integer
+    - cupoDisponible : Integer
+    + calcular() : Disponibilidad
+  }
+}
+
+package "Estados" {
+  enum EstadoReserva {
+    pendiente
+    confirmada
+    vencida
+    cancelada
+    finalizada
+  }
+  enum EstadoPago {
+    registrado
+    validado
+    anulado
+  }
+}
+
+' --- Guia de disposicion (aristas ocultas) --------------------------
+Usuario -[hidden]-> Cliente
+Cliente -[hidden]-> Pasajero
+Paquete -[hidden]-> Salida
+Salida -[hidden]-> Cotizacion
+Cotizacion -[hidden]-> Reserva
+Reserva -[hidden]-> Pago
+Reserva -[hidden]-> ReservaPasajero
+ReservaPasajero -[hidden]-> Pasajero
+Salida -[hidden]-> Disponibilidad
+
+' --- Relaciones ------------------------------------------------------
+Usuario "1" <-- "0..1" Cliente : "> cuenta
+Usuario "1" <-- "0..*" Cotizacion : "> emite
+Usuario "1" <-- "0..*" Reserva : "> registra
+Usuario "1" <-- "0..*" Pago : "> registra
+Usuario "1" <-- "0..*" Pago : "> valida
+
+Cliente "1" <-- "0..*" Pasajero : "> agrupa
+Cliente "1" <-- "0..*" Cotizacion : "> recibe
+Cliente "1" <-- "0..*" Reserva : "> solicita
+
+Paquete "1" <-- "0..*" Salida : "> programa
+
+Salida "1" <-- "0..*" Cotizacion : "> cotiza
+Salida "1" <-- "0..*" Reserva : "> reserva
+Cotizacion "0..1" <-- "0..*" Reserva : "> origina
+
+Reserva "1" *-- "0..*" ReservaPasajero : incluye
+Pasajero "1" <-- "0..*" ReservaPasajero : "> viaja
+Reserva "1" <-- "0..1..2" Pago : "> paga
+
+Salida ..> Disponibilidad : calcula
+
+Reserva --> EstadoReserva
+Pago --> EstadoPago
+
+note bottom of Reserva
+  Nace pendiente en los dos canales (origen:
+  personal o web) y con fecha de vencimiento.
+  La confirma el personal. El cliente puede
+  tener una sola solicitud pendiente por
+  salida.
+end note
+
+note bottom of Disponibilidad
+  El cupo no se almacena: se calcula sobre las
+  reservas pendientes y confirmadas. Las
+  vencidas y las canceladas liberan el cupo.
+  El saldo pendiente de una reserva se calcula
+  sobre los pagos validados: un pago solo
+  registrado por el cliente todavia no cuenta.
+end note
+@enduml

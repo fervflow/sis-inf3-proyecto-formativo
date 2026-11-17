@@ -1,0 +1,172 @@
+@startuml
+title Diagrama de objetos (simplificado) · Solicitud de reserva del cliente (HU-06, HU-14)
+' Version reducida de la instantanea: conserva la reserva pendiente y el
+' anticipo registrado, que son los dos hechos que explican las reglas.
+hide circle
+skinparam linetype ortho
+
+object "Usuario · Luis Mamani" as USU_MAMANI {
+  idUsuario = 12
+  nombres = "Luis"
+  apellidos = "Mamani"
+  correo = "luis.mamani@correo.bo"
+  estado = "activo"
+}
+
+object "Usuario · Elena Roca" as USU_ROCA {
+  idUsuario = 4
+  nombres = "Elena"
+  apellidos = "Roca"
+  correo = "e.rica@vizcachatours.bo"
+  estado = "activo"
+}
+
+object "Cliente · Luis Mamani" as CLI_MAMANI {
+  idCliente = 12
+  tipoDocumento = "CI"
+  numeroDocumento = "4567891 SC"
+  nombres = "Luis"
+  apellidos = "Mamani"
+  telefono = "70011223"
+  estado = "activo"
+}
+
+object "Pasajero · Luis Mamani" as PAS_LUIS {
+  idPasajero = 21
+  idCliente = 12
+  numeroDocumento = "4567891 SC"
+  nombres = "Luis"
+  apellidos = "Mamani"
+}
+
+object "Pasajero · Rosa Mamani" as PAS_ROSA {
+  idPasajero = 22
+  idCliente = 12
+  numeroDocumento = "7894562 SC"
+  nombres = "Rosa"
+  apellidos = "Mamani"
+}
+
+object "Paquete · Uros del Titicaca" as PAQ_UROS {
+  idPaquete = 1
+  codigo = "PQT-URS"
+  nombre = "Uros del Titicaca"
+  duracionDias = 3
+  precioBase = 850.00
+  estado = "activo"
+}
+
+object "Salida · Uros del Titicaca · 12/12/2026" as SAL_UROS {
+  idSalida = 4
+  fechaSalida = "2026-12-12"
+  fechaRetorno = "2026-12-14"
+  cupoMaximo = 12
+  precio = 890.00
+  estado = "programada"
+}
+
+object "Cotizacion · COT-2026-0041" as COT_0041 {
+  idCotizacion = 41
+  numero = "COT-2026-0041"
+  cantidadPasajeros = 2
+  precioUnitario = 890.00
+  total = 1780.00
+  estado = "aceptada"
+  fechaValidez = "2026-11-12"
+}
+
+object "Reserva · RES-2026-0117" as RES_0117 {
+  idReserva = 117
+  codigo = "RES-2026-0117"
+  origen = "web"
+  cantidadPasajeros = 2
+  montoTotal = 1780.00
+  estado = "pendiente"
+  fechaExpiracion = "2026-11-12 10:30"
+}
+
+object "ReservaPasajero · Luis Mamani" as RP_LUIS {
+  idReserva = 117
+  idPasajero = 21
+}
+
+object "ReservaPasajero · Rosa Mamani" as RP_ROSA {
+  idReserva = 117
+  idPasajero = 22
+}
+
+object "Pago · Anticipo" as PAG_ANTICIPO {
+  idPago = 55
+  tipo = "anticipo"
+  monto = 500.00
+  metodo = "transferencia"
+  estado = "registrado"
+  idUsuarioValidacion = null
+}
+
+object "Disponibilidad · Salida 4" as DISP_SALIDA {
+  idSalida = 4
+  cupoMaximo = 12
+  pasajerosOcupados = 2
+  cupoDisponible = 10
+}
+
+object "Saldo · Reserva 117" as SALDO_0117 {
+  idReserva = 117
+  montoTotal = 1780.00
+  anticipo = 500.00
+  totalValidado = 0.00
+  saldoPendiente = 1780.00
+}
+
+' --- Acceso ----------------------------------------------------------
+USU_MAMANI -- CLI_MAMANI : "> cuenta
+
+' --- Cotizacion ------------------------------------------------------
+PAQ_UROS -- SAL_UROS : "> programa"
+CLI_MAMANI -- COT_0041 : "> recibe"
+SAL_UROS -- COT_0041 : "> cotiza"
+USU_ROCA -- COT_0041 : "> emite"
+
+' --- Reserva ----------------------------------------------------------
+CLI_MAMANI -- RES_0117 : "> solicita"
+SAL_UROS -- RES_0117 : "> reserva"
+COT_0041 -- RES_0117 : "> origina"
+USU_MAMANI -- RES_0117 : "> registra"
+RES_0117 -- RP_LUIS : incluye
+RES_0117 -- RP_ROSA : incluye
+PAS_LUIS -- RP_LUIS : "> viaja"
+PAS_ROSA -- RP_ROSA : "> viaja"
+CLI_MAMANI -- PAS_LUIS : "> agrupa"
+CLI_MAMANI -- PAS_ROSA : "> agrupa"
+
+' --- Pago -------------------------------------------------------------
+RES_0117 -- PAG_ANTICIPO : "> paga"
+USU_MAMANI -- PAG_ANTICIPO : "> registra"
+
+' --- Vistas calculadas ------------------------------------------------
+SAL_UROS ..> DISP_SALIDA : calcula
+RES_0117 ..> SALDO_0117 : totaliza
+
+note bottom of RES_0117
+  Nace pendiente en los dos canales, con
+  vencimiento a las 48 horas. El personal
+  la confirma.
+end note
+
+note bottom of PAG_ANTICIPO
+  Registrado por el cliente. Hasta que el
+  personal lo valide no se considera cobrado.
+end note
+
+note bottom of DISP_SALIDA
+  El cupo no se almacena: se calcula. La
+  reserva pendiente ya ocupa 2 de los 12.
+end note
+
+note bottom of SALDO_0117
+  El saldo pendiente se calcula sobre los
+  pagos validados. Como el anticipo sigue
+  registrado, el saldo pendiente es el total.
+end note
+@enduml

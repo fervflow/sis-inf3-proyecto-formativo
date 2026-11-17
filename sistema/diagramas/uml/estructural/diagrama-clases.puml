@@ -1,0 +1,394 @@
+@startuml
+title Diagrama de clases · Sistema de gestión de paquetes turísticos y reservas
+' Modelo de dominio derivado del esquema temporal y de las historias de
+' usuario. Las operaciones son las mismas que aparecen en los diagramas de
+' secuencia de ../secuencia/, de modo que el modelo es coherente con ellos.
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+left to right direction
+
+package "Acceso" {
+  class Rol {
+    - idRol : SMALLINT
+    - codigo : String
+    - nombre : String
+    + asignarPermisos() : void
+  }
+
+  class Usuario {
+    - idUsuario : BIGINT
+    - nombres : String
+    - apellidos : String
+    - correo : String
+    - estado : EstadoUsuario
+    - fechaCreacion : DateTime
+    + autenticar(credenciales) : Boolean
+    + cambiarEstado(estado) : void
+    + esPersonal() : Boolean
+    + esCliente() : Boolean
+  }
+}
+
+package "Clientes" {
+  class Cliente {
+    - idCliente : BIGINT
+    - tipoDocumento : TipoDocumento
+    - numeroDocumento : String
+    - nombres : String
+    - apellidos : String
+    - correo : String
+    - telefono : String
+    - estado : EstadoCliente
+    + buscarPorDocumento(tipo, numero) : Cliente
+    + validarCliente(idCliente) : Boolean
+    + guardar() : void
+  }
+
+  class Pasajero {
+    - idPasajero : BIGINT
+    - tipoDocumento : TipoDocumento
+    - numeroDocumento : String
+    - nombres : String
+    - apellidos : String
+    - fechaNacimiento : Date
+    - nacionalidad : String
+    + registrarPasajero(datos) : Pasajero
+    + guardar() : void
+  }
+}
+
+package "Catalogo" {
+  class Proveedor {
+    - idProveedor : BIGINT
+    - nombre : String
+    - tipo : TipoProveedor
+    - nit : String
+    - estado : EstadoProveedor
+    + guardar() : void
+    + actualizar() : void
+  }
+
+  class Paquete {
+    - idPaquete : BIGINT
+    - codigo : String
+    - nombre : String
+    - duracionDias : Integer
+    - precioBase : Decimal
+    - estado : EstadoPaquete
+    + buscarPaquetes(filtro) : List<Paquete>
+    + guardar() : void
+    + activar() : void
+  }
+
+  class PaqueteProveedor {
+    - idPaquete : BIGINT
+    - idProveedor : BIGINT
+    - servicio : String
+    - costo : Decimal
+    + costoServicios() : Decimal
+  }
+
+  class Salida {
+    - idSalida : BIGINT
+    - fechaSalida : Date
+    - fechaRetorno : Date
+    - cupoMaximo : Integer
+    - precio : Decimal
+    - puntoEncuentro : String
+    - estado : EstadoSalida
+    + bloquearSalida(idSalida) : Salida
+    + listarSalidas(filtro) : List<Salida>
+    + aplicarCambios(cambios) : void
+    + verificarCupo(cantidad) : Boolean
+    + contarPasajerosActivos() : Integer
+  }
+}
+
+package "Operacion" as PKG_OPERACION {
+  class Cotizacion {
+    - idCotizacion : BIGINT
+    - numero : String
+    - cantidadPasajeros : Integer
+    - precioUnitario : Decimal
+    - subtotal : Decimal
+    - descuento : Decimal
+    - total : Decimal
+    - estado : EstadoCotizacion
+    - fechaEmision : Date
+    - fechaValidez : Date
+    + calcularTotales() : void
+    + cambiarEstado(estado) : void
+    + crear() : Cotizacion
+    + guardar() : void
+  }
+
+  class Reserva {
+    - idReserva : BIGINT
+    - codigo : String
+    - origen : OrigenReserva
+    - cantidadPasajeros : Integer
+    - montoTotal : Decimal
+    - estado : EstadoReserva
+    - fechaExpiracion : DateTime
+    - fechaSolicitudCancelacion : DateTime
+    - motivoCancelacion : String
+    - fechaCancelacion : DateTime
+    + crear(salida, cantidad, monto, origen) : Reserva
+    + bloquearYBuscar(idReserva) : Reserva
+    + contarPasajerosActivos(salida) : Integer
+    + verificarSolicitudUnica(cliente, salida) : Boolean
+    + cambiarEstado(estado, usuario) : void
+    + registrarSolicitudCancelacion() : void
+    + recalcularSaldo() : Saldo
+  }
+
+  class ReservaPasajero {
+    - idReserva : BIGINT
+    - idPasajero : BIGINT
+    + vincular(idReserva, idPasajero) : void
+  }
+
+  class Pago {
+    - idPago : BIGINT
+    - tipo : TipoPago
+    - monto : Decimal
+    - metodo : MetodoPago
+    - referencia : String
+    - estado : EstadoPago
+    - fechaValidacion : DateTime
+    + crear() : Pago
+    + validarTipoYMonto(tipo, monto) : Boolean
+    + cambiarEstado(estado) : void
+    + obtenerPagos(idReserva) : List<Pago>
+    + calcularSaldo() : Saldo
+  }
+}
+
+package "Auditoria" {
+  class HistorialReserva {
+    - idHistorial : BIGINT
+    - estadoAnterior : EstadoReserva
+    - estadoNuevo : EstadoReserva
+    - fechaCambio : DateTime
+    - observacion : String
+    + registrarCambio(anterior, nuevo, usuario) : void
+    + obtenerHistorial(idReserva) : List<HistorialReserva>
+  }
+
+  class HistorialSalida {
+    - idHistorial : BIGINT
+    - campoModificado : String
+    - valorAnterior : String
+    - valorNuevo : String
+    - motivo : String
+    - fechaCambio : DateTime
+    + registrarCambio(campo, anterior, nuevo, usuario) : void
+  }
+}
+
+package "Consultas" as PKG_CONSULTAS {
+  class Disponibilidad <<vista>> {
+    - idSalida : BIGINT
+    - paquete : String
+    - fechaSalida : Date
+    - cupoMaximo : Integer
+    - pasajerosOcupados : Integer
+    - cupoDisponible : Integer
+    - cupoDisponibleSinPendientes : Integer
+    + calcular() : Disponibilidad
+  }
+
+  class Saldo <<vista>> {
+    - idReserva : BIGINT
+    - codigo : String
+    - montoTotal : Decimal
+    - anticipo : Decimal
+    - totalValidado : Decimal
+    - saldoPendiente : Decimal
+    + calcular() : Saldo
+  }
+
+  class OcupacionPorFecha <<vista>> {
+    - fechaSalida : Date
+    - paquete : String
+    - reservasActivas : Integer
+    - pasajeros : Integer
+    - cupoDisponible : Integer
+    + calcular() : OcupacionPorFecha
+  }
+}
+
+class Notificacion <<servicio>> {
+  + avisarClientes(idSalida, cambios) : Integer
+  + enviar(cliente, mensaje) : Boolean
+}
+
+package "Enumeraciones" {
+  enum EstadoUsuario {
+    activo
+    inactivo
+    bloqueado
+  }
+  enum EstadoCliente {
+    activo
+    inactivo
+  }
+  enum EstadoProveedor {
+    activo
+    inactivo
+  }
+  enum EstadoPaquete {
+    borrador
+    activo
+    inactivo
+  }
+  enum EstadoSalida {
+    programada
+    confirmada
+    realizada
+    cancelada
+  }
+  enum EstadoCotizacion {
+    borrador
+    enviada
+    aceptada
+    rechazada
+    vencida
+  }
+  enum EstadoReserva {
+    pendiente
+    confirmada
+    vencida
+    cancelada
+    finalizada
+  }
+  enum OrigenReserva {
+    personal
+    web
+  }
+  enum TipoPago {
+    anticipo
+    saldo
+  }
+  enum MetodoPago {
+    efectivo
+    transferencia
+    tarjeta
+    otro
+  }
+  enum EstadoPago {
+    registrado
+    validado
+    anulado
+  }
+  enum TipoProveedor {
+    transporte
+    hospedaje
+    guia
+    alimentacion
+    otro
+  }
+  enum TipoDocumento {
+    CI
+    NIT
+    PASAPORTE
+    OTRO
+  }
+}
+
+' --- Guia de disposicion (aristas ocultas) --------------------------
+Rol -[hidden]-> Usuario
+Usuario -[hidden]-> Cliente
+Cliente -[hidden]-> Pasajero
+Proveedor -[hidden]-> PaqueteProveedor
+Paquete -[hidden]-> Salida
+Salida -[hidden]-> Cotizacion
+Cotizacion -[hidden]-> Reserva
+Reserva -[hidden]-> Pago
+Reserva -[hidden]-> ReservaPasajero
+ReservaPasajero -[hidden]-> Pasajero
+Reserva -[hidden]-> HistorialReserva
+Salida -[hidden]-> HistorialSalida
+Salida -[hidden]-> Disponibilidad
+Reserva -[hidden]-> Saldo
+Salida -[hidden]-> OcupacionPorFecha
+
+' --- Relaciones de acceso -------------------------------------------
+Rol "1" <-- "0..*" Usuario : clasifica >
+Usuario "1" <-- "0..1" Cliente : "> cuenta
+Usuario "1" <-- "0..*" Paquete : "> crea
+Usuario "1" <-- "0..*" Salida : "> gestiona
+Usuario "1" <-- "0..*" Cotizacion : "> emite
+Usuario "1" <-- "0..*" Reserva : "> registra
+Usuario "1" <-- "0..*" Pago : "> registra
+Usuario "1" <-- "0..*" Pago : "> valida
+Usuario "1" <-- "0..*" HistorialReserva : "> audita
+Usuario "1" <-- "0..*" HistorialSalida : "> audita
+
+' --- Relaciones de clientes ------------------------------------------
+Cliente "1" <-- "0..*" Pasajero : "> agrupa
+Cliente "1" <-- "0..*" Cotizacion : "> recibe
+Cliente "1" <-- "0..*" Reserva : "> solicita
+
+' --- Relaciones del catalogo -----------------------------------------
+Proveedor "1" <-- "0..*" PaqueteProveedor : "> aporta
+Paquete "1" *-- "0..*" PaqueteProveedor : incluye
+Paquete "1" <-- "0..*" Salida : "> programa
+
+' --- Relaciones de la operacion --------------------------------------
+Salida "1" <-- "0..*" Cotizacion : "> cotiza
+Salida "1" <-- "0..*" Reserva : "> reserva
+Salida "1" <-- "0..*" Notificacion : "> avisa
+Cotizacion "0..1" <-- "0..*" Reserva : "> origina
+Reserva "1" *-- "0..*" ReservaPasajero : incluye
+Pasajero "1" <-- "0..*" ReservaPasajero : "> viaja
+Reserva "1" <-- "0..1..2" Pago : "> paga
+Reserva "1" <-- "0..*" HistorialReserva : "> audita
+Salida "1" <-- "0..*" HistorialSalida : "> audita
+
+' --- Modelos de lectura: no se almacenan, se calculan ----------------
+Salida ..> Disponibilidad : calcula
+Reserva ..> Saldo : totaliza
+Salida ..> OcupacionPorFecha : agrupa
+
+' --- Enumeraciones ----------------------------------------------------
+Usuario --> EstadoUsuario
+Cliente --> EstadoCliente
+Proveedor --> EstadoProveedor
+Paquete --> EstadoPaquete
+Salida --> EstadoSalida
+Cotizacion --> EstadoCotizacion
+Reserva --> EstadoReserva
+Reserva --> OrigenReserva
+Pago --> TipoPago
+Pago --> MetodoPago
+Pago --> EstadoPago
+Proveedor --> TipoProveedor
+Cliente --> TipoDocumento
+Pasajero --> TipoDocumento
+HistorialReserva --> EstadoReserva
+Disponibilidad --> EstadoSalida
+Saldo --> EstadoReserva
+
+note bottom of PKG_OPERACION
+  La reserva nace pendiente en los dos canales y
+  con fecha de vencimiento. La confirma el
+  personal. El cliente puede tener una sola
+  solicitud pendiente por salida.
+end note
+
+note bottom of PKG_CONSULTAS
+  El cupo no se almacena: se calcula sobre las
+  reservas pendientes y confirmadas. Las
+  vencidas y las canceladas no cuentan.
+  El saldo pendiente se calcula sobre los pagos
+  validados: un pago solo registrado por el
+  cliente todavia no se considera cobrado.
+end note
+
+note bottom of Notificacion
+  Aviso al cliente cuando cambia la fecha o la
+  capacidad de su salida (HU-16).
+end note
+@enduml

@@ -1,0 +1,263 @@
+@startuml
+title Diagrama de objetos · Solicitud de reserva y anticipo del cliente (HU-06, HU-14)
+' Instantanea del sistema en un momento concreto: un cliente con cuenta
+' solicita una reserva desde la web y registra un anticipo. La reserva
+' permanece pendiente de confirmacion y el anticipo, sin validar, todavia
+' no reduce el saldo pendiente.
+hide circle
+skinparam linetype ortho
+left to right direction
+
+object "Rol · TURISTA" as ROL_TURISTA {
+  idRol = 3
+  codigo = "TURISTA"
+  nombre = "Turista"
+}
+
+object "Rol · PERSONAL" as ROL_PERSONAL {
+  idRol = 2
+  codigo = "PERSONAL"
+  nombre = "Personal de agencia"
+}
+
+object "Usuario · Elena Roca" as USU_ROCA {
+  idUsuario = 4
+  idRol = 2
+  nombres = "Elena"
+  apellidos = "Roca"
+  correo = "e.rica@vizcachatours.bo"
+  estado = "activo"
+}
+
+object "Usuario · Luis Mamani" as USU_MAMANI {
+  idUsuario = 12
+  idRol = 3
+  nombres = "Luis"
+  apellidos = "Mamani"
+  correo = "luis.mamani@correo.bo"
+  estado = "activo"
+}
+
+object "Cliente · Luis Mamani" as CLI_MAMANI {
+  idCliente = 12
+  idUsuario = 12
+  tipoDocumento = "CI"
+  numeroDocumento = "4567891 SC"
+  nombres = "Luis"
+  apellidos = "Mamani"
+  correo = "luis.mamani@correo.bo"
+  telefono = "70011223"
+  estado = "activo"
+}
+
+object "Proveedor · Transporte Andes S.R.L." as PROV_ANDES {
+  idProveedor = 1
+  nombre = "Transporte Andes S.R.L."
+  tipo = "transporte"
+  nit = "3025561008"
+  estado = "activo"
+}
+
+object "Paquete · Uros del Titicaca" as PAQ_UROS {
+  idPaquete = 1
+  codigo = "PQT-URS"
+  nombre = "Uros del Titicaca"
+  duracionDias = 3
+  precioBase = 850.00
+  estado = "activo"
+}
+
+object "PaqueteProveedor · Traslado ida y vuelta" as PP_ANDES {
+  idPaquete = 1
+  idProveedor = 1
+  servicio = "Traslado ida y vuelta"
+  costo = 140.00
+}
+
+object "Salida · Uros del Titicaca · 12/12/2026" as SAL_UROS_12 {
+  idSalida = 4
+  idPaquete = 1
+  fechaSalida = "2026-12-12"
+  fechaRetorno = "2026-12-14"
+  cupoMaximo = 12
+  precio = 890.00
+  puntoEncuentro = "Plaza 25 de Mayo, 08:00"
+  estado = "programada"
+}
+
+object "Cotizacion · COT-2026-0041" as COT_0041 {
+  idCotizacion = 41
+  numero = "COT-2026-0041"
+  idCliente = 12
+  idSalida = 4
+  idUsuario = 4
+  cantidadPasajeros = 2
+  precioUnitario = 890.00
+  subtotal = 1780.00
+  descuento = 0.00
+  total = 1780.00
+  estado = "aceptada"
+  fechaEmision = "2026-11-10"
+  fechaValidez = "2026-11-12"
+}
+
+object "Reserva · RES-2026-0117" as RES_0117 {
+  idReserva = 117
+  codigo = "RES-2026-0117"
+  idCliente = 12
+  idSalida = 4
+  idCotizacion = 41
+  idUsuario = 12
+  origen = "web"
+  cantidadPasajeros = 2
+  montoTotal = 1780.00
+  estado = "pendiente"
+  fechaExpiracion = "2026-11-12 10:30"
+  fechaReserva = "2026-11-10 10:30"
+}
+
+object "Pasajero · Luis Mamani" as PAS_MAMANI {
+  idPasajero = 21
+  idCliente = 12
+  tipoDocumento = "CI"
+  numeroDocumento = "4567891 SC"
+  nombres = "Luis"
+  apellidos = "Mamani"
+  fechaNacimiento = "1994-03-11"
+  nacionalidad = "Bolivia"
+}
+
+object "Pasajero · Rosa Mamani" as PAS_ROSA {
+  idPasajero = 22
+  idCliente = 12
+  tipoDocumento = "CI"
+  numeroDocumento = "7894562 SC"
+  nombres = "Rosa"
+  apellidos = "Mamani"
+  fechaNacimiento = "1996-08-02"
+  nacionalidad = "Bolivia"
+}
+
+object "ReservaPasajero · Luis Mamani" as RP_LUIS {
+  idReserva = 117
+  idPasajero = 21
+}
+
+object "ReservaPasajero · Rosa Mamani" as RP_ROSA {
+  idReserva = 117
+  idPasajero = 22
+}
+
+object "Pago · Anticipo" as PAG_ANTICIPO {
+  idPago = 55
+  idReserva = 117
+  tipo = "anticipo"
+  monto = 500.00
+  metodo = "transferencia"
+  referencia = "OP-9931"
+  fechaPago = "2026-11-10 10:40"
+  idUsuario = 12
+  estado = "registrado"
+  idUsuarioValidacion = null
+  fechaValidacion = null
+}
+
+object "HistorialReserva · Registro inicial" as HR_INICIAL {
+  idHistorial = 301
+  idReserva = 117
+  estadoAnterior = null
+  estadoNuevo = "pendiente"
+  fechaCambio = "2026-11-10 10:30"
+  idUsuario = 12
+  observacion = "Solicitud registrada por el cliente."
+}
+
+object "Disponibilidad · Salida 4" as DISP_SALIDA_4 {
+  idSalida = 4
+  paquete = "Uros del Titicaca"
+  fechaSalida = "2026-12-12"
+  cupoMaximo = 12
+  pasajerosOcupados = 2
+  pasajerosPendientes = 2
+  pasajerosConfirmados = 0
+  cupoDisponible = 10
+  cupoDisponibleSinPendientes = 12
+}
+
+object "Saldo · Reserva 117" as SALDO_0117 {
+  idReserva = 117
+  codigo = "RES-2026-0117"
+  montoTotal = 1780.00
+  anticipo = 500.00
+  saldoPagado = 0.00
+  totalPagado = 500.00
+  totalValidado = 0.00
+  saldoPendiente = 1780.00
+}
+
+' --- Acceso ----------------------------------------------------------
+ROL_TURISTA -- USU_MAMANI
+ROL_PERSONAL -- USU_ROCA
+USU_MAMANI -- CLI_MAMANI : "> cuenta
+
+' --- Catalogo --------------------------------------------------------
+PROV_ANDES -- PP_ANDES : "> aporta"
+PAQ_UROS -- PP_ANDES : incluye
+PAQ_UROS -- SAL_UROS_12 : "> programa"
+USU_ROCA -- PAQ_UROS : "> crea"
+USU_ROCA -- SAL_UROS_12 : "> gestiona"
+
+' --- Cotizacion ------------------------------------------------------
+CLI_MAMANI -- COT_0041 : "> recibe"
+SAL_UROS_12 -- COT_0041 : "> cotiza"
+USU_ROCA -- COT_0041 : "> emite"
+
+' --- Reserva ----------------------------------------------------------
+CLI_MAMANI -- RES_0117 : "> solicita"
+SAL_UROS_12 -- RES_0117 : "> reserva"
+COT_0041 -- RES_0117 : "> origina"
+USU_MAMANI -- RES_0117 : "> registra"
+RES_0117 -- RP_LUIS : incluye
+RES_0117 -- RP_ROSA : incluye
+PAS_MAMANI -- RP_LUIS : "> viaja"
+PAS_ROSA -- RP_ROSA : "> viaja"
+CLI_MAMANI -- PAS_MAMANI : "> agrupa"
+CLI_MAMANI -- PAS_ROSA : "> agrupa"
+
+' --- Pago -------------------------------------------------------------
+RES_0117 -- PAG_ANTICIPO : "> paga"
+USU_MAMANI -- PAG_ANTICIPO : "> registra"
+
+' --- Auditoria --------------------------------------------------------
+RES_0117 -- HR_INICIAL : "> audita"
+USU_MAMANI -- HR_INICIAL : "> audita"
+
+' --- Vistas calculadas ------------------------------------------------
+SAL_UROS_12 ..> DISP_SALIDA_4 : calcula
+RES_0117 ..> SALDO_0117 : totaliza
+
+note bottom of RES_0117
+  Nace pendiente en los dos canales, con fecha
+  de vencimiento. El personal la confirma.
+  No se puede crear otra solicitud pendiente
+  para la misma salida.
+end note
+
+note bottom of PAG_ANTICIPO
+  Registrado por el cliente. Queda en estado
+  "registrado" hasta que el personal lo valida,
+  de modo que todavia no se considera cobrado.
+end note
+
+note bottom of DISP_SALIDA_4
+  El cupo no se almacena: se calcula sobre las
+  reservas pendientes y confirmadas. La reserva
+  pendiente ya ocupa 2 de los 12 lugares.
+end note
+
+note bottom of SALDO_0117
+  El saldo pendiente se calcula sobre los pagos
+  validados. Como el anticipo sigue registrado
+  y no validado, el saldo pendiente es el total.
+end note
+@enduml

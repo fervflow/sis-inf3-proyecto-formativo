@@ -171,7 +171,7 @@ proyecto-formativo/
 │   │   └── ejemplos-plantilla/  Ejemplos heredados, no del proyecto
 │   ├── base-de-datos/       Esquema SQL y diccionario de datos
 │   ├── historias-usuario/   Backlog de historias de usuario (CSV y MD)
-│   ├── verificar-uml.py     Comprueba los diagramas de secuencia
+│   ├── verificar-uml.py     Comprueba los diagramas UML
 │   └── verificar-rutas.py   Comprueba que las rutas existan
 ├── documentacion/           Guías y bitácora
 │   ├── GUIA-LATEX.md        Guía de LaTeX y del proyecto
@@ -262,6 +262,17 @@ en `sistema/diagramas/README.md`.
 make diagramas   # genera los PDF en entregables/diagramas/pdf/
 make png         # genera los PNG en entregables/diagramas/png/
 ```
+
+Por tipo de diagrama:
+
+| Carpeta | Diagramas |
+|---|---|
+| `uml/secuencia/` | Los 7 flujos completos de las historias de usuario |
+| `uml/secuencia-light/` | Las versiones resumidas de esos 7 |
+| `uml/secuencia-comunes/` | 5 subflujos reutilizables |
+| `uml/secuencia-fusionados/` | 2 variantes que combinan historias |
+| `uml/estructural/` | El diagrama de clases y el de objetos, completos y simplificados |
+| `uml/procesos/` | El mapa de actividades con carriles |
 
 Para diagramas que no son UML (DER, arquitectura o prototipos de interfaz)
 puede usar [draw.io](https://www.drawio.com/) (`sudo pacman -S

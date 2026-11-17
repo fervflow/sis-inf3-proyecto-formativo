@@ -15,6 +15,7 @@ redactarlos hay que respetar el modelo que se describe más abajo.
 | `uml/secuencia-light/` | Las versiones resumidas de esos 7 |
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables, sin actor ni interfaz |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan HU-03 + HU-05 y HU-07 + HU-13 |
+| `uml/estructural/` | El diagrama de clases y el de objetos, en versión completa y simplificada |
 | `uml/procesos/` | El mapa de actividades con carriles |
 | `tikz/` | El árbol de problemas del Anexo A, dibujado en LaTeX |
 | `estilos/` | `tema-apa.puml`, el tema visual de PlantUML |
@@ -51,6 +52,10 @@ Las versiones ligeras añaden «(versión ligera)», las variantes fusionadas
 único por diagrama y permite identificar la historia de un vistazo, sin
 abrir el archivo.
 
+Los diagramas estructurales (`uml/estructural/`) no representan una historia,
+sino el modelo: su título sigue la forma «Tipo · Descripción», como el del
+mapa de procesos.
+
 ---
 
 ## Reglas del modelo que los diagramas deben respetar
@@ -78,15 +83,18 @@ abrir el archivo.
 
 `make verificar` ejecuta dos comprobaciones sobre este material.
 
-**`sistema/verificar-uml.py`** revisa los 22 archivos `.puml` del proyecto y
-detecta tres fallos:
+**`sistema/verificar-uml.py`** revisa los 26 archivos `.puml` del proyecto y
+detecta cuatro fallos:
 
 - un participante usado en un mensaje pero **no declarado**: PlantUML lo
   crea sin estereotipo y en la imagen aparece el texto del alias en lugar
   del icono con su etiqueta;
 - un participante declarado que no aparece en ningún mensaje;
 - una entidad o una tabla que solo emite o solo recibe, es decir, una línea
-  de vida que quedó colgando.
+  de vida que quedó colgando;
+- en los diagramas estructurales, una clase, enumeración u objeto **usado
+  en una relación pero no declarado**, o declarado y **sin participar en
+  ninguna relación**.
 
 Conviene ejecutarlo después de editar cualquier `.puml`, porque estos fallos
 no producen un error de compilación: el diagrama se genera igual, pero se ve
