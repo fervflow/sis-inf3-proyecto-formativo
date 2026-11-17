@@ -1,11 +1,14 @@
 # Registro de cambios
 
-Bitácora de las correcciones de formato y contenido aplicadas al informe a lo
-largo de las iteraciones. **No forma parte de `main.tex`** ni del PDF final.
+Bitácora de los trabajos aceptados en el proyecto: correcciones de formato y
+de contenido aplicadas al informe. **No forma parte de `main.tex`** ni del
+PDF final.
+
+Este archivo es la **referencia canónica** de la convención.
 
 ## Convención de nombres
 
-Cada iteración se guarda en un archivo independiente:
+Cada trabajo aceptado se guarda en un archivo independiente:
 
 ```text
 YYYY-MM-DDTHHMMSS_descripcion-breve.md
@@ -18,19 +21,19 @@ Ejemplo:
 ```
 
 La hora es la hora local del equipo. El nombre descriptivo debe resumir el
-alcance principal de la iteración.
+alcance principal del trabajo.
 
 ## Estructura de cada registro
 
 Cada archivo debe incluir, como mínimo:
 
-1. **Fecha y alcance** de la iteración.
+1. **Fecha y alcance** del trabajo.
 2. **Documento generado** y número de páginas.
 3. **Cambios de formato**.
 4. **Cambios de contenido**, organizados por sección.
 5. **Archivos modificados**.
 6. **Validación realizada**.
-7. **Pendientes o decisiones** para la siguiente iteración.
+7. **Pendientes o decisiones** para el siguiente trabajo.
 
 ## Reglas
 

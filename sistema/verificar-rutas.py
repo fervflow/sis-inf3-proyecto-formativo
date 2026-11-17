@@ -113,6 +113,63 @@ def comprobar_rutas_obsoletas():
     return revisados, fallos
 
 
+def _nombre_de(linea):
+    """Extrae el nombre de una entrada del árbol.
+
+    El nombre va después de la ramificación y termina donde empieza la
+    descripción, que se separa con dos o más espacios.
+    """
+    texto = linea.split('── ', 1)[1] if '── ' in linea else linea
+    texto = re.sub(r'^[│├└\s]+', '', texto).strip()
+    return re.split(r'\s{2,}', texto)[0].strip()
+
+
+def comprobar_arbol_readme():
+    """Comprueba que el árbol del README coincida con las carpetas reales.
+
+    Los árboles duplicados en varios documentos se desincronizan con
+    facilidad. Este control detecta el olvido en el momento de mover una
+    carpeta, que es cuando ocurre.
+    """
+    fallos = []
+    revisados = 0
+
+    readme = RAIZ / 'README.md'
+    if not readme.exists():
+        return 0, ['falta el README.md']
+
+    lineas = readme.read_text(encoding='utf-8').splitlines()
+
+    # Se recorren solo las líneas del árbol, que empiezan por el carácter
+    # de dibujo de ramas, y se reconstruye la ruta a partir de la
+    # sangría. Una entrada puede ocupar dos líneas cuando el nombre es
+    # largo; la continuación se reconoce porque no lleva ramificación.
+    raiz = []
+    for indice, linea in enumerate(lineas):
+        if not re.match(r'^[│├└ ]*[├└]── ', linea):
+            continue
+        nivel = (len(linea) - len(linea.lstrip('│ '))) // 4
+        nombre = _nombre_de(linea)
+
+        # Continuación de una entrada demasiado larga.
+        siguiente = lineas[indice + 1] if indice + 1 < len(lineas) else ''
+        if (siguiente.strip() and '── ' not in siguiente
+                and re.match(r'^[│ ]*[│└├]', siguiente)):
+            nombre = f'{nombre} {_nombre_de(siguiente)}'.strip()
+
+        raiz = raiz[:nivel]
+        if nivel == 0:
+            raiz = [nombre]
+            continue
+        raiz.append(nombre)
+        revisados += 1
+        if not (RAIZ / '/'.join(raiz)).exists():
+            fallos.append(f'el árbol del README menciona {"/".join(raiz)}, '
+                          f'que no existe en el disco')
+
+    return revisados, fallos
+
+
 def main():
     total = 0
 
@@ -126,6 +183,12 @@ def main():
     print(f'\nReferencias a rutas antiguas en la documentación: {revisados}')
     for fallo in fallos:
         print(f'   - obsoleta: {fallo}')
+    total += len(fallos)
+
+    revisados, fallos = comprobar_arbol_readme()
+    print(f'\nEntradas del árbol del README comprobadas: {revisados}')
+    for fallo in fallos:
+        print(f'   - no existe: {fallo}')
     total += len(fallos)
 
     print(f'\nProblemas encontrados: {total}')

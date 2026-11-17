@@ -4,10 +4,16 @@ Esquema PostgreSQL de trabajo para el sistema web de gestión de paquetes
 turísticos y reservas. **No forma parte de `main.tex`** y no contiene datos
 reales.
 
+Este archivo es la **referencia canónica** del esquema: las reglas de
+negocio, los estados y las convenciones se describen aquí y no en otro
+lugar.
+
 - **Motor:** PostgreSQL 14 o superior
 - **Esquema:** `turismo`
 - **Archivo:** `sistema/base-de-datos/esquema-temporal.sql`
 - **Roles iniciales:** `ADMIN`, `PERSONAL`, `TURISTA`
+- **Contenido:** 14 tablas, 3 vistas, restricciones, índices y una semilla de roles
+- **Estado:** temporal. Se esperan cambios cuando avance el desarrollo
 
 ## Ejecución
 

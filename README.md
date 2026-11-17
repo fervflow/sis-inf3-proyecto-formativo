@@ -31,7 +31,12 @@ sección vive en un archivo propio dentro de `informe/capitulos/`, con su
 - **`documentacion/INSTALACION-WINDOWS.md`** — instalación completa en
   Windows 11 con winget y Scoop, y compilación con `build.ps1`.
 - **`AGENTS.md`** — guía operativa para agentes y modelos que trabajen en el
-  repositorio.
+  repositorio: qué es el proyecto, los comandos y a qué documento leer según
+  la tarea.
+- **`informe/README.md`** — las reglas de edición del documento: formato,
+  orden de las secciones y flujo de trabajo.
+- **`sistema/diagramas/README.md`** — las reglas que deben respetar los
+  diagramas del sistema.
 - **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados,
   con el detalle del contenido aplicado en cada uno.
 
@@ -147,48 +152,58 @@ proyecto-formativo/
 ├── Makefile                 Atajos de compilación y de diagramas (Linux)
 ├── build.ps1                Compilación y diagramas en Windows
 ├── AGENTS.md                Guía operativa para agentes y modelos
-├── informe/configuracion/
-│   ├── metadatos.tex        Título, autor, docente, gestión, etc.
-│   └── portada.tex          Portada institucional UPDS y portada APA
-├── informe/preliminares/            Resumen
-├── informe/capitulos/               Secciones 01 a 11 (06 no incluida)
-├── informe/finales/                 Referencias, glosario y llamada a los anexos
-├── informe/anexos/                  Anexo A: árbol de problemas (TikZ)
-├── informe/                   El contenido del documento
-│   ├── configuracion/
-│   │   ├── metadatos.tex      Título, autor, docente, gestión, etc.
-│   │   └── portada.tex        Portada institucional UPDS y portada APA
-│   ├── preliminares/          Resumen
-│   ├── capitulos/             Secciones 01 a 11 (06 no incluida)
-│   ├── finales/               Referencias, glosario y llamada a los anexos
-│   ├── anexos/                Anexo A: árbol de problemas (TikZ)
-│   ├── bibliografia/
-│   │   └── referencias.bib    Base bibliográfica BibLaTeX
-│   └── figuras/
-│       ├── logos/             Logotipo institucional
-│       └── capturas/          Capturas de pantalla del sistema
-├── sistema/                   El sistema que se diseña
+├── informe/                 El contenido del documento
+│   ├── README.md            Reglas de edición del informe
+│   ├── configuracion/       Portada y metadatos
+│   ├── preliminares/        Resumen
+│   ├── capitulos/           Secciones 01 a 11 (06 no incluida)
+│   ├── finales/             Referencias, glosario y anexos
+│   ├── anexos/              Anexo A: árbol de problemas (TikZ)
+│   ├── bibliografia/        Base bibliográfica BibLaTeX
+│   └── figuras/             Logos y capturas
+├── sistema/                 El sistema que se diseña
 │   ├── diagramas/
-│   │   ├── uml/               Archivos .puml por tipo de diagrama
-│   │   ├── tikz/              Diagramas dibujados directamente en LaTeX
-│   │   ├── otros/             DER, arquitectura, mockups (draw.io, etc.)
-│   │   ├── ejemplos-plantilla/ Ejemplos heredados, no del proyecto
-│   │   └── estilos/           Tema visual de PlantUML
-│   ├── base-de-datos/         Esquema SQL y diccionario de datos
-│   ├── historias-usuario/     Backlog de historias de usuario (CSV y MD)
-│   ├── verificar-uml.py       Comprueba los diagramas de secuencia
-│   └── verificar-rutas.py     Comprueba que las rutas existan
-├── documentacion/
-│   ├── GUIA-LATEX.md          Guía de LaTeX y del proyecto
-│   ├── INSTALACION-WINDOWS.md Instalación en Windows 11
-│   └── registro-cambios/      Bitácora de los trabajos aceptados
-├── entregables/               Lo que se entrega
+│   │   ├── README.md        Reglas del modelo y verificación
+│   │   ├── uml/             Archivos .puml por tipo de diagrama
+│   │   ├── tikz/            Diagramas dibujados en LaTeX
+│   │   ├── otros/           DER, arquitectura y mockups
+│   │   ├── estilos/         Tema visual de PlantUML
+│   │   └── ejemplos-plantilla/  Ejemplos heredados, no del proyecto
+│   ├── base-de-datos/       Esquema SQL y diccionario de datos
+│   ├── historias-usuario/   Backlog de historias de usuario (CSV y MD)
+│   ├── verificar-uml.py     Comprueba los diagramas de secuencia
+│   └── verificar-rutas.py   Comprueba que las rutas existan
+├── documentacion/           Guías y bitácora
+│   ├── GUIA-LATEX.md        Guía de LaTeX y del proyecto
+│   ├── INSTALACION-WINDOWS.md  Instalación en Windows 11
+│   └── registro-cambios/    Bitácora de los trabajos aceptados
+├── entregables/             Lo que se entrega
 │   ├── Informe de Proyecto Formativo - Sistema de Gestión de
 │   │   Paquetes Turísticos y Reservas.pdf   (PDF final)
-│   └── diagramas/             PDF y PNG de los diagramas
-├── _build/                    Salida del compilador (se borra sola)
-└── .vscode/                   Configuración y extensiones recomendadas
+│   └── diagramas/           PDF y PNG de los diagramas
+├── _build/                  Salida del compilador (se borra sola)
+└── .vscode/                 Configuración y extensiones recomendadas
 ```
+
+### Qué archivo se edita
+
+| Archivo | ¿Editar? | Para qué |
+|---|---|---|
+| `informe/configuracion/metadatos.tex` | Sí | Portada, autor, docente, gestión |
+| `informe/capitulos/*.tex` | Sí | Contenido del informe |
+| `informe/bibliografia/referencias.bib` | Sí | Agregar fuentes |
+| `informe/finales/glosario.tex` | Sí | Términos y acrónimos |
+| `informe/anexos/*.tex` | Sí | Material complementario |
+| `sistema/diagramas/uml/*.puml` | Sí | Diagramas UML |
+| `sistema/base-de-datos/*.sql` | Sí | Esquema de la base de datos |
+| `sistema/historias-usuario/*` | Sí | Backlog de historias de usuario |
+| `main.tex` | Poco | Solo para agregar o quitar capítulos |
+| `si3apa7.cls` | No\* | Ya impone el formato |
+| `entornos-apa.sty` | No\* | Ya define las tablas y figuras |
+| `entregables/` | Nunca | Se regenera con `make` |
+| `_build/` | Nunca | Se regenera solo |
+
+\* Solo si necesita cambiar el formato para todo el documento.
 
 ---
 
@@ -226,127 +241,29 @@ alterar el formato.
 Para agregar un capítulo, cree el archivo y añada su `\input` en
 `main.tex`.
 
-### 4.3 Niveles de título
+### 4.3 Antes de escribir
 
-| Nivel | Comando | Formato |
-|---|---|---|
-| 1 | `\chapter{...}` | Izquierda, negrita, numerado; sin salto de página |
-| 2 | `\section{...}` | Izquierda, negrita |
-| 3 | `\subsection{...}` | Izquierda, negrita cursiva |
-| 4 | `\subsubsection{...}` | Sangrado, negrita, termina en punto |
-| 5 | `\paragraph{...}` | Sangrado, negrita cursiva, termina en punto |
-
-### 4.4 Citas y referencias
-
-```latex
-\textcite{huaman2017}               % Huaman Quispe (2017) señala...
-\parencite{unescoPotosi}            % ... (Centro del Patrimonio Mundial de la UNESCO, s. f.)
-\parencite[p.~45]{huaman2017}       % ... (Huaman Quispe, 2017, p. 45)
-```
-
-Las entradas se agregan en `informe/bibliografia/referencias.bib`. El estilo
-`biblatex-apa` aplica APA 7, ordena alfabéticamente y usa sangría francesa
-de 1,27 cm. En español se usa **«y»** entre autores; si su docente exige el
-ampersand original, elimine las declaraciones marcadas en la clase.
-
-Para citas textuales de 40 palabras o más:
-
-```latex
-\begin{citalarga}
-Texto de la cita, sin comillas, con sangría de 1,27 cm...
-\end{citalarga}
-```
-
-Para comillas y guiones use los comandos de LaTeX; así se garantiza el
-aspecto tipográfico correcto con Arial:
-
-```latex
-\enquote{texto entre comillas}      % “texto entre comillas”
-un guion \textendash{} corto         % –
-un guion \textemdash{} largo         % —
-```
-
-### 4.5 Tablas y figuras APA
-
-Tabla: número y título arriba (título en cursiva), líneas horizontales y
-nota al pie.
-
-```latex
-\begin{tablaapa}{tab:mi-tabla}{Título de la tabla en cursiva}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Encabezado & A & B \\
-\midrule
-Dato & 1 & 2 \\
-\bottomrule
-\end{tabular}
-\nota{Elaboración propia con base en \textcite{huaman2017}.}
-\end{tablaapa}
-```
-
-Figura:
-
-```latex
-\begin{figuraapa}{fig:mi-figura}{Título de la figura}
-  \incluirDiagrama[0.9\linewidth]{casos-uso/general}
-  \nota{Fuente: elaboración propia.}
-\end{figuraapa}
-```
-
-`\incluirDiagrama{ruta}` busca el PDF en `entregables/diagramas/pdf/`. Si el
-archivo no existe, muestra un recuadro de aviso en lugar de romper la
-compilación.
+- **Las reglas editoriales obligatorias**, el formato del documento, los
+  niveles de título, el orden de las secciones y el flujo para agregar una
+  sección nueva están en **`informe/README.md`**.
+- **La sintaxis de LaTeX** (tablas, figuras, citas, comillas y guiones) está
+  en **`documentacion/GUIA-LATEX.md`**, con ejemplos copiables.
 
 ---
 
-## 5. Diagramas UML con PlantUML
+## 5. Diagramas
 
-### 5.1 Crear un diagrama
-
-Cada diagrama es un archivo de texto en `sistema/diagramas/uml/`, dentro de
-la carpeta de su tipo:
-
-```
-casos-uso/     clases/        objetos/      secuencia/
-comunicacion/  actividades/   estados/      componentes/
-despliegue/    paquetes/      tiempo/
-```
-
-Ejemplo mínimo (`sistema/diagramas/uml/casos-uso/registro.puml`):
-
-```plantuml
-@startuml
-left to right direction
-actor Estudiante
-usecase "Registrar proyecto" as UC
-Estudiante --> UC
-@enduml
-```
-
-En los diagramas de secuencia agregue `hide footbox` después de
-`@startuml` para evitar que PlantUML repita los participantes al pie.
-
-### 5.2 Generar los PDF
+Los diagramas son archivos `.puml` dentro de `sistema/diagramas/uml/`. El
+flujo completo (crear, generar e insertar en el informe) está en
+`documentacion/GUIA-LATEX.md`, y las reglas del modelo que deben respetar
+en `sistema/diagramas/README.md`.
 
 ```bash
-make diagramas
+make diagramas   # genera los PDF en entregables/diagramas/pdf/
+make png         # genera los PNG en entregables/diagramas/png/
 ```
 
-El `Makefile` aplica el tema `sistema/diagramas/estilos/tema-apa.puml` (Arial 11,
-líneas sobrias), genera el SVG y lo convierte a **PDF vectorial con fuentes
-embebidas** en `entregables/diagramas/pdf/<tipo>/`.
-
-### 5.3 Insertar en el informe
-
-```latex
-\incluirDiagrama[0.95\linewidth]{casos-uso/registro}
-```
-
-La ruta es relativa a `entregables/diagramas/pdf/` y **sin extensión**.
-
-### 5.4 Diagramas que no son UML
-
-Para diagramas entidad-relación, arquitectura o prototipos de interfaz
+Para diagramas que no son UML (DER, arquitectura o prototipos de interfaz)
 puede usar [draw.io](https://www.drawio.com/) (`sudo pacman -S
 drawio-desktop`), exportar a PDF vectorial y guardarlo en
 `sistema/diagramas/otros/`. Luego:
@@ -355,7 +272,7 @@ drawio-desktop`), exportar a PDF vectorial y guardarlo en
 \incluirImagen[0.9\linewidth]{sistema/diagramas/otros/der.pdf}
 ```
 
-### 5.5 VS Code
+### VS Code
 
 Extensiones recomendadas (VS Code las sugerirá al abrir el proyecto):
 

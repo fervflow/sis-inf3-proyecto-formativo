@@ -140,59 +140,25 @@ un guion \textemdash{} largo      % —
 
 ## 3. Mapa del proyecto
 
+El árbol completo del repositorio está en el **`README.md`**, que lo mantiene
+al día. Lo que importa para trabajar con LaTeX es esto:
+
 ```
-main.tex
- ├── si3apa7.cls ............ formato: márgenes, Arial 11, 2, justificado
- ├── entornos-apa.sty ....... tablaapa, figuraapa, citalarga, \incluirDiagrama
- ├── informe/ ............... el contenido del documento
- │    ├── configuracion/
- │    │    ├── metadatos.tex . SUS datos (título, autor, docente, gestión)
- │    │    └── portada.tex .. diseño de la portada
- │    ├── informe/preliminares/ ..... resumen
- │    ├── informe/capitulos/01..11 . secciones del informe (06 no incluida)
- │    ├── informe/finales/
- │    │    ├── referencias.tex  imprime la bibliografía
- │    │    ├── glosario.tex     glosario y acrónimos
- │    │    └── anexos.tex       activa los anexos y los llama
- │    ├── informe/anexos/A-arbol-problemas.tex ... árbol de problemas (TikZ)
- │    ├── informe/bibliografia/referencias.bib
- │    └── figuras/ ........... logos y capturas
- ├── sistema/ ................ el sistema que se diseña
- │    ├── diagramas/
- │    │    ├── uml/ .......... archivos .puml que usted edita
- │    │    ├── tikz/ ......... diagramas dibujados en LaTeX
- │    │    ├── estilos/ ...... tema visual de PlantUML
- │    │    ├── otros/ ........ DER, arquitectura, mockups
- │    │    └── ejemplos-plantilla/ ... ejemplos heredados de la plantilla
- │    ├── base-de-datos/ ..... esquema SQL y diccionario
- │    ├── historias-usuario/ . backlog de historias de usuario
- │    ├── verificar-uml.py .. comprueba los diagramas
- │    └── verificar-rutas.py . comprueba las rutas
- ├── entregables/ ........... lo que se entrega
- │    ├── Informe de Proyecto Formativo - ....pdf   (PDF final)
- │    └── diagramas/ ......... PDF y PNG de los diagramas
- └── _build/ ................ salida del compilador (no editar, se borra)
+main.tex ................. el documento maestro: el orden de los \input
+ ├── si3apa7.cls ......... formato: márgenes, Arial 11, interlineado 2
+ ├── entornos-apa.sty .... tablaapa, figuraapa, citalarga, \incluirDiagrama
+ └── informe/ ............ el contenido
+      ├── configuracion/ . portada y metadatos
+      ├── capitulos/ ..... las secciones 01 a 11
+      ├── finales/ ....... referencias, glosario y anexos
+      ├── anexos/ ........ el árbol de problemas (TikZ)
+      ├── bibliografia/ .. referencias.bib
+      └── figuras/ ....... logos y capturas
 ```
 
-### ¿Qué archivo edito?
-
-| Archivo | ¿Editar? | Para qué |
-|---|---|---|
-| `informe/configuracion/metadatos.tex` | Sí | Portada, autor, docente, gestión |
-| `informe/capitulos/*.tex` | Sí | Contenido del informe |
-| `informe/bibliografia/referencias.bib` | Sí | Agregar fuentes |
-| `informe/finales/glosario.tex` | Sí | Términos y acrónimos |
-| `informe/anexos/*.tex` | Sí | Material complementario |
-| `sistema/diagramas/uml/*.puml` | Sí | Diagramas UML |
-| `sistema/base-de-datos/*.sql` | Sí | Esquema de la base de datos |
-| `sistema/historias-usuario/*` | Sí | Backlog de historias de usuario |
-| `main.tex` | Poco | Solo para agregar/quitar capítulos |
-| `si3apa7.cls` | No* | Ya impone el formato |
-| `entornos-apa.sty` | No* | Ya define las tablas/figuras |
-| `entregables/` | Nunca | Se regenera con `make` |
-| `_build/` | Nunca | Se regenera solo |
-
-\* Solo si necesita cambiar el formato para todo el documento.
+Los archivos editables y los que no se tocan están en la tabla del
+**`README.md`** y, para el documento en sí, en **`informe/README.md`**, que
+además describe las reglas editoriales y el formato vigente.
 
 ---
 

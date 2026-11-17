@@ -155,6 +155,17 @@ redacción posterior.
 - Una solicitud vencida no puede confirmarse después; el cliente debe
   registrar una nueva solicitud si la salida sigue disponible.
 
+## Convenciones del backlog
+
+- El **CSV** es la fuente tabular: UTF-8 con BOM y separador `;`. Sus
+  columnas son ID, historia, actor, canal, prioridad, riesgo, estimación y
+  tareas. La prioridad y el riesgo van en columnas separadas.
+- Este documento **Markdown** es la versión legible: añade el enunciado
+  completo, los criterios de aceptación y las observaciones de revisión.
+- Las historias **no se incluyen en `main.tex`** sin una instrucción
+  explícita.
+- Los datos del backlog **no se corrigen** salvo que el usuario lo solicite.
+
 ## Resumen
 
 | Concepto | Valor |
