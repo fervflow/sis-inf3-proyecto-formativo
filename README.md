@@ -12,15 +12,15 @@ institucionales indicados por la cátedra:
 | Papel | Carta (21,59 × 27,94 cm) |
 | Márgenes | Superior 2,54 cm · Inferior 2,54 cm · **Izquierdo 3 cm** · Derecho 2 cm |
 | Fuente | Arial 11 pt (o Liberation Sans si Arial no está instalada) |
-| Interlineado | 1,5 |
+| Interlineado | 2 |
 | Paginado | Esquina inferior derecha; preliminares en romanos y cuerpo en árabes |
-| Alineación | Izquierda (bandera derecha), como indica APA |
+| Alineación | Justificada (ajuste solicitado; APA recomienda izquierda) |
 | Sangría | Primera línea 1,27 cm; sin espacio adicional entre párrafos |
 
 El contenido corresponde a un perfil de proyecto sobre un sistema web de
-gestión de paquetes turísticos y reservas para una agencia de turismo de
-Potosí. Reemplace o amplíe el texto de cada capítulo y conserve las
-etiquetas `% TODO:` como guía.
+gestión de paquetes turísticos y reservas para Vizcacha Tours, Potosí.
+Reemplace o amplíe el texto de cada sección y conserve las etiquetas `% TODO:`
+como guía.
 
 ## Documentación
 
@@ -28,6 +28,10 @@ etiquetas `% TODO:` como guía.
   plantilla, cómo editarla y cómo compilar.
 - **`INSTALACION-WINDOWS.md`** — instalación completa en Windows 11 con
   winget y Scoop, y compilación con `build.ps1`.
+- **`AGENTS.md`** — guía operativa para agentes y modelos que trabajen en el
+  repositorio.
+- **`registro-cambios/`** — bitácora de las correcciones de formato y
+  contenido aplicadas en cada iteración.
 
 ---
 
@@ -103,11 +107,12 @@ proyecto-formativo/
 ├── build.ps1                Compilación y diagramas en Windows
 ├── GUIA-LATEX.md            Guía de uso de la plantilla
 ├── INSTALACION-WINDOWS.md   Instalación en Windows 11
+├── AGENTS.md                Guía operativa para agentes y modelos
 ├── config/
 │   ├── metadatos.tex        Título, autor, docente, gestión, etc.
 │   └── portada.tex          Portada institucional UPDS y portada APA
-├── preliminares/            Dedicatoria, agradecimientos, resumen, abstract
-├── capitulos/               Capítulos 01 a 11
+├── preliminares/            Resumen
+├── capitulos/               Secciones 01 a 11 (06 no incluida)
 ├── finales/                 Referencias, glosario y llamada a los anexos
 ├── anexos/                  Anexo A: árbol de problemas (TikZ)
 ├── diagramas/
@@ -122,6 +127,7 @@ proyecto-formativo/
 ├── codigo/                  Listados de código extensos
 ├── bibliografia/
 │   └── referencias.bib      Base bibliográfica BibLaTeX
+├── registro-cambios/         Bitácora de correcciones por iteración
 └── .vscode/                 Configuración y extensiones recomendadas
 ```
 
@@ -135,34 +141,37 @@ Edite **`config/metadatos.tex`**: título, subtítulo, autor, registro,
 docente, gestión, ciudad y fecha de entrega. La portada, los metadatos del
 PDF y la bibliografía se actualizan solos.
 
-### 4.2 Capítulos
+### 4.2 Secciones principales
 
-Cada archivo de `capitulos/` corresponde a un capítulo:
+Cada archivo de `capitulos/` corresponde a una sección principal del
+informe. Estas secciones se numeran y se suceden sin salto de página:
 
 1. Introducción
 2. Antecedentes
 3. Situación problemática
 4. Problema científico
 5. Objeto de estudio y campo de acción
-6. Variables del proyecto
-7. Objetivos
-8. Población y muestra
-9. Justificación social
-10. Alcances del sistema
-11. Límites del proyecto
+6. Objetivos
+7. Población y muestra
+8. Justificación social
+9. Alcances del sistema
+10. Límites del proyecto
 
-El árbol de problemas está en el Anexo A. Cuando el proyecto avance, los
-capítulos de metodología, desarrollo, resultados y conclusiones se agregan
-como archivos nuevos sin alterar el formato.
+La antigua sección de variables (`capitulos/06-variables.tex`) ya no se
+incluye: la variable dependiente se integra en el problema científico y la
+variable independiente en el objetivo general. El árbol de problemas está en
+el Anexo A. Cuando el proyecto avance, las secciones de metodología,
+desarrollo, resultados y conclusiones se agregan como archivos nuevos sin
+alterar el formato.
 
 Para agregar un capítulo, cree el archivo y añada su `\input` en
 `main.tex`.
 
-### 4.3 Niveles de título APA 7
+### 4.3 Niveles de título
 
 | Nivel | Comando | Formato |
 |---|---|---|
-| 1 | `\chapter{...}` | Centrado, negrita, tamaño del texto |
+| 1 | `\chapter{...}` | Izquierda, negrita, numerado; sin salto de página |
 | 2 | `\section{...}` | Izquierda, negrita |
 | 3 | `\subsection{...}` | Izquierda, negrita cursiva |
 | 4 | `\subsubsection{...}` | Sangrado, negrita, termina en punto |
@@ -313,7 +322,10 @@ Se configuran en `main.tex`:
 | `capitulos` | `romanos`, `arabigos`, `sin` | `romanos` (el proyecto usa `arabigos`) |
 | `portada` | `institucional`, `apa`, `ninguna` | `institucional` |
 
-Ejemplo para un trabajo con texto justificado y capítulos en árabe:
+El proyecto usa `alineacion=justificada`, `interlineado=2` y
+`capitulos=arabigos`.
+
+Ejemplo para un trabajo con texto justificado y secciones en árabe:
 
 ```latex
 \documentclass[alineacion=justificada,capitulos=arabigos]{si3apa7}
@@ -323,7 +335,8 @@ Ejemplo para un trabajo con texto justificado y capítulos en árabe:
 
 ## 7. Formato APA 7 aplicado
 
-- Títulos en cinco niveles, sin numeración romana en los encabezados.
+- Secciones de contenido numeradas y alineadas a la izquierda; referencias,
+  glosario y anexos con títulos centrados.
 - Tablas y figuras numeradas de forma consecutiva (**Tabla 1**, **Figura 1**),
   con título en cursiva y nota con «*Nota.*».
 - Citas parentéticas y narrativas, con «y» entre autores en español.
@@ -336,9 +349,9 @@ Ejemplo para un trabajo con texto justificado y capítulos en árabe:
 - Paginación inferior derecha y sin encabezado de página.
 
 > Nota: APA 7 original exige doble espacio y márgenes de 2,54 cm en los
-> cuatro lados. Esta plantilla aplica las excepciones solicitadas por la
-> cátedra (1,5 de interlineado y margen izquierdo de 3 cm para el
-> empastado).
+> cuatro lados. Esta plantilla mantiene el doble espacio y aplica el margen
+> izquierdo de 3 cm para el empastado y la justificación solicitada por la
+> cátedra.
 
 ---
 
@@ -349,16 +362,16 @@ post-texto. Esta plantilla cubre esa estructura y la amplía:
 
 | Reglamento UPDS | Plantilla |
 |---|---|
-| Pre-texto | Portada, dedicatoria, agradecimientos, resumen, abstract, índices |
-| Capítulo I: Marco teórico | Capítulos 2, 3 y 6 |
-| Capítulo II: Diagnóstico | Capítulo 3 y Anexo A (árbol de problemas) |
-| Capítulo III: Propuesta | Capítulos 7 a 11 |
+| Pre-texto | Portada, resumen, índices |
+| Capítulo I: Marco teórico | Sección 2 (Antecedentes) |
+| Capítulo II: Diagnóstico | Sección 3 y Anexo A (árbol de problemas) |
+| Capítulo III: Propuesta | Secciones 4 a 10 |
 | Post-texto | Referencias, glosario y anexos |
 
-Esta versión corresponde a un **perfil de proyecto** (11 capítulos). Cuando
-se agreguen metodología, desarrollo, resultados y conclusiones, se crean
-archivos nuevos en `capitulos/` y se añaden a `main.tex`; el formato no se
-altera.
+Esta versión corresponde a un **perfil de proyecto** con diez secciones
+principales. Cuando se agreguen metodología, desarrollo, resultados y
+conclusiones, se crean archivos nuevos en `capitulos/` y se añaden a
+`main.tex`; el formato no se altera.
 
 ---
 

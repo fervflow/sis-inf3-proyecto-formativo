@@ -1,34 +1,36 @@
 \chapter{Alcances del sistema}
 \label{cap:alcances}
 
-El proyecto comprenderá el análisis del proceso de reservas de una agencia
-de turismo de Potosí, el diseño de una base de datos y el desarrollo de un
-sistema web funcional. La prioridad será verificar los cupos y registrar
-correctamente las reservas. Las demás funciones se incorporarán como apoyo
-a ese proceso principal.
+El proyecto comprenderá el análisis del proceso de venta y reserva de
+paquetes turísticos de Vizcacha Tours y el desarrollo de un sistema web que
+permita administrar paquetes, programar salidas, consultar la disponibilidad
+de cupos, registrar clientes y pasajeros, elaborar cotizaciones, gestionar
+reservas, registrar anticipos y saldos, administrar proveedores y generar
+reportes. La prioridad será verificar los cupos y registrar correctamente las
+reservas; las demás funciones se incorporarán como apoyo a ese proceso
+principal.
 
 \section{Módulos propuestos}
 
 \begin{itemize}
   \item \textbf{Paquetes turísticos:} registro de destinos, descripción,
         duración, itinerario, precios y servicios incluidos.
-  \item \textbf{Salidas y disponibilidad:} programación de fechas,
-        capacidad de pasajeros y cálculo de cupos disponibles.
+  \item \textbf{Salidas y disponibilidad:} programación de fechas, capacidad
+        de pasajeros y cálculo de cupos disponibles.
   \item \textbf{Clientes y pasajeros:} registro de datos necesarios para
         atender y dar seguimiento a las solicitudes.
   \item \textbf{Cotizaciones:} preparación y consulta de propuestas según el
         paquete solicitado y sus condiciones.
   \item \textbf{Reservas:} creación, consulta, confirmación, modificación y
         cancelación con validación de cupos.
-  \item \textbf{Pagos:} registro informativo de anticipos y saldos, sin
-        operaciones bancarias automáticas.
+  \item \textbf{Pagos:} registro de anticipos y saldos, con pago en efectivo y
+        simulación de banca móvil o código QR, sin integración con pasarelas
+        bancarias reales.
   \item \textbf{Proveedores:} datos básicos de transporte, hospedaje y guías
         vinculados a los paquetes.
-  \item \textbf{Reportes y usuarios:} consultas por fecha, ocupación,
-        reservas y accesos según el rol de cada trabajador.
+  \item \textbf{Reportes y usuarios:} consultas por fecha, ocupación, reservas
+        y accesos según el rol de cada trabajador.
 \end{itemize}
 
-Se realizarán pruebas sobre situaciones comunes, como dos reservas para la
-misma salida, cambios de fecha, cancelaciones y aumento del número de
-pasajeros. Para facilitar su uso, se procurará una interfaz sencilla y
-adaptable a distintos tamaños de pantalla.
+Para facilitar su uso, se procurará una interfaz sencilla y adaptable a
+distintos tamaños de pantalla.

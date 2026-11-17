@@ -1,16 +1,14 @@
 \chapter{Antecedentes}
 \label{cap:antecedentes}
 
-\section{Evolución de la gestión de reservas y paquetes turísticos}
-
 Antes de la expansión de Internet, muchas agencias de turismo atendían las
 consultas directamente en sus oficinas o por teléfono. Los catálogos
-impresos y los contactos con empresas de transporte y hospedaje servían
-para presentar las ofertas. Con estos medios era posible trabajar, siempre
-que se mantuviera un control adecuado de los cambios y las confirmaciones.
+impresos y los contactos con empresas de transporte y hospedaje servían para
+presentar las ofertas. Con estos medios era posible trabajar, siempre que se
+mantuviera un control adecuado de los cambios y las confirmaciones.
 
-Posteriormente se extendió el uso de sistemas computarizados de reservas.
-Los sistemas globales de distribución, conocidos como GDS, facilitaron la
+Posteriormente se extendió el uso de sistemas computarizados de reservas. Los
+sistemas globales de distribución, conocidos como GDS, facilitaron la
 consulta de horarios, tarifas y disponibilidad de diferentes proveedores
 turísticos desde un punto de acceso común \parencite{amadeusGDS}. Esta
 evolución permitió organizar mejor la información de servicios que antes se
@@ -18,11 +16,11 @@ consultaban por separado.
 
 Con el crecimiento de los servicios en línea, los clientes comenzaron a
 buscar y reservar opciones de viaje desde sus computadoras y celulares.
-Booking.com, cuya actividad comenzó en 1996, es un ejemplo de la expansión
-de las plataformas digitales en el sector turístico \parencite{booking}.
-Sin embargo, una agencia de Potosí que ofrece paquetes propios no necesita
-copiar todas las funciones de una plataforma internacional. Lo principal es
-que pueda administrar correctamente sus servicios y cupos.
+Booking.com, cuya actividad comenzó en 1996, es un ejemplo de la expansión de
+las plataformas digitales en el sector turístico \parencite{booking}. Una
+agencia de Potosí que ofrece paquetes propios no necesita copiar todas las
+funciones de una plataforma internacional; lo principal es que pueda
+administrar correctamente sus servicios y cupos.
 
 En los últimos años se han desarrollado herramientas para elaborar
 cotizaciones, organizar itinerarios, guardar información de proveedores y
@@ -32,61 +30,50 @@ funciones muestran cómo distintos procesos se pueden relacionar dentro de un
 mismo sistema, aunque cada agencia debe seleccionar lo que realmente
 necesita.
 
-Para este proyecto, la variable que se busca mejorar es la consistencia del
-proceso de reservas y del control de disponibilidad. Esta puede observarse
-en la exactitud de los cupos, el tiempo que demora una confirmación y la
-cantidad de errores detectados cuando se registra o modifica una reserva.
-
 \section{Relación con sistemas similares}
 
 Como referencia internacional se puede mencionar a Amadeus, que facilita el
 acceso a información de servicios turísticos de distintos proveedores, y a
-Booking.com, que permite consultar y reservar opciones de viaje en línea.
-Por otra parte, programas de gestión como Ezus incluyen herramientas
+Booking.com, que permite consultar y reservar opciones de viaje en línea. Por
+otra parte, programas de gestión como Ezus incluyen herramientas
 administrativas para preparar propuestas, organizar itinerarios y manejar la
 información comercial de una agencia \parencite{amadeusGDS,booking,ezus}.
 
 En la región existen trabajos más cercanos a este proyecto.
-\textcite{huaman2017} desarrolló un sistema de información para la gestión
-de reservas de paquetes turísticos en la agencia Rap Travel, tras
-identificar que el proceso se realizaba manualmente y sin un control
-adecuado del seguimiento de los pagos. Por su parte,
-\textcite{miranda2022} elaboraron un sistema informático con aplicación
-móvil para gestionar reservas de paquetes turísticos y asesoría migratoria
-en una agencia de viajes del municipio de San Vicente. A nivel nacional, en
-la búsqueda realizada para este trabajo no se encontró documentación
-pública sobre sistemas de gestión de reservas para agencias de turismo de
-Potosí, por lo que el diagnóstico en la agencia seleccionada permitirá
-documentar su situación.
+\textcite{huaman2017} desarrolló un sistema de información para la gestión de
+reservas de paquetes turísticos en la agencia Rap Travel, tras identificar
+que el proceso se realizaba manualmente y sin un control adecuado del
+seguimiento de los pagos. Por su parte, \textcite{miranda2022} elaboraron un
+sistema informático con aplicación móvil para gestionar reservas de paquetes
+turísticos y asesoría migratoria en una agencia de viajes del municipio de
+San Vicente. En la búsqueda documental realizada para el proyecto no se
+encontró documentación pública sobre sistemas de gestión de reservas para
+agencias de turismo de Potosí, por lo que el diagnóstico en Vizcacha Tours
+permitirá documentar su situación.
 
-Nuestro proyecto comparte con estos sistemas la idea de mantener la
-información organizada y actualizada, pero tendrá un alcance menor. No se
-pretende crear una plataforma mundial ni conectarse directamente a
-aerolíneas: el sistema se enfocará en los paquetes que ofrece una agencia de
-turismo de Potosí y en la forma de consultar, reservar y controlar los
-cupos de cada salida programada. También se tomarán en cuenta criterios
-básicos de usabilidad, pues la norma ISO 9241-210:2019 destaca la
-importancia de diseñar sistemas interactivos considerando las necesidades
-de las personas usuarias \parencite{iso9241}.
+El proyecto comparte con estos sistemas la idea de mantener la información
+organizada y actualizada, pero tendrá un alcance menor. No se pretende crear
+una plataforma mundial ni conectarse directamente con aerolíneas: el sistema
+se enfocará en los paquetes que ofrece Vizcacha Tours y en la forma de
+consultar, reservar y controlar los cupos de cada salida programada. También
+se tomarán en cuenta criterios básicos de usabilidad, pues la norma ISO
+9241-210:2019 destaca la importancia de diseñar sistemas interactivos
+considerando las necesidades de las personas usuarias \parencite{iso9241}.
 
 \section{Flujo de información de la agencia}
 
-El proceso comienza cuando el cliente solicita información sobre un destino
-o paquete turístico. El encargado revisa el itinerario, el precio, los
-servicios incluidos y la fecha de salida. Después verifica los cupos
-disponibles y prepara una cotización o una respuesta con las condiciones
-del viaje. Si el cliente acepta la oferta, se registran sus datos y la
-cantidad de pasajeros.
+Vizcacha Tours ofrece información sobre destinos, paquetes, itinerarios,
+precios, fechas, cupos, servicios incluidos y condiciones de venta. Esa
+información se difunde en la oficina, por teléfono, mediante mensajería
+instantánea, en redes sociales y, cuando corresponde, a través de plataformas
+digitales de reserva. Los clientes pueden consultar, comparar y solicitar una
+propuesta por cualquiera de esos canales.
 
-En la siguiente etapa, el personal comprueba que la reserva cumpla las
-condiciones de la agencia y cambia su estado a pendiente o confirmada. Si
-corresponde realizar un anticipo, se registra el pago o el comprobante
-recibido. Cuando se modifica la fecha, el número de pasajeros o se cancela
-una reserva, el sistema debe volver a calcular los cupos disponibles para
-evitar diferencias en la información.
-
-De manera complementaria, los datos de las reservas confirmadas pueden
-utilizarse para coordinar el transporte, los guías y otros servicios
-necesarios. Esta descripción representa el flujo que se propone analizar.
-Su funcionamiento real se verificará en la agencia seleccionada, porque cada
-empresa puede tener procedimientos distintos.
+La información que circula incluye consultas, datos de clientes y pasajeros,
+cotizaciones, reservas, pagos y comprobantes, además de la coordinación con
+proveedores de transporte, hospedaje y guías. El flujo general comienza con la
+recepción de la consulta, continúa con el registro y la propuesta, y exige que
+las áreas mantengan actualizados los datos de disponibilidad y las
+condiciones del servicio. La descripción detallada del proceso de negocio se
+desarrolla más adelante; en esta sección solo se presenta el flujo general de
+información y los canales de atención.

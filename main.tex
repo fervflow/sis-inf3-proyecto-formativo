@@ -5,9 +5,9 @@
 %% =====================================================================
 \documentclass[
   fuente=auto,              % auto | arial | liberation
-  alineacion=izquierda,     % izquierda (APA) | justificada
+  alineacion=justificada,   % izquierda (APA) | justificada
   paginacion=institucional, % institucional | apa
-  interlineado=1.5,         % 1.5 | 2
+  interlineado=2,           % 1.5 | 2
   capitulos=arabigos,       % romanos | arabigos | sin
   portada=institucional     % institucional | apa | ninguna
 ]{si3apa7}
@@ -23,10 +23,7 @@
 \portadaDocumento
 \iniciarPreliminares
 
-\input{preliminares/dedicatoria}
-\input{preliminares/agradecimientos}
 \input{preliminares/resumen}
-\input{preliminares/abstract}
 
 \clearpage
 \tableofcontents
@@ -49,7 +46,6 @@
 \input{capitulos/03-situacion-problematica}
 \input{capitulos/04-problema-cientifico}
 \input{capitulos/05-objeto-estudio}
-\input{capitulos/06-variables}
 \input{capitulos/07-objetivos}
 \input{capitulos/08-poblacion-muestra}
 \input{capitulos/09-justificacion-social}
@@ -57,7 +53,9 @@
 \input{capitulos/11-limites-proyecto}
 
 %% --------------------------- Finales ---------------------------------
+\iniciarSeccionesFinales
 \input{finales/referencias}
+\clearpage
 \input{finales/glosario}
 \input{finales/anexos}
 

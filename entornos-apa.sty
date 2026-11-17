@@ -67,10 +67,12 @@
    \emph{Nota.}~#1\par}%
 }
 
-%% Seccion preliminar: titulo sin numero e inclusion en el indice.
+%% Seccion preliminar: titulo centrado, sin numero e inclusion en el indice.
 %% \preliminar{Resumen}
 \newcommand{\preliminar}[1]{%
-  \chapter*{#1}%
+  \par\addvspace{1.5\baselineskip}%
+  {\centering\normalfont\bfseries #1\par}%
+  \addvspace{0.5\baselineskip}%
   \phantomsection
   \addcontentsline{toc}{chapter}{#1}%
 }

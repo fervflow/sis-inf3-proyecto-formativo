@@ -138,13 +138,13 @@ un guion \textemdash{} largo      % —
 
 ```
 main.tex
- ├── si3apa7.cls ............ formato: márgenes, Arial 11, 1,5, títulos APA
+ ├── si3apa7.cls ............ formato: márgenes, Arial 11, 2, justificado
  ├── entornos-apa.sty ....... tablaapa, figuraapa, citalarga, \incluirDiagrama
  ├── config/
  │    ├── metadatos.tex ..... SUS datos (título, autor, docente, gestión)
  │    └── portada.tex ....... diseño de la portada
- ├── preliminares/ ........... dedicatoria, agradecimientos, resumen, abstract
- ├── capitulos/01..11 ....... el cuerpo del informe
+ ├── preliminares/ ........... resumen
+ ├── capitulos/01..11 ....... secciones del informe (06 no incluida)
  ├── finales/
  │    ├── referencias.tex ... imprime la bibliografía
  │    ├── glosario.tex ...... glosario y acrónimos
@@ -192,10 +192,11 @@ Edite `config/metadatos.tex`:
 \newcommand{\gestion}{2026}
 ```
 
-### Escribir un capítulo
+### Escribir una sección principal
 
-Abra `capitulos/02-antecedentes.tex` y reemplace el texto. Cada capítulo ya
-tiene su `\chapter{...}` y sus secciones. Para agregar una sección:
+Abra `capitulos/02-antecedentes.tex` y reemplace el texto. Cada sección
+principal ya tiene su `\chapter{...}` y sus subsecciones. Los títulos se
+numeran y se suceden sin salto de página. Para agregar una subsección:
 
 ```latex
 \section{Nueva sección}

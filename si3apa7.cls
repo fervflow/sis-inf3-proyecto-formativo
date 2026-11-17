@@ -56,6 +56,10 @@
 
 \LoadClass[11pt,letterpaper,oneside]{report}
 
+%% Los capitulos de este informe funcionan como secciones: no deben
+%% comenzar en una pagina nueva ni mostrar la palabra "Capítulo".
+\patchcmd{\chapter}{\cleardoublepage}{\par}{}{}
+\patchcmd{\chapter}{\clearpage}{\par}{}{}
 %% ---------------------------------------------------------------------
 %%  Fuentes: Arial 11 pt con sustituto metrico (Liberation Sans)
 %% ---------------------------------------------------------------------
@@ -75,9 +79,16 @@
   \ifdefstring{\si@fuente}{arial}{\si@cargarArial}{%
     \IfFontExistsTF{Arial}{\si@cargarArial}{\si@cargarLiberation}}}
 
+%% Monoespaciada: se intenta primero en Linux y luego en Windows.
+%% Liberation Mono y DejaVu Sans Mono son habituales en Arch;
+%% Consolas y Courier New vienen incluidas en Windows.
 \IfFontExistsTF{Liberation Mono}
   {\setmonofont{Liberation Mono}[Scale=0.9]}
-  {\setmonofont{DejaVu Sans Mono}[Scale=0.85]}
+  {\IfFontExistsTF{DejaVu Sans Mono}
+    {\setmonofont{DejaVu Sans Mono}[Scale=0.85]}
+    {\IfFontExistsTF{Consolas}
+      {\setmonofont{Consolas}[Scale=0.9]}
+      {\setmonofont{Courier New}[Scale=0.9]}}}
 
 %% ---------------------------------------------------------------------
 %%  Geometria de la pagina (carta)
@@ -99,6 +110,7 @@
 \raggedbottom
 
 \RequirePackage{ragged2e}
+\setlength{\RaggedRightParindent}{1.27cm}
 \ifsi@justificado\else
   \AtBeginDocument{\RaggedRight}
 \fi
@@ -157,12 +169,12 @@
 }
 
 %% ---------------------------------------------------------------------
-%%  Titulos APA 7 (5 niveles)
-%%    Nivel 1: centrado, negrita            -> \chapter
-%%    Nivel 2: izquierda, negrita           -> \section
-%%    Nivel 3: izquierda, negrita cursiva   -> \subsection
-%%    Nivel 4: sangrado, negrita, punto     -> \subsubsection
-%%    Nivel 5: sangrado, negrita cursiva    -> \paragraph
+%%  Titulos del informe
+%%    \chapter: izquierda, negrita, numerado, sin salto de pagina
+%%    \section: izquierda, negrita
+%%    \subsection: izquierda, negrita cursiva
+%%    \subsubsection: sangrado, negrita, punto
+%%    \paragraph: sangrado, negrita cursiva, punto
 %% ---------------------------------------------------------------------
 \RequirePackage{titlesec}
 
@@ -182,24 +194,19 @@
 \renewcommand{\thefigure}{\arabic{figure}}
 
 \ifdefstring{\si@capitulos}{sin}{%
-  \titleformat{\chapter}[block]{\normalfont\bfseries\centering}{}{0pt}{}%
-  \titlespacing*{\chapter}{0pt}{0pt}{1\baselineskip}%
+  \titleformat{\chapter}[hang]{\normalfont\bfseries}{}{0pt}{}[\@afterindenttrue]%
 }{%
-  \titleformat{\chapter}[display]%
-    {\normalfont\bfseries\centering}%
-    {\chaptertitlename~\thechapter}%
-    {0.5\baselineskip}%
-    {\normalfont\bfseries}%
-  \titlespacing*{\chapter}{0pt}{0pt}{1\baselineskip}%
+  \titleformat{\chapter}[hang]{\normalfont\bfseries}{\thechapter.}{0.6em}{}[\@afterindenttrue]%
 }
+\titlespacing*{\chapter}{0pt}{1.5\baselineskip}{0.5\baselineskip}
 
-\titleformat{\section}[hang]{\normalfont\bfseries}{\thesection}{0.6em}{}
+\titleformat{\section}[hang]{\normalfont\bfseries}{\thesection.}{0.6em}{}[\@afterindenttrue]
 \titlespacing*{\section}{0pt}{1\baselineskip}{0.5\baselineskip}
 
-\titleformat{\subsection}[hang]{\normalfont\bfseries\itshape}{\thesubsection}{0.6em}{}
+\titleformat{\subsection}[hang]{\normalfont\bfseries\itshape}{\thesubsection.}{0.6em}{}[\@afterindenttrue]
 \titlespacing*{\subsection}{0pt}{1\baselineskip}{0.5\baselineskip}
 
-\titleformat{\subsubsection}[runin]{\normalfont\bfseries}{\thesubsubsection}{0.6em}{}[.]
+\titleformat{\subsubsection}[runin]{\normalfont\bfseries}{\thesubsubsection.}{0.6em}{}[.]
 \titlespacing*{\subsubsection}{1.27cm}{1\baselineskip}{0.5em}
 
 \titleformat{\paragraph}[runin]{\normalfont\bfseries\itshape}{}{0pt}{}[.]
@@ -216,6 +223,9 @@
 \renewcommand{\cftsubsecleader}{\cftdotfill{\cftdotsep}}
 \setlength{\cftbeforechapskip}{8pt}
 \setlength{\cftbeforesecskip}{2pt}
+\renewcommand{\cftchapaftersnum}{.}
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsubsecaftersnum}{.}
 
 %% Titulos de los indices: centrados, negrita y del mismo tamano que el
 %% texto (nivel 1 de APA).
@@ -359,6 +369,14 @@
 \newcommand{\iniciarCuerpo}{%
   \clearpage
   \ifsi@paginacionAPA\else\pagenumbering{arabic}\fi
+}
+
+%% A partir de referencias, glosario y anexos los titulos vuelven a ir
+%% centrados, como secciones finales del informe.
+\newcommand{\iniciarSeccionesFinales}{%
+  \titleformat{\chapter}[block]{\normalfont\bfseries\centering}%
+    {\thechapter.}{0.6em}{}[\@afterindenttrue]%
+  \titlespacing*{\chapter}{0pt}{1.5\baselineskip}{0.5\baselineskip}%
 }
 
 %%  Estilo de pagina de la portada: sin numero (institucional) o con
