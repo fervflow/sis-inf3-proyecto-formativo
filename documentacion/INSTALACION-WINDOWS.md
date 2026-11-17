@@ -7,7 +7,7 @@ PlantUML se usa **Scoop** como segunda opción (winget no lo publica).
 winget  →  MiKTeX · Git · VS Code · Java (Temurin) · Inkscape
 Scoop   →  PlantUML
         ↓
-.\build.ps1  →  _build\main.pdf
+.\build.ps1  →  entregables\Informe de Proyecto Formativo - ....pdf
 ```
 
 Tiempo estimado: 20–30 minutos (la primera compilación descarga paquetes de
@@ -168,6 +168,19 @@ En VS Code puede usar la receta **“XeLaTeX + biber + XeLaTeX ×2”**, que no
 depende de `latexmk`. Si `latexmk` funciona en su MiKTeX, use
 **“latexmk (XeLaTeX)”**.
 
+### Dónde está cada cosa
+
+| Carpeta | Contenido |
+|---|---|
+| `informe/` | El contenido del documento: `capitulos/`, `finales/`, `preliminares/`, `anexos/`, `configuracion/`, `bibliografia/`, `figuras/` |
+| `sistema/` | El sistema que se diseña: `diagramas/`, `base-de-datos/`, `historias-usuario/` |
+| `documentacion/` | Las guías y la bitácora de cambios |
+| `entregables/` | El PDF final y los PDF y PNG de los diagramas. No se versiona |
+| `_build/` | Los archivos auxiliares del compilador. Se borra sola |
+
+Las fuentes de los diagramas están en `sistema\diagramas\uml\` y los
+generados salen en `entregables\diagramas\`.
+
 ---
 
 ## 6. Compilar
@@ -180,14 +193,19 @@ Desde PowerShell, en la carpeta del proyecto:
 
 | Comando | Qué hace |
 |---|---|
-| `.\build.ps1` | Compila el PDF en `_build\main.pdf` |
+| `.\build.ps1` | Compila y publica el PDF en `entregables\` |
 | `.\build.ps1 -Diagramas` | Regenera los UML y luego compila |
+| `.\build.ps1 -Png` | Exporta los diagramas a PNG en `entregables\diagramas\png\` |
 | `.\build.ps1 -Ver` | Compila y muestra páginas, tamaño y fuentes |
 | `.\build.ps1 -Limpiar` | Borra `_build` |
 | `.\build.ps1 -LimpiarTodo` | Borra `_build` y los diagramas generados |
 
 El script ejecuta: `xelatex → biber → xelatex → xelatex`, igual que el
-`Makefile` en Linux.
+`Makefile` en Linux. Al terminar copia el PDF a `entregables\` con el nombre
+definitivo **Informe de Proyecto Formativo - Sistema de Gestión de Paquetes
+Turísticos y Reservas.pdf**. Ese PDF intermedio queda en `_build\main.pdf`,
+junto a los archivos auxiliares. La carpeta `entregables\` no se versiona: se
+reconstruye con un solo `.\build.ps1`.
 
 Si Windows bloquea la ejecución de scripts:
 
@@ -263,5 +281,5 @@ Y después:
 .\build.ps1 -Diagramas -Ver
 ```
 
-Debe terminar con `Listo: ...\_build\main.pdf` y mostrar las fuentes
-Arial embebidas.
+Debe terminar con `Listo: ...\entregables\Informe de Proyecto Formativo -
+....pdf` y mostrar las fuentes Arial embebidas.

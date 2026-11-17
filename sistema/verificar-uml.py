@@ -11,7 +11,7 @@ Comprueba que cada participante este bien conectado:
 
 Uso:
 
-    python3 diagramas/verificar-uml.py
+    python3 sistema/verificar-uml.py
 """
 
 import re

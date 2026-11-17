@@ -136,6 +136,7 @@ $(TIKZ_PNG): $(TIKZ_TXT)
 #  como texto de alias, en lugar del icono con su estereotipo.
 verificar:
 	@python3 $(SISTEMA)/verificar-uml.py
+	@python3 $(SISTEMA)/verificar-rutas.py
 
 # --- Utilidades -------------------------------------------------------
 ver: pdf
@@ -158,7 +159,7 @@ ayuda:
 	@echo "make diagramas  convierte .puml -> PDF en $(ENTREGAS)/diagramas/pdf"
 	@echo "make png        exporta los diagramas a PNG en $(ENTREGAS)/diagramas/png"
 	@echo "make publicar   copia el PDF a $(ENTREGAS)/ con el nombre definitivo"
-	@echo "make verificar  revisa que los diagramas no tengan participantes sueltos"
+	@echo "make verificar  revisa los diagramas y las rutas del proyecto"
 	@echo "make ver        inspecciona el PDF (paginas, tamano, fuentes)"
 	@echo "make clean      borra archivos auxiliares"
 	@echo "make distclean  borra auxiliares, diagramas y PNG"

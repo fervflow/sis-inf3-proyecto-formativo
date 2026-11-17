@@ -1,11 +1,13 @@
 # Informe de Proyecto de Grado — Sistemas de Información III
 
-Plantilla LaTeX modular para el informe de proyecto de grado de la materia
-**Sistemas de Información III**, Carrera de Ingeniería de Sistemas,
-Universidad Privada Domingo Savio (UPDS), Sede Potosí.
+Repositorio del informe de proyecto de grado de la materia **Sistemas de
+Información III**, Carrera de Ingeniería de Sistemas, Universidad Privada
+Domingo Savio (UPDS), Sede Potosí.
 
-Impone el formato **APA 7.ª edición en español** con los ajustes
-institucionales indicados por la cátedra:
+El documento analiza y propone un **sistema web para la gestión de paquetes
+turísticos y reservas en Vizcacha Tours, Potosí**. La clase LaTeX impone el
+formato **APA 7.ª edición en español** con los ajustes institucionales
+indicados por la cátedra:
 
 | Elemento | Definición |
 |---|---|
@@ -18,20 +20,20 @@ institucionales indicados por la cátedra:
 | Sangría | Primera línea 1,27 cm; sin espacio adicional entre párrafos |
 
 El contenido corresponde a un perfil de proyecto sobre un sistema web de
-gestión de paquetes turísticos y reservas para Vizcacha Tours, Potosí.
-Reemplace o amplíe el texto de cada sección y conserve las etiquetas `% TODO:`
-como guía.
+gestión de paquetes turísticos y reservas para Vizcacha Tours, Potosí. Cada
+sección vive en un archivo propio dentro de `informe/capitulos/`, con su
+`\chapter` y su `\label`, para poder editarlas por separado.
 
 ## Documentación
 
-- **`GUIA-LATEX.md`** — cómo funciona LaTeX, cómo está organizada esta
-  plantilla, cómo editarla y cómo compilar.
-- **`INSTALACION-WINDOWS.md`** — instalación completa en Windows 11 con
-  winget y Scoop, y compilación con `build.ps1`.
+- **`documentacion/GUIA-LATEX.md`** — cómo funciona LaTeX, cómo está
+  organizada este proyecto, cómo editarlo y cómo compilarlo.
+- **`documentacion/INSTALACION-WINDOWS.md`** — instalación completa en
+  Windows 11 con winget y Scoop, y compilación con `build.ps1`.
 - **`AGENTS.md`** — guía operativa para agentes y modelos que trabajen en el
   repositorio.
-- **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados y
-  contenido aplicadas en cada iteración.
+- **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados,
+  con el detalle del contenido aplicado en cada uno.
 
 ---
 
@@ -79,10 +81,11 @@ rm -f ~/.texlive/texmf-var/web2c/xetex/xelatex.fmt
 ## 2. Compilación
 
 ```bash
-make            # genera los diagramas y compila el informe
+make            # genera diagramas, compila y publica el PDF
 make pdf        # compila sin regenerar diagramas
 make diagramas  # convierte todos los .puml a PDF
 make png        # exporta todos los diagramas a PNG en entregables/diagramas/png/
+make publicar   # vuelve a copiar el PDF a entregables/ con su nombre definitivo
 make verificar  # revisa que los diagramas no tengan participantes sueltos
 make ver        # muestra páginas, tamaño y fuentes del PDF
 make clean      # borra archivos auxiliares
@@ -173,9 +176,10 @@ proyecto-formativo/
 │   │   └── estilos/           Tema visual de PlantUML
 │   ├── base-de-datos/         Esquema SQL y diccionario de datos
 │   ├── historias-usuario/     Backlog de historias de usuario (CSV y MD)
-│   └── verificar-uml.py       Comprueba los diagramas de secuencia
+│   ├── verificar-uml.py       Comprueba los diagramas de secuencia
+│   └── verificar-rutas.py     Comprueba que las rutas existan
 ├── documentacion/
-│   ├── GUIA-LATEX.md          Guía de uso de la plantilla
+│   ├── GUIA-LATEX.md          Guía de LaTeX y del proyecto
 │   ├── INSTALACION-WINDOWS.md Instalación en Windows 11
 │   └── registro-cambios/      Bitácora de los trabajos aceptados
 ├── entregables/               Lo que se entrega

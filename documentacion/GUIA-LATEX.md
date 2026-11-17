@@ -27,6 +27,10 @@ main.tex + informe/capitulos/*.tex + informe/configuracion/*.tex
         │  xelatex (2.ª y 3.ª pasada)
         ▼
  _build/main.pdf
+        │
+        │  make publicar (copia)
+        ▼
+ entregables/Informe de Proyecto Formativo - ....pdf
 ```
 
 ¿Por qué varias pasadas? Porque LaTeX necesita leer su propia salida: en la
@@ -162,7 +166,8 @@ main.tex
  │    │    └── ejemplos-plantilla/ ... ejemplos heredados de la plantilla
  │    ├── base-de-datos/ ..... esquema SQL y diccionario
  │    ├── historias-usuario/ . backlog de historias de usuario
- │    └── verificar-uml.py .. comprueba los diagramas
+ │    ├── verificar-uml.py .. comprueba los diagramas
+ │    └── verificar-rutas.py . comprueba las rutas
  ├── entregables/ ........... lo que se entrega
  │    ├── Informe de Proyecto Formativo - ....pdf   (PDF final)
  │    └── diagramas/ ......... PDF y PNG de los diagramas
@@ -293,14 +298,19 @@ En la primera línea de `main.tex`:
 
 | Comando | Qué hace |
 |---|---|
-| `make` | Regenera diagramas y compila el PDF |
+| `make` | Regenera diagramas, compila y publica el PDF |
 | `make pdf` | Compila sin tocar los diagramas |
-| `make diagramas` | Convierte `.puml` → PDF |
+| `make diagramas` | Convierte `.puml` → PDF en `entregables/diagramas/pdf/` |
+| `make png` | Exporta los diagramas a PNG en `entregables/diagramas/png/` |
+| `make publicar` | Copia el PDF a `entregables/` con el nombre definitivo |
+| `make verificar` | Revisa que los diagramas no tengan participantes sueltos |
 | `make ver` | Muestra páginas, tamaño y fuentes del PDF |
 | `make clean` | Borra `_build` |
 | `make distclean` | Borra `_build` y los diagramas generados |
 
-El resultado siempre es **`_build/main.pdf`**.
+El PDF intermedio queda en `_build/main.pdf` y el entregable en
+`entregables/Informe de Proyecto Formativo - Sistema de Gestión de Paquetes
+Turísticos y Reservas.pdf`. La carpeta `entregables/` no se versiona.
 
 En VS Code: guarde con `Ctrl+S` y LaTeX Workshop compila solo; el PDF se
 abre en una pestaña al costado.

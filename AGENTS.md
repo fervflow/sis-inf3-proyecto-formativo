@@ -167,9 +167,10 @@ el formato desde los capítulos.
 │   ├── historias-usuario/
 │   │   ├── historias-usuario.csv Backlog en CSV
 │   │   └── historias-usuario.md  Backlog legible y observaciones
-│   └── verificar-uml.py         Comprobación de los diagramas
+│   ├── verificar-uml.py         Comprobación de los diagramas
+│   └── verificar-rutas.py       Comprobación de las rutas
 ├── documentacion/               Guías y bitácora
-│   ├── GUIA-LATEX.md            Guía de LaTeX y de la plantilla
+│   ├── GUIA-LATEX.md            Guía de LaTeX y del proyecto
 │   ├── INSTALACION-WINDOWS.md   Instalación en Windows 11
 │   └── registro-cambios/
 │       ├── README.md            Convención de la bitácora
@@ -283,8 +284,10 @@ técnicos.
 
 ### Verificación de los diagramas
 
-`make verificar` ejecuta `diagramas/verificar-uml.py`, que revisa los 23
-archivos `.puml` del proyecto y detecta tres fallos:
+`make verificar` ejecuta dos comprobaciones.
+
+**`sistema/verificar-uml.py`** revisa los 22 archivos `.puml` del proyecto y
+detecta tres fallos:
 
 - un participante usado en un mensaje pero **no declarado**: PlantUML lo
   crea sin estereotipo y en la imagen aparece el texto del alias en lugar
@@ -296,6 +299,18 @@ archivos `.puml` del proyecto y detecta tres fallos:
 Conviene ejecutarlo después de editar cualquier `.puml`, porque estos fallos
 no producen un error de compilación: el diagrama se genera igual, pero se
 ve mal.
+
+**`sistema/verificar-rutas.py`** revisa dos cosas:
+
+- que cada `\input`, `\include`, `\addbibresource` e `\includegraphics`
+  apunte a un archivo que exista, y que las carpetas de `\graphicspath`
+  existan;
+- que la documentación no mencione carpetas de una estructura anterior.
+
+El segundo control es el que evita el fallo más frecuente al reorganizar el
+proyecto: mover los archivos y dejar citada la ruta vieja en la
+documentación. Conviene ejecutarlo después de cualquier movimiento de
+carpetas o de cambio de nombres.
 
 ### Reglas del modelo que los diagramas deben respetar
 
@@ -509,9 +524,9 @@ make distclean  # auxiliares + diagramas generados + PNG
 
 ## 15. Documentos de referencia
 
-- `README.md`: propósito, estructura general y uso de la plantilla.
-- `GUIA-LATEX.md`: conceptos de LaTeX y edición del proyecto.
-- `INSTALACION-WINDOWS.md`: instalación en Windows 11.
+- `README.md`: propósito, estructura general y uso del proyecto.
+- `documentacion/GUIA-LATEX.md`: conceptos de LaTeX y edición del proyecto.
+- `documentacion/INSTALACION-WINDOWS.md`: instalación en Windows 11.
 - `documentacion/registro-cambios/README.md`: convención de la bitácora.
 - `sistema/base-de-datos/diccionario-datos.md`: esquema y reglas de la base de
   datos.
