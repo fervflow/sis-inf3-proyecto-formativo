@@ -56,4 +56,6 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-17 11:23 | `2026-11-17T112357_canal-autoservicio-turista.md` | Canal de autoservicio del cliente en el informe y en la base de datos temporal. |
 | 2026-11-17 11:44 | `2026-11-17T114408_backlog-y-diagramas-de-secuencia.md` | Backlog de historias de usuario revisado y diagramas de secuencia regenerados. |
 | 2026-11-17 12:03 | `2026-11-17T120305_exportacion-png.md` | Exportación de diagramas a PNG y corrección de los diagramas de secuencia. |
+| 2026-11-17 13:12 | `2026-11-17T131205_verificacion-y-correccion-de-la-documentacion.md` | Verificación de la reagrupación y corrección de la documentación que no había cambiado. |
 | 2026-11-17 13:16 | `2026-11-17T131626_reorganizacion-del-proyecto.md` | Reagrupación de carpetas, publicación del PDF final y regla del registro de cambios. |
+| 2026-11-17 14:05 | `2026-11-17T140522_refactorizacion-de-la-documentacion.md` | Refactorización de la documentación: `AGENTS.md` como punto de entrada breve y documentos de referencia. |
