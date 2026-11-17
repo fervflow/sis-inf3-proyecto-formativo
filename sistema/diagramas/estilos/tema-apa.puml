@@ -1,0 +1,44 @@
+' Tema visual para los diagramas del informe (APA 7, Arial 11 pt)
+' Se aplica automaticamente con: plantuml -config sistema/diagramas/estilos/tema-apa.puml
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 11
+skinparam defaultFontColor #222222
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 4
+
+skinparam ArrowColor #333333
+skinparam ArrowFontColor #222222
+skinparam ArrowFontSize 10
+
+skinparam actorBorderColor #333333
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorFontSize 11
+
+skinparam usecaseBorderColor #333333
+skinparam usecaseBackgroundColor #F4F4F4
+skinparam usecaseFontSize 11
+
+skinparam classBorderColor #333333
+skinparam classBackgroundColor #FFFFFF
+skinparam classArrowColor #333333
+skinparam classFontSize 11
+skinparam classAttributeFontSize 10
+
+skinparam componentBorderColor #333333
+skinparam componentBackgroundColor #F4F4F4
+
+skinparam nodeBorderColor #333333
+skinparam nodeBackgroundColor #FFFFFF
+
+skinparam databaseBorderColor #333333
+skinparam databaseBackgroundColor #FAFAFA
+
+skinparam noteBackgroundColor #FAFAFA
+skinparam noteBorderColor #666666
+skinparam noteFontSize 10
+
+skinparam activityBorderColor #333333
+skinparam activityBackgroundColor #FFFFFF
+skinparam activityDiamondBackgroundColor #FFFFFF

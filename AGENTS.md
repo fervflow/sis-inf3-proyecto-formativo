@@ -38,7 +38,7 @@ Además del informe LaTeX, el repositorio contiene:
 | Población | 8 trabajadores + 50 clientes = 58 personas |
 | Muestra | Censo, por ser una población menor o igual a 60 |
 | Documento maestro | `main.tex` |
-| PDF final | `_build/main.pdf` |
+| PDF final | `entregables/Informe de Proyecto Formativo - Sistema de Gestión de Paquetes Turísticos y Reservas.pdf` |
 
 ### Problema científico vigente
 
@@ -67,13 +67,13 @@ objetivo general y objetivos específicos.
    debe leerse como un informe académico.
 6. Citar con `\textcite{...}` o `\parencite{...}`; no escribir autores y años
    manualmente.
-7. Toda entrada de `bibliografia/referencias.bib` debe tener `year`. Evitar
+7. Toda entrada de `informe/bibliografia/referencias.bib` debe tener `year`. Evitar
    citas con “s. f.”; si una fuente no tiene fecha, buscar una fuente
    equivalente con año.
 8. No reintroducir la dedicatoria, los agradecimientos ni el abstract: fueron
    retirados del documento. Los archivos existen como respaldo, pero no se
    incluyen en `main.tex`.
-9. No reintroducir `capitulos/06-variables.tex`: la variable dependiente está
+9. No reintroducir `informe/capitulos/06-variables.tex`: la variable dependiente está
    en el problema científico y la variable independiente en el objetivo
    general.
 10. Mantener la coherencia con las historias de usuario y los diagramas.
@@ -134,42 +134,49 @@ el formato desde los capítulos.
 ├── Makefile                     Compilación y diagramas en Linux
 ├── latexmkrc                    Configuración de latexmk
 ├── README.md                    Documentación general para personas
-├── GUIA-LATEX.md                Guía de LaTeX y de la plantilla
-├── INSTALACION-WINDOWS.md       Instalación en Windows 11
 ├── AGENTS.md                    Esta guía para agentes
-├── config/
-│   ├── metadatos.tex            Título, autor, docente, gestión
-│   └── portada.tex              Portada institucional y portada APA
-├── preliminares/
-│   ├── resumen.tex              Único preliminar incluido
-│   ├── dedicatoria.tex          No incluido; conservado como respaldo
-│   ├── agradecimientos.tex      No incluido; conservado como respaldo
-│   └── abstract.tex             No incluido; conservado como respaldo
-├── capitulos/                   Secciones 01 a 11 (06 no incluida)
-├── finales/
-│   ├── referencias.tex          Bibliografía
-│   ├── glosario.tex             Glosario y acrónimos
-│   └── anexos.tex               Activación de anexos
-├── anexos/
-│   └── A-arbol-problemas.tex    Anexo A
-├── bibliografia/
-│   └── referencias.bib          Base BibLaTeX
-├── diagramas/
-│   ├── fuentes/uml/             Fuentes PlantUML
-│   ├── fuentes/tikz/            Diagramas TikZ
-│   ├── generados/               PDF generados (no editar)
-│   ├── otros/                   DER, arquitectura, mockups
-│   └── estilos/tema-apa.puml    Tema visual PlantUML
-├── tablas/
-│   ├── historias-usuario.csv    Backlog en CSV
-│   └── historias-usuario.md     Backlog legible y observaciones
-├── codigo/base-datos/
-│   ├── esquema-temporal.sql     Esquema PostgreSQL temporal
-│   └── diccionario-datos.md     Diccionario y reglas
-├── registro-cambios/
-│   ├── README.md                Convención de la bitácora
-│   └── YYYY-MM-DDTHHMMSS_...md  Registros por iteración
-├── imagenes/                    Logos y capturas
+├── informe/                     El contenido del documento
+│   ├── configuracion/
+│   │   ├── metadatos.tex        Título, autor, docente, gestión
+│   │   └── portada.tex          Portada institucional y portada APA
+│   ├── preliminares/
+│   │   ├── resumen.tex          Único preliminar incluido
+│   │   ├── dedicatoria.tex      No incluido; conservado como respaldo
+│   │   ├── agradecimientos.tex  No incluido; conservado como respaldo
+│   │   └── abstract.tex         No incluido; conservado como respaldo
+│   ├── capitulos/               Secciones 01 a 11 (06 no incluida)
+│   ├── finales/
+│   │   ├── referencias.tex      Bibliografía
+│   │   ├── glosario.tex         Glosario y acrónimos
+│   │   └── anexos.tex           Activación de anexos
+│   ├── anexos/
+│   │   └── A-arbol-problemas.tex Anexo A
+│   ├── bibliografia/
+│   │   └── referencias.bib      Base BibLaTeX
+│   └── figuras/                 Logos y capturas
+├── sistema/                     El sistema que se diseña
+│   ├── diagramas/
+│   │   ├── uml/                 Fuentes PlantUML del proyecto
+│   │   ├── tikz/                Diagramas TikZ
+│   │   ├── otros/               DER, arquitectura, mockups
+│   │   ├── ejemplos-plantilla/  Ejemplos heredados, no del proyecto
+│   │   └── estilos/tema-apa.puml Tema visual PlantUML
+│   ├── base-de-datos/
+│   │   ├── esquema-temporal.sql Esquema PostgreSQL temporal
+│   │   └── diccionario-datos.md Diccionario y reglas
+│   ├── historias-usuario/
+│   │   ├── historias-usuario.csv Backlog en CSV
+│   │   └── historias-usuario.md  Backlog legible y observaciones
+│   └── verificar-uml.py         Comprobación de los diagramas
+├── documentacion/               Guías y bitácora
+│   ├── GUIA-LATEX.md            Guía de LaTeX y de la plantilla
+│   ├── INSTALACION-WINDOWS.md   Instalación en Windows 11
+│   └── registro-cambios/
+│       ├── README.md            Convención de la bitácora
+│       └── YYYY-MM-DDTHHMMSS_...md Registros por trabajo aceptado
+├── entregables/                 Lo que se entrega
+│   ├── Informe de Proyecto Formativo - ....pdf  PDF final
+│   └── diagramas/               PDF y PNG de los diagramas
 └── _build/                      Salida del compilador (no editar)
 ```
 
@@ -179,39 +186,39 @@ el formato desde los capítulos.
 
 | # | Sección | Archivo |
 |---|---|---|
-| 1 | Introducción | `capitulos/01-introduccion.tex` |
-| 2 | Antecedentes | `capitulos/02-antecedentes.tex` |
-| 3 | Situación problemática | `capitulos/03-situacion-problematica.tex` |
-| 4 | Problema científico | `capitulos/04-problema-cientifico.tex` |
-| 5 | Objeto de estudio y campo de acción | `capitulos/05-objeto-estudio.tex` |
-| 6 | Objetivos | `capitulos/07-objetivos.tex` |
-| 7 | Población y muestra | `capitulos/08-poblacion-muestra.tex` |
-| 8 | Justificación social | `capitulos/09-justificacion-social.tex` |
-| 9 | Alcances del sistema | `capitulos/10-alcances-sistema.tex` |
-| 10 | Límites del proyecto | `capitulos/11-limites-proyecto.tex` |
+| 1 | Introducción | `informe/capitulos/01-introduccion.tex` |
+| 2 | Antecedentes | `informe/capitulos/02-antecedentes.tex` |
+| 3 | Situación problemática | `informe/capitulos/03-situacion-problematica.tex` |
+| 4 | Problema científico | `informe/capitulos/04-problema-cientifico.tex` |
+| 5 | Objeto de estudio y campo de acción | `informe/capitulos/05-objeto-estudio.tex` |
+| 6 | Objetivos | `informe/capitulos/07-objetivos.tex` |
+| 7 | Población y muestra | `informe/capitulos/08-poblacion-muestra.tex` |
+| 8 | Justificación social | `informe/capitulos/09-justificacion-social.tex` |
+| 9 | Alcances del sistema | `informe/capitulos/10-alcances-sistema.tex` |
+| 10 | Límites del proyecto | `informe/capitulos/11-limites-proyecto.tex` |
 
-`capitulos/06-variables.tex` no se incluye. Su contenido fue retirado y el
+`informe/capitulos/06-variables.tex` no se incluye. Su contenido fue retirado y el
 archivo solo conserva un comentario de referencia.
 
 Después de las secciones de contenido se incluyen:
 
-1. `finales/referencias.tex`
-2. `finales/glosario.tex`
-3. `finales/anexos.tex` → `anexos/A-arbol-problemas.tex`
+1. `informe/finales/referencias.tex`
+2. `informe/finales/glosario.tex`
+3. `informe/finales/anexos.tex` → `informe/anexos/A-arbol-problemas.tex`
 
 ## 7. Flujo de trabajo para contenido
 
 ### Editar una sección
 
-1. Abrir el archivo correspondiente en `capitulos/`.
+1. Abrir el archivo correspondiente en `informe/capitulos/`.
 2. Mantener el `\chapter{...}` y `\label{...}` existentes.
 3. Escribir en tercera persona y con citas.
 4. Compilar y revisar el PDF.
 
 ### Agregar una sección nueva
 
-1. Crear `capitulos/NN-nombre.tex` con `\chapter{...}`.
-2. Agregar `\input{capitulos/NN-nombre}` en `main.tex`, en el orden correcto.
+1. Crear `informe/capitulos/NN-nombre.tex` con `\chapter{...}`.
+2. Agregar `\input{informe/capitulos/NN-nombre}` en `main.tex`, en el orden correcto.
 3. Actualizar la tabla de secciones de este archivo y de `README.md`.
 
 ### Tablas y figuras
@@ -238,7 +245,7 @@ Usar los entornos existentes:
 \end{figuraapa}
 ```
 
-- `\incluirDiagrama` busca un **PDF** en `diagramas/generados/`, con ruta
+- `\incluirDiagrama` busca un **PDF** en `entregables/diagramas/pdf/`, con ruta
   relativa y sin extensión.
 - `\incluirImagen` se usa para PNG/JPG y requiere extensión.
 - No reemplazar los PDF vectoriales por imágenes raster sin una razón
@@ -246,7 +253,7 @@ Usar los entornos existentes:
 
 ### Citas y bibliografía
 
-- Agregar la entrada en `bibliografia/referencias.bib` con `year`.
+- Agregar la entrada en `informe/bibliografia/referencias.bib` con `year`.
 - Usar `\textcite{clave}` o `\parencite{clave}`.
 - No escribir “(Autor, año)” manualmente.
 - Verificar que no aparezcan “s. f.” en el PDF.
@@ -255,13 +262,13 @@ Usar los entornos existentes:
 
 ### Diagramas del sistema turístico
 
-- `diagramas/fuentes/uml/secuencia/`: 7 diagramas completos de las HU-03,
+- `sistema/diagramas/uml/secuencia/`: 7 diagramas completos de las HU-03,
   HU-05, HU-06, HU-07, HU-09, HU-13 y HU-14.
-- `diagramas/fuentes/uml/secuencia-light/`: versiones resumidas de esos 7.
-- `diagramas/fuentes/uml/secuencia-comunes/`: 5 subflujos reutilizables.
-- `diagramas/fuentes/uml/secuencia-fusionados/`: 2 variantes que combinan
+- `sistema/diagramas/uml/secuencia-light/`: versiones resumidas de esos 7.
+- `sistema/diagramas/uml/secuencia-comunes/`: 5 subflujos reutilizables.
+- `sistema/diagramas/uml/secuencia-fusionados/`: 2 variantes que combinan
   HU-03 + HU-05 y HU-07 + HU-13.
-- `diagramas/fuentes/uml/procesos/mapa-procesos.puml`: mapa de actividades
+- `sistema/diagramas/uml/procesos/mapa-procesos.puml`: mapa de actividades
   con carriles.
 
 Los diagramas de secuencia deben conservar los estereotipos:
@@ -273,6 +280,22 @@ Los diagramas de secuencia deben conservar los estereotipos:
 
 Los diagramas comunes pueden omitir interfaz y actor porque son fragmentos
 técnicos.
+
+### Verificación de los diagramas
+
+`make verificar` ejecuta `diagramas/verificar-uml.py`, que revisa los 23
+archivos `.puml` del proyecto y detecta tres fallos:
+
+- un participante usado en un mensaje pero **no declarado**: PlantUML lo
+  crea sin estereotipo y en la imagen aparece el texto del alias en lugar
+  del icono con su etiqueta;
+- un participante declarado que no aparece en ningún mensaje;
+- una entidad o una tabla que solo emite o solo recibe, es decir, una línea
+  de vida que quedó colgando.
+
+Conviene ejecutarlo después de editar cualquier `.puml`, porque estos fallos
+no producen un error de compilación: el diagrama se genera igual, pero se
+ve mal.
 
 ### Reglas del modelo que los diagramas deben respetar
 
@@ -298,15 +321,16 @@ redactarlos hay que respetar:
 
 ### Diagramas de ejemplo de la plantilla
 
-Estos archivos son ejemplos heredados y **no representan el sistema
-turístico**:
+Estos archivos están en `sistema/diagramas/ejemplos-plantilla/` y son
+ejemplos heredados que **no representan el sistema turístico**:
 
-- `diagramas/fuentes/uml/casos-uso/general.puml`
-- `diagramas/fuentes/uml/clases/modelo-dominio.puml`
-- `diagramas/fuentes/uml/actividades/proceso-evaluacion.puml`
-- `diagramas/fuentes/uml/despliegue/arquitectura.puml`
-- `diagramas/fuentes/uml/secuencia/registrar-proyecto.puml`
+- `general.puml` (casos de uso)
+- `modelo-dominio.puml` (clases)
+- `proceso-evaluacion.puml` (actividades)
+- `arquitectura.puml` (despliegue)
+- `registrar-proyecto.puml` (secuencia)
 
+No se exportan a PDF ni a PNG, porque no forman parte de los entregables.
 No usarlos como base para el proyecto sin reemplazarlos por completo.
 
 ### Generación
@@ -323,12 +347,12 @@ Linux:
 make diagramas
 ```
 
-Los PDF se generan en `diagramas/generados/<tipo>/`. No editar manualmente
+Los PDF se generan en `entregables/diagramas/pdf/<tipo>/`. No editar manualmente
 esos PDF: se regeneran desde los `.puml`.
 
 ## 9. Base de datos temporal
 
-Archivo: `codigo/base-datos/esquema-temporal.sql`.
+Archivo: `sistema/base-de-datos/esquema-temporal.sql`.
 
 - Motor: PostgreSQL 14 o superior.
 - Esquema: `turismo`.
@@ -354,13 +378,13 @@ Reglas importantes:
 - El índice único parcial `ux_reserva_solicitud_activa` admite una sola
   solicitud pendiente por cliente y salida.
 
-Diccionario y reglas: `codigo/base-datos/diccionario-datos.md`.
+Diccionario y reglas: `sistema/base-de-datos/diccionario-datos.md`.
 
 ## 10. Historias de usuario
 
-- `tablas/historias-usuario.csv`: fuente tabular, UTF-8 con BOM y separador
+- `sistema/historias-usuario/historias-usuario.csv`: fuente tabular, UTF-8 con BOM y separador
   `;`.
-- `tablas/historias-usuario.md`: versión legible, totales y observaciones.
+- `sistema/historias-usuario/historias-usuario.md`: versión legible, totales y observaciones.
 - 17 historias, 47 puntos, 39 tareas.
 - El orden actual comienza en HU-08 y no sigue el orden de los ID; se
   conservó porque parece reflejar priorización.
@@ -377,12 +401,17 @@ Diccionario y reglas: `codigo/base-datos/diccionario-datos.md`.
 
 ## 11. Registro de cambios
 
-Carpeta: `registro-cambios/`.
+Carpeta: `documentacion/registro-cambios/`.
 
 - `README.md` explica la convención.
-- Cada iteración crea un archivo nuevo:
+- **El registro se escribe una vez que el usuario acepta el trabajo**, no al
+  cerrar cada iteración técnica. Un trabajo aceptado genera **un** registro.
+- Si un trabajo se corrige antes de ser aceptado, las correcciones quedan
+  en el árbol de trabajo y no generan entradas adicionales.
+- Cada trabajo aceptado crea un archivo nuevo:
   `YYYY-MM-DDTHHMMSS_descripcion-breve.md`.
-- No se editan registros anteriores.
+- No se editan registros ya aceptados, salvo que el usuario pida
+  explícitamente fusionarlos.
 - Cada registro debe incluir: fecha, alcance, formato, contenido, archivos
   modificados, validación y pendientes.
 - Al crear un registro nuevo, agregarlo a la tabla de iteraciones del
@@ -395,6 +424,7 @@ Carpeta: `registro-cambios/`.
 ```powershell
 .\build.ps1              # compila el informe
 .\build.ps1 -Diagramas   # genera diagramas y compila
+.\build.ps1 -Png         # exporta los diagramas a PNG y compila
 .\build.ps1 -Ver         # compila y muestra información del PDF
 .\build.ps1 -Limpiar     # borra _build
 ```
@@ -405,15 +435,37 @@ Carpeta: `registro-cambios/`.
 make            # diagramas + informe
 make pdf        # solo informe
 make diagramas  # solo diagramas
+make png        # solo PNG de los diagramas (entregables/diagramas/png/)
+make verificar  # revisa los diagramas de secuencia
 make ver        # información del PDF
 make clean      # auxiliares
-make distclean  # auxiliares + diagramas generados
+make distclean  # auxiliares + diagramas generados + PNG
 ```
+
+### Exportación a PNG
+
+- `make png` escribe las imágenes en `entregables/diagramas/png/`, con la misma
+  estructura de carpetas que `entregables/diagramas/pdf/`.
+- Es material derivado para revisión, presentaciones y documentación:
+  **no se versiona**. La carpeta está en `.gitignore`.
+- La resolución es de 300 DPI por omisión y se ajusta con
+  `make png PNG_DPI=600`. Como el SVG de PlantUML ya trae el tamaño en
+  píxeles a 96 DPI, el exportador aplica un factor de escala equivalente.
+- El fondo es **blanco opaco**, sin canal de transparencia: se fija con
+  `-b white` en `rsvg-convert` y con `--export-background=white` en
+  Inkscape.
+- Los archivos `.puml` se exportan a SVG y luego se rasterizan, de modo que
+  la imagen tenga las mismas fuentes que el PDF. Si `rsvg-convert` no está
+  instalado, PlantUML rasteriza directamente y el fondo ya es blanco.
+- El árbol de problemas es TikZ, no PlantUML: se compila aparte con XeLaTeX
+  y se rasteriza con `pdftoppm`. Si esa herramienta no está disponible, el
+  PNG del árbol se omite y se avisa por pantalla.
+- No editar los PNG a mano: se regeneran desde los `.puml` y los `.tex`.
 
 - Usar **XeLaTeX** o **LuaLaTeX**. No usar `pdflatex`.
 - La bibliografía usa **biber**, no BibTeX.
-- El PDF final queda en `_build/main.pdf`.
-- `_build/` y `diagramas/generados/` son salidas: no editarlas a mano.
+- El PDF final se publica en `entregables/` con su nombre definitivo.
+- `_build/` y `entregables/diagramas/pdf/` son salidas: no editarlas a mano.
 
 ### Avisos normales
 
@@ -426,7 +478,7 @@ make distclean  # auxiliares + diagramas generados
 ## 13. Checklist antes de terminar una tarea
 
 1. Compilar con `.\build.ps1` o `make pdf`.
-2. Confirmar que `_build/main.pdf` se genera.
+2. Confirmar que el PDF se publica en `entregables/`.
 3. Revisar que no haya referencias o citas indefinidas.
 4. Confirmar que no aparezcan “s. f.”.
 5. Buscar primeras personas del plural en los `.tex`.
@@ -434,12 +486,13 @@ make distclean  # auxiliares + diagramas generados
 7. Revisar que las secciones 1 a 10 sigan a la izquierda y numeradas.
 8. Revisar que referencias, glosario y anexos sigan centrados.
 9. Revisar tablas, figuras y el árbol de problemas.
-10. Registrar la iteración en `registro-cambios/` si hubo cambios de formato
-    o contenido.
+10. Cuando el usuario acepte el trabajo, registrarlo en
+    `documentacion/registro-cambios/`. No escribir el registro antes de la
+    aceptación.
 
 ## 14. Cosas que no se deben hacer
 
-- No editar `_build/` ni los PDF de `diagramas/generados/` a mano.
+- No editar `_build/` ni los PDF de `entregables/diagramas/pdf/` a mano.
 - No cambiar `si3apa7.cls` para corregir contenido; usarlo solo para formato
   global.
 - No reintroducir dedicatoria, agradecimientos o abstract.
@@ -451,17 +504,18 @@ make distclean  # auxiliares + diagramas generados
   sin instrucción.
 - No reemplazar los diagramas PDF vectoriales por imágenes raster sin
   justificarlo.
-- No borrar ni reescribir registros antiguos de `registro-cambios/`.
+- No borrar ni reescribir registros antiguos de
+  `documentacion/registro-cambios/`, salvo que el usuario lo pida.
 
 ## 15. Documentos de referencia
 
 - `README.md`: propósito, estructura general y uso de la plantilla.
 - `GUIA-LATEX.md`: conceptos de LaTeX y edición del proyecto.
 - `INSTALACION-WINDOWS.md`: instalación en Windows 11.
-- `registro-cambios/README.md`: convención de la bitácora.
-- `codigo/base-datos/diccionario-datos.md`: esquema y reglas de la base de
+- `documentacion/registro-cambios/README.md`: convención de la bitácora.
+- `sistema/base-de-datos/diccionario-datos.md`: esquema y reglas de la base de
   datos.
-- `tablas/historias-usuario.md`: backlog y observaciones.
+- `sistema/historias-usuario/historias-usuario.md`: backlog y observaciones.
 
 Si una decisión de formato o contenido cambia, actualizar este archivo y
 registrar la iteración correspondiente.

@@ -6,14 +6,19 @@
 .DESCRIPTION
     Ejecuta la cadena XeLaTeX -> Biber -> XeLaTeX (x2), y opcionalmente
     convierte los diagramas PlantUML (.puml) a PDF usando Inkscape.
+    Al terminar, copia el PDF a entregables\ con el nombre definitivo.
 
 .EXAMPLE
     .\build.ps1
-    Compila el PDF en _build\main.pdf.
+    Compila el informe y publica el entregable.
 
 .EXAMPLE
     .\build.ps1 -Diagramas
     Regenera los diagramas y luego compila.
+
+.EXAMPLE
+    .\build.ps1 -Png
+    Exporta los diagramas a PNG en entregables\diagramas\png\ y compila.
 
 .EXAMPLE
     .\build.ps1 -Ver
@@ -25,11 +30,12 @@
 
 .EXAMPLE
     .\build.ps1 -LimpiarTodo
-    Borra _build y los PDF generados de los diagramas.
+    Borra _build y los diagramas generados.
 #>
 [CmdletBinding()]
 param(
     [switch]$Diagramas,
+    [switch]$Png,
     [switch]$Ver,
     [switch]$Limpiar,
     [switch]$LimpiarTodo,
@@ -38,7 +44,10 @@ param(
     [string]$PlantUmlJar = "",
 
     # Ruta a inkscape.exe si no está en el PATH.
-    [string]$InkscapeRuta = ""
+    [string]$InkscapeRuta = "",
+
+    # Resolución de los PNG exportados, en DPI.
+    [int]$Dpi = 300
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,9 +55,13 @@ $ErrorActionPreference = "Stop"
 $Raiz         = $PSScriptRoot
 $Compilacion  = Join-Path $Raiz "_build"
 $Principal    = "main"
-$TemaPuml     = Join-Path $Raiz "diagramas/estilos/tema-apa.puml"
-$FuentesUml   = Join-Path $Raiz "diagramas/fuentes/uml"
-$Generados    = Join-Path $Raiz "diagramas/generados"
+$TemaPuml     = Join-Path $Raiz "sistema/diagramas/estilos/tema-apa.puml"
+$FuentesUml   = Join-Path $Raiz "sistema/diagramas/uml"
+$Generados    = Join-Path $Raiz "entregables/diagramas/pdf"
+$GeneradosPng = Join-Path $Raiz "entregables/diagramas/png"
+$FuentesTikz  = Join-Path $Raiz "sistema/diagramas/tikz"
+$Entregas     = Join-Path $Raiz "entregables"
+$PdfEntrega   = Join-Path $Entregas "Informe de Proyecto Formativo - Sistema de Gestión de Paquetes Turísticos y Reservas.pdf"
 
 if (-not $PlantUmlJar) {
     $perfil = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
@@ -72,10 +85,56 @@ function Limpiar-Salida {
         Paso "Carpeta _build eliminada."
     }
     if ($LimpiarTodo -and (Test-Path $Generados)) {
-        Get-ChildItem $Generados -Recurse -Filter *.pdf -File |
-            Remove-Item -Force
-        Paso "Diagramas generados eliminados."
+        Remove-Item $Generados -Recurse -Force
+        Paso "PDF de diagramas eliminados."
     }
+    if ($LimpiarTodo -and (Test-Path $GeneradosPng)) {
+        Remove-Item $GeneradosPng -Recurse -Force
+        Paso "PNG de diagramas eliminados."
+    }
+}
+
+function Publicar-Entregable {
+    # Copia el PDF compilado a entregables/ con el nombre definitivo.
+    $pdf = Join-Path $Compilacion "$Principal.pdf"
+    if (-not (Test-Path $pdf)) {
+        ErrorFatal "No existe el PDF compilado: $pdf"
+    }
+    New-Item -ItemType Directory -Force -Path $Entregas | Out-Null
+    Copy-Item $pdf $PdfEntrega -Force
+    Paso "Entregable: $PdfEntrega"
+}
+
+function Obtener-MotorPlantUml {
+    $comandoPuml = Get-Command plantuml -ErrorAction SilentlyContinue
+    if ($comandoPuml) {
+        return @{ Exe = $comandoPuml.Source; Args = @() }
+    }
+    if (Test-Path $PlantUmlJar) {
+        $java = Get-Command java -ErrorAction SilentlyContinue
+        if (-not $java) {
+            ErrorFatal "Java no encontrado. Instale Eclipse Temurin JRE 21 o agregue java al PATH."
+        }
+        return @{ Exe = $java.Source; Args = @("-jar", $PlantUmlJar) }
+    }
+    ErrorFatal ("No se encontró PlantUML. Use 'scoop install extras/plantuml' " +
+                "o descargue plantuml.jar en $PlantUmlJar")
+}
+
+function Obtener-Inkscape {
+    if ($InkscapeRuta) {
+        if (-not (Test-Path $InkscapeRuta)) {
+            ErrorFatal "No existe la ruta de Inkscape indicada: $InkscapeRuta"
+        }
+        return $InkscapeRuta
+    }
+    if (Get-Command inkscape -ErrorAction SilentlyContinue) {
+        return (Get-Command inkscape).Source
+    }
+    if (Test-Path "C:\Program Files\Inkscape\bin\inkscape.exe") {
+        return "C:\Program Files\Inkscape\bin\inkscape.exe"
+    }
+    return $null
 }
 
 function Convertir-Diagramas {
@@ -83,41 +142,10 @@ function Convertir-Diagramas {
         ErrorFatal "No existe la carpeta $FuentesUml"
     }
 
-    # --- Motor PlantUML: comando "plantuml" (Scoop) o java -jar ---------
-    $pumlExe  = $null
-    $pumlArgs = @()
-
-    $comandoPuml = Get-Command plantuml -ErrorAction SilentlyContinue
-    if ($comandoPuml) {
-        $pumlExe = $comandoPuml.Source
-    }
-    elseif (Test-Path $PlantUmlJar) {
-        $java = Get-Command java -ErrorAction SilentlyContinue
-        if (-not $java) {
-            ErrorFatal "Java no encontrado. Instale Eclipse Temurin JRE 21 o agregue java al PATH."
-        }
-        $pumlExe  = $java.Source
-        $pumlArgs = @("-jar", $PlantUmlJar)
-    }
-    else {
-        ErrorFatal ("No se encontró PlantUML. Use 'scoop install extras/plantuml' " +
-                    "o descargue plantuml.jar en $PlantUmlJar")
-    }
-
-    # --- Inkscape (opcional, para fuentes embebidas) -------------------
-    $inkscape = $null
-    if ($InkscapeRuta) {
-        if (-not (Test-Path $InkscapeRuta)) {
-            ErrorFatal "No existe la ruta de Inkscape indicada: $InkscapeRuta"
-        }
-        $inkscape = $InkscapeRuta
-    }
-    elseif (Get-Command inkscape -ErrorAction SilentlyContinue) {
-        $inkscape = (Get-Command inkscape).Source
-    }
-    elseif (Test-Path "C:\Program Files\Inkscape\bin\inkscape.exe") {
-        $inkscape = "C:\Program Files\Inkscape\bin\inkscape.exe"
-    }
+    $motor = Obtener-MotorPlantUml
+    $pumlExe  = $motor.Exe
+    $pumlArgs = $motor.Args
+    $inkscape = Obtener-Inkscape
 
     $archivos = Get-ChildItem $FuentesUml -Filter *.puml -Recurse -File
     if (-not $archivos) {
@@ -160,6 +188,101 @@ function Convertir-Diagramas {
         Write-Host ("AVISO: Inkscape no encontrado. Los PDF se generaron de forma " +
                     "directa y podrían no tener las fuentes embebidas.") -ForegroundColor Yellow
     }
+}
+
+function Convertir-DiagramasPng {
+    # Copia rasterizada de cada diagrama, para revision rapida.
+    # Material derivado: no se versiona.
+    if (-not (Test-Path $FuentesUml)) {
+        ErrorFatal "No existe la carpeta $FuentesUml"
+    }
+
+    $motor = Obtener-MotorPlantUml
+    $pumlExe  = $motor.Exe
+    $pumlArgs = $motor.Args
+    $inkscape = Obtener-Inkscape
+
+    New-Item -ItemType Directory -Force -Path $GeneradosPng | Out-Null
+
+    $archivos = Get-ChildItem $FuentesUml -Filter *.puml -Recurse -File
+    foreach ($archivo in $archivos) {
+        $relativa   = $archivo.FullName.Substring($FuentesUml.Length).TrimStart('\', '/')
+        $subcarpeta = Split-Path $relativa -Parent
+        $destino    = if ($subcarpeta) { Join-Path $GeneradosPng $subcarpeta } else { $GeneradosPng }
+
+        New-Item -ItemType Directory -Force -Path $destino | Out-Null
+        Paso "PNG: $relativa"
+
+        if ($inkscape) {
+            & $pumlExe @pumlArgs -tsvg -charset UTF-8 -config $TemaPuml -o $destino $archivo.FullName
+            if ($LASTEXITCODE -ne 0) {
+                ErrorFatal "PlantUML falló al procesar $relativa"
+            }
+
+            $svg = Join-Path $destino ($archivo.BaseName + ".svg")
+            $png = Join-Path $destino ($archivo.BaseName + ".png")
+
+            & $inkscape $svg --export-type=png "--export-filename=$png" "--export-dpi=$Dpi" "--export-background=white" "--export-background-opacity=1" | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                ErrorFatal "Inkscape falló al convertir $svg"
+            }
+            Remove-Item $svg -Force -ErrorAction SilentlyContinue
+        }
+        else {
+            & $pumlExe @pumlArgs -tpng -charset UTF-8 -config $TemaPuml -o $destino $archivo.FullName
+            if ($LASTEXITCODE -ne 0) {
+                ErrorFatal "PlantUML falló al procesar $relativa"
+            }
+        }
+    }
+
+    # El arbol de problemas es TikZ, no PlantUML: se compila aparte.
+    $arbolTikz = Join-Path $FuentesTikz "arbol-problemas.tex"
+    if (Test-Path $arbolTikz) {
+        $carpetaTikz = Join-Path $Compilacion "tikz"
+        New-Item -ItemType Directory -Force -Path $carpetaTikz | Out-Null
+
+        $contenidoTikz = @(
+            '\documentclass[tikz,border=6pt]{standalone}',
+            '\usepackage{tikz}',
+            '\usetikzlibrary{arrows.meta,positioning,calc}',
+            '\begin{document}',
+            "\input{$arbolTikz}",
+            '\end{document}'
+        ) -join "`n"
+
+        $wrapper = Join-Path $carpetaTikz "arbol.tex"
+        # ASCII para evitar la marca BOM que Windows PowerShell 5.1 escribe
+        # con -Encoding UTF8 y que LaTeX no admite al inicio del archivo.
+        Set-Content -Path $wrapper -Value $contenidoTikz -Encoding ASCII
+
+        if (-not (Get-Command xelatex -ErrorAction SilentlyContinue)) {
+            Write-Host ("AVISO: xelatex no encontrado. Se omite el arbol de problemas.") -ForegroundColor Yellow
+        }
+        else {
+            Paso "PNG: arbol-problemas"
+            & xelatex -interaction=nonstopmode -halt-on-error "-output-directory=$carpetaTikz" $wrapper | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                ErrorFatal "XeLaTeX falló al compilar el árbol de problemas."
+            }
+
+            $pdfTikz = Join-Path $carpetaTikz "arbol.pdf"
+            $pngTikz = Join-Path $GeneradosPng "arbol-problemas.png"
+
+            if ($inkscape) {
+                & $inkscape $pdfTikz --export-type=png "--export-filename=$pngTikz" "--export-dpi=$Dpi" "--export-background=white" "--export-background-opacity=1" | Out-Null
+            }
+            elseif (Get-Command magick -ErrorAction SilentlyContinue) {
+                & magick -density $Dpi $pdfTikz $pngTikz
+            }
+            else {
+                Write-Host ("AVISO: no se encontró Inkscape ni ImageMagick. " +
+                            "Se omite el PNG del árbol de problemas.") -ForegroundColor Yellow
+            }
+        }
+    }
+
+    Paso "PNG generados en $GeneradosPng ($Dpi DPI, fondo blanco). No se versionan."
 }
 
 function Invoke-XeLaTeX {
@@ -222,6 +345,8 @@ function Mostrar-Verificacion {
         Write-Host "--- Fuentes ---"
         & pdffonts $pdf
     }
+
+    Write-Host ("Entregable: {0}" -f $PdfEntrega)
 }
 
 # ---------------------------------------------------------------------------
@@ -229,17 +354,23 @@ function Mostrar-Verificacion {
 # ---------------------------------------------------------------------------
 if ($Limpiar -or $LimpiarTodo) {
     Limpiar-Salida
-    if (-not $Diagramas -and -not $Ver) { exit 0 }
+    if (-not $Diagramas -and -not $Png -and -not $Ver) { exit 0 }
 }
 
 if ($Diagramas) {
     Convertir-Diagramas
 }
 
+if ($Png) {
+    Convertir-DiagramasPng
+}
+
 Compilar-Informe
+
+Publicar-Entregable
 
 if ($Ver) {
     Mostrar-Verificacion
 }
 
-Paso "Listo: $Compilacion\$Principal.pdf"
+Paso "Listo: $PdfEntrega"

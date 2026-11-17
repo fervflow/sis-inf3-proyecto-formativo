@@ -49,7 +49,7 @@
   "plantuml.jar": "C:/Users/Fer/scoop/apps/plantuml/current/plantuml.jar",
   "plantuml.render": "Local",
   "plantuml.exportFormat": "pdf",
-  "plantuml.exportOutDir": "diagramas/generados",
+  "plantuml.exportOutDir": "entregables/diagramas/pdf",
   "files.encoding": "utf8",
   "files.associations": {
     "*.puml": "plantuml"

@@ -30,7 +30,7 @@ como guía.
   winget y Scoop, y compilación con `build.ps1`.
 - **`AGENTS.md`** — guía operativa para agentes y modelos que trabajen en el
   repositorio.
-- **`registro-cambios/`** — bitácora de las correcciones de formato y
+- **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados y
   contenido aplicadas en cada iteración.
 
 ---
@@ -82,12 +82,50 @@ rm -f ~/.texlive/texmf-var/web2c/xetex/xelatex.fmt
 make            # genera los diagramas y compila el informe
 make pdf        # compila sin regenerar diagramas
 make diagramas  # convierte todos los .puml a PDF
+make png        # exporta todos los diagramas a PNG en entregables/diagramas/png/
+make verificar  # revisa que los diagramas no tengan participantes sueltos
 make ver        # muestra páginas, tamaño y fuentes del PDF
 make clean      # borra archivos auxiliares
-make distclean  # borra también los diagramas generados
+make distclean  # borra también los diagramas generados y los PNG
 ```
 
-El PDF queda en **`_build/main.pdf`**.
+El PDF se publica en **`entregables/`** con su nombre definitivo:
+
+```
+entregables/Informe de Proyecto Formativo - Sistema de Gestión de Paquetes Turísticos y Reservas.pdf
+```
+
+El PDF intermedio queda en `_build/main.pdf`, junto a los archivos
+auxiliares de compilación. Toda la carpeta `entregables/` es material
+generado y **no se versiona**: el PDF se reconstruye desde las fuentes con
+un solo `make`.
+
+En Windows, los mismos pasos se ejecutan con `build.ps1`:
+
+```powershell
+.\build.ps1              # compila el informe
+.\build.ps1 -Diagramas   # genera diagramas y compila
+.\build.ps1 -Png         # exporta los diagramas a PNG y compila
+.\build.ps1 -Ver         # compila y muestra información del PDF
+.\build.ps1 -Limpiar     # borra _build
+.\build.ps1 -LimpiarTodo # borra _build, los PDF y los PNG de diagramas
+```
+
+### 2.1 Exportación a PNG
+
+`make png` (o `.\build.ps1 -Png`) genera una copia rasterizada de cada
+diagrama en **`entregables/diagramas/png/`**, manteniendo la misma estructura de
+carpetas que `entregables/diagramas/pdf/`.
+
+- **Resolución:** 300 DPI por omisión. Se cambia con `make png PNG_DPI=600` o
+  `.\build.ps1 -Png -Dpi 600`.
+- **Fondo:** blanco opaco, sin canal de transparencia, para que las
+  imágenes se impriman y se peguen en cualquier documento.
+- Los PNG son material derivado para revisión rápida, presentaciones y
+  documentación: **no se versionan**, y la carpeta está en `.gitignore`.
+- El árbol de problemas, que es un diagrama TikZ y no PlantUML, también se
+  exporta; para eso se requiere `pdftoppm` (poppler-utils) en Linux o
+  Inkscape o ImageMagick en Windows.
 
 También puede compilar con `latexmk -xelatex main.tex` (respeta
 `.latexmkrc`). No use `pdflatex`: la clase exige XeLaTeX o LuaLaTeX porque
@@ -105,30 +143,47 @@ proyecto-formativo/
 ├── latexmkrc                Configuración de latexmk (XeLaTeX + biber)
 ├── Makefile                 Atajos de compilación y de diagramas (Linux)
 ├── build.ps1                Compilación y diagramas en Windows
-├── GUIA-LATEX.md            Guía de uso de la plantilla
-├── INSTALACION-WINDOWS.md   Instalación en Windows 11
 ├── AGENTS.md                Guía operativa para agentes y modelos
-├── config/
+├── informe/configuracion/
 │   ├── metadatos.tex        Título, autor, docente, gestión, etc.
 │   └── portada.tex          Portada institucional UPDS y portada APA
-├── preliminares/            Resumen
-├── capitulos/               Secciones 01 a 11 (06 no incluida)
-├── finales/                 Referencias, glosario y llamada a los anexos
-├── anexos/                  Anexo A: árbol de problemas (TikZ)
-├── diagramas/
-│   ├── fuentes/uml/         Archivos .puml por tipo de diagrama
-│   ├── fuentes/tikz/        Diagramas dibujados directamente en LaTeX
-│   ├── generados/           PDF producidos por `make diagramas`
-│   ├── otros/               DER, arquitectura, mockups (draw.io, etc.)
-│   └── estilos/             Tema visual de PlantUML
-├── imagenes/logos/          Logotipo institucional
-├── imagenes/capturas/       Capturas de pantalla del sistema
-├── tablas/                  Tablas largas en archivos .tex independientes
-├── codigo/                  Listados de código extensos
-├── bibliografia/
-│   └── referencias.bib      Base bibliográfica BibLaTeX
-├── registro-cambios/         Bitácora de correcciones por iteración
-└── .vscode/                 Configuración y extensiones recomendadas
+├── informe/preliminares/            Resumen
+├── informe/capitulos/               Secciones 01 a 11 (06 no incluida)
+├── informe/finales/                 Referencias, glosario y llamada a los anexos
+├── informe/anexos/                  Anexo A: árbol de problemas (TikZ)
+├── informe/                   El contenido del documento
+│   ├── configuracion/
+│   │   ├── metadatos.tex      Título, autor, docente, gestión, etc.
+│   │   └── portada.tex        Portada institucional UPDS y portada APA
+│   ├── preliminares/          Resumen
+│   ├── capitulos/             Secciones 01 a 11 (06 no incluida)
+│   ├── finales/               Referencias, glosario y llamada a los anexos
+│   ├── anexos/                Anexo A: árbol de problemas (TikZ)
+│   ├── bibliografia/
+│   │   └── referencias.bib    Base bibliográfica BibLaTeX
+│   └── figuras/
+│       ├── logos/             Logotipo institucional
+│       └── capturas/          Capturas de pantalla del sistema
+├── sistema/                   El sistema que se diseña
+│   ├── diagramas/
+│   │   ├── uml/               Archivos .puml por tipo de diagrama
+│   │   ├── tikz/              Diagramas dibujados directamente en LaTeX
+│   │   ├── otros/             DER, arquitectura, mockups (draw.io, etc.)
+│   │   ├── ejemplos-plantilla/ Ejemplos heredados, no del proyecto
+│   │   └── estilos/           Tema visual de PlantUML
+│   ├── base-de-datos/         Esquema SQL y diccionario de datos
+│   ├── historias-usuario/     Backlog de historias de usuario (CSV y MD)
+│   └── verificar-uml.py       Comprueba los diagramas de secuencia
+├── documentacion/
+│   ├── GUIA-LATEX.md          Guía de uso de la plantilla
+│   ├── INSTALACION-WINDOWS.md Instalación en Windows 11
+│   └── registro-cambios/      Bitácora de los trabajos aceptados
+├── entregables/               Lo que se entrega
+│   ├── Informe de Proyecto Formativo - Sistema de Gestión de
+│   │   Paquetes Turísticos y Reservas.pdf   (PDF final)
+│   └── diagramas/             PDF y PNG de los diagramas
+├── _build/                    Salida del compilador (se borra sola)
+└── .vscode/                   Configuración y extensiones recomendadas
 ```
 
 ---
@@ -137,13 +192,13 @@ proyecto-formativo/
 
 ### 4.1 Datos generales
 
-Edite **`config/metadatos.tex`**: título, subtítulo, autor, registro,
+Edite **`informe/configuracion/metadatos.tex`**: título, subtítulo, autor, registro,
 docente, gestión, ciudad y fecha de entrega. La portada, los metadatos del
 PDF y la bibliografía se actualizan solos.
 
 ### 4.2 Secciones principales
 
-Cada archivo de `capitulos/` corresponde a una sección principal del
+Cada archivo de `informe/capitulos/` corresponde a una sección principal del
 informe. Estas secciones se numeran y se suceden sin salto de página:
 
 1. Introducción
@@ -157,7 +212,7 @@ informe. Estas secciones se numeran y se suceden sin salto de página:
 9. Alcances del sistema
 10. Límites del proyecto
 
-La antigua sección de variables (`capitulos/06-variables.tex`) ya no se
+La antigua sección de variables (`informe/capitulos/06-variables.tex`) ya no se
 incluye: la variable dependiente se integra en el problema científico y la
 variable independiente en el objetivo general. El árbol de problemas está en
 el Anexo A. Cuando el proyecto avance, las secciones de metodología,
@@ -185,7 +240,7 @@ Para agregar un capítulo, cree el archivo y añada su `\input` en
 \parencite[p.~45]{huaman2017}       % ... (Huaman Quispe, 2017, p. 45)
 ```
 
-Las entradas se agregan en `bibliografia/referencias.bib`. El estilo
+Las entradas se agregan en `informe/bibliografia/referencias.bib`. El estilo
 `biblatex-apa` aplica APA 7, ordena alfabéticamente y usa sangría francesa
 de 1,27 cm. En español se usa **«y»** entre autores; si su docente exige el
 ampersand original, elimine las declaraciones marcadas en la clase.
@@ -234,7 +289,7 @@ Figura:
 \end{figuraapa}
 ```
 
-`\incluirDiagrama{ruta}` busca el PDF en `diagramas/generados/`. Si el
+`\incluirDiagrama{ruta}` busca el PDF en `entregables/diagramas/pdf/`. Si el
 archivo no existe, muestra un recuadro de aviso en lugar de romper la
 compilación.
 
@@ -244,7 +299,7 @@ compilación.
 
 ### 5.1 Crear un diagrama
 
-Cada diagrama es un archivo de texto en `diagramas/fuentes/uml/`, dentro de
+Cada diagrama es un archivo de texto en `sistema/diagramas/uml/`, dentro de
 la carpeta de su tipo:
 
 ```
@@ -253,7 +308,7 @@ comunicacion/  actividades/   estados/      componentes/
 despliegue/    paquetes/      tiempo/
 ```
 
-Ejemplo mínimo (`diagramas/fuentes/uml/casos-uso/registro.puml`):
+Ejemplo mínimo (`sistema/diagramas/uml/casos-uso/registro.puml`):
 
 ```plantuml
 @startuml
@@ -273,9 +328,9 @@ En los diagramas de secuencia agregue `hide footbox` después de
 make diagramas
 ```
 
-El `Makefile` aplica el tema `diagramas/estilos/tema-apa.puml` (Arial 11,
+El `Makefile` aplica el tema `sistema/diagramas/estilos/tema-apa.puml` (Arial 11,
 líneas sobrias), genera el SVG y lo convierte a **PDF vectorial con fuentes
-embebidas** en `diagramas/generados/<tipo>/`.
+embebidas** en `entregables/diagramas/pdf/<tipo>/`.
 
 ### 5.3 Insertar en el informe
 
@@ -283,17 +338,17 @@ embebidas** en `diagramas/generados/<tipo>/`.
 \incluirDiagrama[0.95\linewidth]{casos-uso/registro}
 ```
 
-La ruta es relativa a `diagramas/generados/` y **sin extensión**.
+La ruta es relativa a `entregables/diagramas/pdf/` y **sin extensión**.
 
 ### 5.4 Diagramas que no son UML
 
 Para diagramas entidad-relación, arquitectura o prototipos de interfaz
 puede usar [draw.io](https://www.drawio.com/) (`sudo pacman -S
 drawio-desktop`), exportar a PDF vectorial y guardarlo en
-`diagramas/otros/`. Luego:
+`sistema/diagramas/otros/`. Luego:
 
 ```latex
-\incluirImagen[0.9\linewidth]{diagramas/otros/der.pdf}
+\incluirImagen[0.9\linewidth]{sistema/diagramas/otros/der.pdf}
 ```
 
 ### 5.5 VS Code
@@ -370,7 +425,7 @@ post-texto. Esta plantilla cubre esa estructura y la amplía:
 
 Esta versión corresponde a un **perfil de proyecto** con diez secciones
 principales. Cuando se agreguen metodología, desarrollo, resultados y
-conclusiones, se crean archivos nuevos en `capitulos/` y se añaden a
+conclusiones, se crean archivos nuevos en `informe/capitulos/` y se añaden a
 `main.tex`; el formato no se altera.
 
 ---
@@ -394,6 +449,6 @@ conclusiones, se crean archivos nuevos en `capitulos/` y se añaden a
 - Mantenga el proyecto en Git; `_build/` ya está excluido.
 - Escriba una idea por párrafo y cite siempre la fuente.
 - No modifique `si3apa7.cls` para cambios de contenido: use las opciones de
-  clase o `config/metadatos.tex`.
+  clase o `informe/configuracion/metadatos.tex`.
 - Verifique el PDF final con `make ver` antes de imprimir: todas las
   fuentes deben aparecer con `emb = yes`.

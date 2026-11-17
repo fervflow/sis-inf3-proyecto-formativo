@@ -1,0 +1,80 @@
+@startuml
+' HU-05 · Elaboración de cotizaciones
+' La cotización la prepara siempre el personal. Si el cliente necesita una
+' propuesta, esta se emite a su nombre y puede originar la reserva posterior
+' (HU-06).
+hide footbox
+autonumber
+skinparam maxMessageSize 170
+
+actor "Personal" as PER
+actor "Turista" as TUR
+boundary "IU-05 · Elaborar cotización" as UI <<interfaz>>
+control "ControlCotizaciones" as CTRL <<control>>
+entity "Cliente" as E_CLIENTE <<entidad>>
+entity "Salida" as E_SALIDA <<entidad>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "Cotizacion" as E_COTIZACION <<entidad>>
+database "cliente" as T_CLIENTE <<tabla>>
+database "salida" as T_SALIDA <<tabla>>
+database "reserva" as T_RESERVA <<tabla>>
+database "cotizacion" as T_COTIZACION <<tabla>>
+
+PER -> UI : selecciona cliente, salida y N.º de pasajeros
+UI -> CTRL : crearCotizacion(datos)
+CTRL -> E_CLIENTE : obtenerCliente(idCliente)
+E_CLIENTE -> T_CLIENTE : SELECT ...
+T_CLIENTE --> E_CLIENTE : cliente
+E_CLIENTE --> CTRL : cliente
+
+alt Cliente no registrado
+    CTRL --> UI : solicitar alta del cliente (HU-04)
+    UI --> PER : completar la ficha del cliente
+    note right of PER
+        La cuenta puede haberla abierto el
+        cliente (HU-15), pero la ficha
+        comercial la completa el personal.
+    end note
+else Cliente registrado
+    CTRL -> E_SALIDA : verificarDisponibilidad(idSalida, cantidad)
+    E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio, estado
+    T_SALIDA --> E_SALIDA : datos de la salida
+    E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
+    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
+    T_RESERVA --> E_RESERVA : pasajeros ocupados
+    E_RESERVA --> E_SALIDA : ocupados
+    E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
+
+    alt Cupo insuficiente
+        E_SALIDA --> CTRL : no disponible
+        CTRL --> UI : error «Cupo insuficiente»
+        UI --> PER : mostrar alternativas de fecha
+    else Cupo suficiente
+        E_SALIDA --> CTRL : disponible
+        CTRL -> E_COTIZACION : calcularTotales(precio, cantidad, descuento)
+        E_COTIZACION -> E_COTIZACION : subtotal, descuento y total
+        CTRL -> E_COTIZACION : guardar(cotizacion, fechaValidez)
+        E_COTIZACION -> T_COTIZACION : INSERT ... estado 'borrador'
+        T_COTIZACION --> E_COTIZACION : id_cotizacion
+        E_COTIZACION --> CTRL : cotización creada
+        CTRL --> UI : número, total y plazo de validez
+        UI --> PER : cotización lista para enviar
+
+        PER -> UI : enviar la propuesta al cliente
+        UI -> CTRL : marcarEnviada(idCotizacion)
+        CTRL -> E_COTIZACION : cambiarEstado('enviada')
+        E_COTIZACION -> T_COTIZACION : UPDATE estado
+        T_COTIZACION --> E_COTIZACION : fila actualizada
+        CTRL --> UI : cotización enviada
+        UI --> TUR : recibe la propuesta
+        TUR --> UI : acepta o rechaza la propuesta
+    end
+end
+
+note right of CTRL
+    La cotización aplica el mismo criterio de
+    disponibilidad que la consulta del cliente.
+    Puede originar una reserva (HU-06) o
+    quedar sin efecto si no se acepta.
+end note
+@enduml

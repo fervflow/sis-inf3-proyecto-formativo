@@ -80,16 +80,16 @@
 %% ---------------------------------------------------------------------
 %%  Insercion de diagramas UML generados con PlantUML
 %%  \incluirDiagrama[ancho]{ruta/relativa/sin-extension}
-%%  La ruta se resuelve dentro de diagramas/generados/.
+%%  La ruta se resuelve dentro de entregables/diagramas/pdf/.
 %%  Si el PDF no existe, muestra un aviso en lugar de romper la compilacion.
 %% ---------------------------------------------------------------------
 \newcommand{\incluirDiagrama}[2][\linewidth]{%
-  \IfFileExists{diagramas/generados/#2.pdf}%
+  \IfFileExists{entregables/diagramas/pdf/#2.pdf}%
     {\includegraphics[width=#1,height=0.72\textheight,keepaspectratio]%
-       {diagramas/generados/#2.pdf}}%
+       {entregables/diagramas/pdf/#2.pdf}}%
     {\fbox{\begin{minipage}[c][4.5cm][c]{0.85\linewidth}\centering\small
        \textbf{Diagrama aún no generado}\\[3pt]
-       \texttt{diagramas/fuentes/uml/#2.puml}\\[3pt]
+       \texttt{sistema/diagramas/uml/#2.puml}\\[3pt]
        Ejecute \texttt{make diagramas} para generarlo.
      \end{minipage}}}%
 }

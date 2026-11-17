@@ -252,7 +252,7 @@
 %%  Tablas y figuras con formato APA
 %% ---------------------------------------------------------------------
 \RequirePackage{graphicx}
-\graphicspath{{diagramas/generados/}{diagramas/otros/}{imagenes/}{imagenes/logos/}{imagenes/capturas/}}
+\graphicspath{{entregables/diagramas/pdf/}{informe/figuras/}{informe/figuras/logos/}{informe/figuras/capturas/}{sistema/diagramas/otros/}}
 
 \RequirePackage{booktabs}
 \RequirePackage{array}
