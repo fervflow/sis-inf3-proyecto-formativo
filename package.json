@@ -1,0 +1,17 @@
+{
+  "name": "proyecto-formativo",
+  "private": true,
+  "description": "Monorepo del proyecto formativo: el informe (LaTeX) y la web del sistema (Nuxt).",
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "web:dev": "npm run dev --workspace web",
+    "web:build": "npm run build --workspace web",
+    "web:preview": "npm run preview --workspace web",
+    "web:check": "npm run db:check --workspace web"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

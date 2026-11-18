@@ -12,7 +12,7 @@ convertir el esfuerzo en dinero.
 - **Alcance estimado:** las 17 historias de usuario del backlog (47 pts,
   39 tareas)
 - **Fuentes:** `sistema/historias-usuario/historias-usuario.md` y su CSV,
-  `sistema/tablero/tablero.md`, `sistema/estimacion/README.md`
+  `tablero/tablero.md`, `sistema/estimacion/README.md`
 - **Costo estimado del alcance completo:** **5.875 Bs**
 - **Costo del MVP de la primera ventana:** **2.500 Bs**
 

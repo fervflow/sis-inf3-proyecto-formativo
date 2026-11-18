@@ -8,8 +8,8 @@ guarda el estado: la columna en la que está cada tarjeta.
 
 Uso:
 
-    python3 sistema/tablero/generar.py            # regenera el tablero
-    python3 sistema/tablero/generar.py --check    # verifica sin escribir
+    python3 tablero/generar.py            # regenera el tablero
+    python3 tablero/generar.py --check    # verifica sin escribir
 
 El código de salida es 0 si todo está en orden y 1 si hay un error de
 consistencia o, con `--check`, si el tablero está desactualizado.
@@ -20,10 +20,10 @@ import re
 import sys
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parents[2]
+RAIZ = Path(__file__).resolve().parents[1]
 DOCUMENTO = RAIZ / 'sistema' / 'historias-usuario' / 'historias-usuario.md'
 DATOS = RAIZ / 'sistema' / 'historias-usuario' / 'historias-usuario.csv'
-TABLERO = RAIZ / 'sistema' / 'tablero' / 'tablero.md'
+TABLERO = RAIZ / 'tablero' / 'tablero.md'
 
 COLUMNAS = ['Por hacer', 'En curso', 'En pruebas / QA',
             'Listo para producción', 'Hecho']

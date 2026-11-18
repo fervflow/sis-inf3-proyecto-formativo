@@ -475,7 +475,7 @@ programador B.
   conserva la cantidad de tareas por historia, no su detalle.
 - El desglose mantiene el formato `### HU-NN · título`,
   `**Responsable:** Programador A · N tareas` y `- **T-HU-NN.n** texto`
-  porque `sistema/tablero/generar.py` lo lee para generar el tablero. Un
+  porque `tablero/generar.py` lo lee para generar el tablero. Un
   cambio de formato exige actualizar el generador.
 - Las historias **no se incluyen en `main.tex`** sin una instrucción
   explícita.

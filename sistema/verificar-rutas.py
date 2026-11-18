@@ -12,7 +12,7 @@ Dos controles:
    al reorganizar: mover los archivos pero dejar mentioned la ruta vieja
    en la documentación.
 
-Los registros de `documentacion/registro-cambios/` quedan fuera del
+Los registros de `docs/changelog/` quedan fuera del
 segundo control: describen el estado del proyecto en el momento en que se
 escribieron y sus rutas antiguas son correctas como registro histórico.
 
@@ -44,9 +44,19 @@ RUTAS_OBSOLETAS = [
     (r'(?<!informe/)anexos/A-arbol-problemas\.tex', 'anexos/'),
     (r'(?<!informe/)bibliografia/referencias\.bib', 'bibliografia/'),
     (r'(?<!informe/)preliminares/resumen\.tex', 'preliminares/'),
-    (r'(?<!documentacion/)GUIA-LATEX\.md', 'GUIA-LATEX.md'),
-    (r'(?<!documentacion/)INSTALACION-WINDOWS\.md', 'INSTALACION-WINDOWS.md'),
-    (r'(?<!documentacion/)registro-cambios/', 'registro-cambios/'),
+    # Estructura vigente: las guías en `docs/`, la bitácora en `docs/changelog/`.
+    (r'(?<!docs/)GUIA-LATEX\.md', 'GUIA-LATEX.md'),
+    (r'(?<!docs/)INSTALACION-WINDOWS\.md', 'INSTALACION-WINDOWS.md'),
+    (r'(?<!docs/)changelog/', 'changelog/'),
+    (r'registro-cambios/', 'registro-cambios/'),
+    (r'documentacion/', 'documentacion/'),
+    # Base de datos y tablero, movidos a la raíz.
+    (r'sistema/base-de-datos/', 'bd/'),
+    (r'sistema/tablero/', 'tablero/'),
+    (r'esquema-temporal\.sql', 'esquema.sql'),
+    # La web del sistema, movida de `app/` a `web/`.
+    (r'(?<![\w/])app/(README\.md|server/|db/|nuxt\.config|package\.json|vercel\.json)',
+     'app/'),
 ]
 
 # --- Rutas LaTeX -------------------------------------------------------
@@ -59,8 +69,8 @@ PATRONES_LATEX = [
 
 # --- Archivos donde buscar rutas obsoletas ----------------------------
 DOCUMENTOS = ['README.md', 'AGENTS.md',
-               'documentacion/GUIA-LATEX.md',
-               'documentacion/INSTALACION-WINDOWS.md']
+               'docs/GUIA-LATEX.md',
+               'docs/INSTALACION-WINDOWS.md']
 
 
 def comprobar_rutas_latex():

@@ -20,6 +20,9 @@ INFORME   := informe
 SISTEMA   := sistema
 ENTREGAS  := entregables
 DIAGRAMAS := $(SISTEMA)/diagramas
+TABLERO   := tablero
+BD        := bd
+WEB       := web
 
 # Entregable oficial. El PDF se copia aqui con su nombre definitivo y
 # queda versionado; los diagramas van en una subcarpeta ignorada.
@@ -42,7 +45,7 @@ LATEXMK := $(shell command -v latexmk 2>/dev/null)
 SVG2PDF := $(shell command -v rsvg-convert 2>/dev/null)
 PDFTOPPM := $(shell command -v pdftoppm 2>/dev/null)
 
-.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar estimacion estimacion-scrum ver clean distclean ayuda
+.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar estimacion estimacion-scrum web-install web-dev web-build web-preview web-check db-crear ver clean distclean ayuda
 
 all: pdf
 
@@ -169,10 +172,33 @@ verificar:
 #  Las tarjetas se generan desde el backlog; el tablero solo conserva la
 #  columna de cada una. La verificacion no escribe: falla si quedo viejo.
 tablero:
-	python3 $(SISTEMA)/tablero/generar.py
+	python3 $(TABLERO)/generar.py
 
 tablero-verificar:
-	python3 $(SISTEMA)/tablero/generar.py --check
+	python3 $(TABLERO)/generar.py --check
+
+# --- La web del sistema -------------------------------------------------
+#  Atajos sobre el espacio de trabajo de npm. La base de datos se crea
+#  con el script de `bd/`, que es la fuente canonica del esquema.
+web-install:
+	npm install
+
+web-dev:
+	npm run dev --workspace $(WEB)
+
+web-build:
+	npm run build --workspace $(WEB)
+
+web-preview:
+	npm run preview --workspace $(WEB)
+
+web-check:
+	npm run db:check --workspace $(WEB)
+
+# Crea el esquema en la base indicada por DATABASE_URL.
+db-crear:
+	@test -n "$(DATABASE_URL)" || { echo "Falta la variable DATABASE_URL."; exit 1; }
+	psql "$(DATABASE_URL)" -v ON_ERROR_STOP=1 -f $(BD)/esquema.sql
 
 # --- Utilidades -------------------------------------------------------
 ver: pdf
@@ -200,6 +226,10 @@ ayuda:
 	@echo "make tablero-verificar  comprueba que el tablero este al dia"
 	@echo "make estimacion compila la hoja de resumen de la estimacion"
 	@echo "make estimacion-scrum  compila la hoja de resumen con metodologia scrum"
+	@echo "make web-install  instala las dependencias de la web"
+	@echo "make web-dev      levanta la web en modo desarrollo"
+	@echo "make web-build    compila la web para produccion"
+	@echo "make db-crear     crea el esquema en la base de DATABASE_URL"
 	@echo "make ver        inspecciona el PDF (paginas, tamano, fuentes)"
 	@echo "make clean      borra archivos auxiliares"
 	@echo "make distclean  borra auxiliares, diagramas y PNG"

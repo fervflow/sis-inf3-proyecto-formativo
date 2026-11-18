@@ -147,7 +147,7 @@ Después de las secciones de contenido se incluyen:
 ### Tablas y figuras
 
 Usar los entornos existentes. Los ejemplos completos y copiables están en
-`documentacion/GUIA-LATEX.md`, que es la forma canónica de los entornos
+`docs/GUIA-LATEX.md`, que es la forma canónica de los entornos
 `tablaapa` y `figuraapa`.
 
 Lo que conviene recordar aquí:
@@ -169,7 +169,7 @@ Lo que conviene recordar aquí:
 
 ## Documentos relacionados
 
-- `documentacion/GUIA-LATEX.md`: cómo funciona LaTeX y cómo se escriben
+- `docs/GUIA-LATEX.md`: cómo funciona LaTeX y cómo se escriben
   tablas, figuras, citas y listas.
 - `sistema/diagramas/README.md`: las reglas que deben respetar los diagramas
   que se incluyen en el informe.

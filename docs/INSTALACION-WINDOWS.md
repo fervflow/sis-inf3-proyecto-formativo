@@ -174,7 +174,7 @@ depende de `latexmk`. Si `latexmk` funciona en su MiKTeX, use
 |---|---|
 | `informe/` | El contenido del documento: `capitulos/`, `finales/`, `preliminares/`, `anexos/`, `configuracion/`, `bibliografia/`, `figuras/` |
 | `sistema/` | El sistema que se diseña: `diagramas/`, `base-de-datos/`, `historias-usuario/` |
-| `documentacion/` | Las guías y la bitácora de cambios |
+| `docs/` | Las guías y la bitácora de cambios |
 | `entregables/` | El PDF final y los PDF y PNG de los diagramas. No se versiona |
 | `_build/` | Los archivos auxiliares del compilador. Se borra sola |
 

@@ -98,8 +98,8 @@ make tablero-verificar  # comprueba que esté al día, sin escribir
 Equivalentes directos, sin `make`:
 
 ```bash
-python3 sistema/tablero/generar.py
-python3 sistema/tablero/generar.py --check
+python3 tablero/generar.py
+python3 tablero/generar.py --check
 ```
 
 `generar.py` comprueba antes de escribir que el documento y el CSV

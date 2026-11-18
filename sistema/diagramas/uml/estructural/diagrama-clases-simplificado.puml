@@ -10,12 +10,12 @@ skinparam linetype ortho
 
 package "Acceso" {
   class Usuario {
-    - idUsuario : Long
+    - id : String
     - nombres : String
     - apellidos : String
     - correo : String
     - estado : String
-    + autenticar(credenciales) : Boolean
+    + iniciarSesion(credenciales) : Boolean
   }
 }
 

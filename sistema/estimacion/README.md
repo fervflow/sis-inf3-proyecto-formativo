@@ -51,8 +51,8 @@ mide: *throughput* y tiempo de ciclo frente a velocidad y *burndown*.
 |---|---|
 | Historias, puntos, tareas, responsable | `sistema/historias-usuario/historias-usuario.md` |
 | Prioridad y riesgo | `sistema/historias-usuario/historias-usuario.csv` |
-| Qué hay terminado y en qué columna | `sistema/tablero/tablero.md` |
-| Límites de WIP y reglas del flujo | `sistema/tablero/README.md` |
+| Qué hay terminado y en qué columna | `tablero/tablero.md` |
+| Límites de WIP y reglas del flujo | `tablero/README.md` |
 
 **La estimación no tiene cifras propias**: todo lo que cuenta sale de esos
 archivos. Si el backlog o el tablero cambian, la estimación se recalcula.

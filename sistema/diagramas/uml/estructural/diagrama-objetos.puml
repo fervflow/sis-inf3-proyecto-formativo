@@ -21,7 +21,7 @@ object "Rol · PERSONAL" as ROL_PERSONAL {
 }
 
 object "Usuario · Elena Roca" as USU_ROCA {
-  idUsuario = 4
+  id = "u-4"
   idRol = 2
   nombres = "Elena"
   apellidos = "Roca"
@@ -30,7 +30,7 @@ object "Usuario · Elena Roca" as USU_ROCA {
 }
 
 object "Usuario · Luis Mamani" as USU_MAMANI {
-  idUsuario = 12
+  id = "u-12"
   idRol = 3
   nombres = "Luis"
   apellidos = "Mamani"
@@ -40,7 +40,7 @@ object "Usuario · Luis Mamani" as USU_MAMANI {
 
 object "Cliente · Luis Mamani" as CLI_MAMANI {
   idCliente = 12
-  idUsuario = 12
+  idUsuario = "u-12"
   tipoDocumento = "CI"
   numeroDocumento = "4567891 SC"
   nombres = "Luis"
@@ -90,7 +90,7 @@ object "Cotizacion · COT-2026-0041" as COT_0041 {
   numero = "COT-2026-0041"
   idCliente = 12
   idSalida = 4
-  idUsuario = 4
+  idUsuario = "u-4"
   cantidadPasajeros = 2
   precioUnitario = 890.00
   subtotal = 1780.00
@@ -107,7 +107,7 @@ object "Reserva · RES-2026-0117" as RES_0117 {
   idCliente = 12
   idSalida = 4
   idCotizacion = 41
-  idUsuario = 12
+  idUsuario = "u-12"
   origen = "web"
   cantidadPasajeros = 2
   montoTotal = 1780.00
@@ -156,7 +156,7 @@ object "Pago · Anticipo" as PAG_ANTICIPO {
   metodo = "transferencia"
   referencia = "OP-9931"
   fechaPago = "2026-11-10 10:40"
-  idUsuario = 12
+  idUsuario = "u-12"
   estado = "registrado"
   idUsuarioValidacion = null
   fechaValidacion = null
@@ -168,7 +168,7 @@ object "HistorialReserva · Registro inicial" as HR_INICIAL {
   estadoAnterior = null
   estadoNuevo = "pendiente"
   fechaCambio = "2026-11-10 10:30"
-  idUsuario = 12
+  idUsuario = "u-12"
   observacion = "Solicitud registrada por el cliente."
 }
 

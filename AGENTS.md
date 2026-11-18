@@ -41,8 +41,12 @@ acción, objetivo general y objetivos específicos.
 | Regenerar los diagramas | `make diagramas` | `.\build.ps1 -Diagramas` |
 | Exportar los diagramas a PNG | `make png` | `.\build.ps1 -Png` |
 | Verificar diagramas y rutas | `make verificar` | — |
-| Regenerar el tablero kanban | `make tablero` | `py sistema/tablero/generar.py` |
-| Verificar el tablero kanban | `make tablero-verificar` | `py sistema/tablero/generar.py --check` |
+| Regenerar el tablero kanban | `make tablero` | `py tablero/generar.py` |
+| Verificar el tablero kanban | `make tablero-verificar` | `py tablero/generar.py --check` |
+| Instalar las dependencias de la web | `make web-install` | `npm install` |
+| Levantar la web en desarrollo | `make web-dev` | `npm run dev --workspace web` |
+| Compilar la web | `make web-build` | `npm run build --workspace web` |
+| Crear el esquema de la base | `make db-crear` | `psql "$DATABASE_URL" -f bd/esquema.sql` |
 | Compilar la hoja de resumen de la estimación | `make estimacion` | `.\build.ps1 -Estimacion` |
 | Compilar la hoja de resumen con metodología Scrum | `make estimacion-scrum` | `.\build.ps1 -EstimacionScrum` |
 | Republish el PDF | `make publicar` | — |
@@ -54,8 +58,11 @@ nunca `pdflatex`.
 ## Fronteras
 
 - `entregables/` y `_build/` son salidas: no se editan a mano.
-- `sistema/tablero/tablero.md` es una salida generada: solo se mueven las
+- `tablero/tablero.md` es una salida generada: solo se mueven las
   tarjetas de columna; el texto se cambia en el backlog y se regenera.
+- `bd/esquema.sql` es la fuente canónica del esquema de la base de datos.
+  `web/db/schema.ts` lo refleja: si cambian, se actualizan los dos.
+- La web (`web/`) y sus dependencias (`node_modules/`) no se versionan.
 - El problema, el objetivo y los datos de la tabla anterior no se tocan sin
   instrucción explícita del usuario.
 - No se reintroducen la dedicatoria, los agradecimientos ni la sección de
@@ -70,14 +77,15 @@ nunca `pdflatex`.
 | Vas a… | Lee |
 |---|---|
 | Editar el texto del informe | `informe/README.md` |
-| Escribir tablas, figuras o citas | `documentacion/GUIA-LATEX.md` |
+| Escribir tablas, figuras o citas | `docs/GUIA-LATEX.md` |
 | Crear o corregir diagramas | `sistema/diagramas/README.md` |
-| Tocar el esquema o las reglas de la base de datos | `sistema/base-de-datos/diccionario-datos.md` |
+| Tocar el esquema o las reglas de la base de datos | `bd/diccionario-datos.md` |
 | Tocar el backlog de historias de usuario | `sistema/historias-usuario/historias-usuario.md` |
-| Ver o mover el tablero kanban | `sistema/tablero/README.md` |
+| Ver o mover el tablero kanban | `tablero/README.md` |
+| Tocar la web del sistema | `web/README.md` |
 | Ver o recalcular la estimación de costos | `sistema/estimacion/README.md` |
-| Registrar un trabajo aceptado | `documentacion/registro-cambios/README.md` |
-| Instalar el entorno en Windows | `documentacion/INSTALACION-WINDOWS.md` |
+| Registrar un trabajo aceptado | `docs/changelog/README.md` |
+| Instalar el entorno en Windows | `docs/INSTALACION-WINDOWS.md` |
 | Entender el árbol completo del proyecto | `README.md` |
 
 ## Antes de terminar
@@ -88,4 +96,4 @@ nunca `pdflatex`.
    definir, "s. f." ni primeras personas del plural.
 4. Se revisan las tablas y las figuras si hubo cambios de contenido.
 5. Con la aceptación del usuario, el trabajo se registra en
-   `documentacion/registro-cambios/`.
+   `docs/changelog/`.

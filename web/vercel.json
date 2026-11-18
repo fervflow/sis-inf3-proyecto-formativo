@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nuxtjs",
+  "crons": [
+    {
+      "path": "/api/vencer-solicitudes",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

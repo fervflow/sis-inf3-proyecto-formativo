@@ -26,9 +26,9 @@ sección vive en un archivo propio dentro de `informe/capitulos/`, con su
 
 ## Documentación
 
-- **`documentacion/GUIA-LATEX.md`** — cómo funciona LaTeX, cómo está
+- **`docs/GUIA-LATEX.md`** — cómo funciona LaTeX, cómo está
   organizada este proyecto, cómo editarlo y cómo compilarlo.
-- **`documentacion/INSTALACION-WINDOWS.md`** — instalación completa en
+- **`docs/INSTALACION-WINDOWS.md`** — instalación completa en
   Windows 11 con winget y Scoop, y compilación con `build.ps1`.
 - **`AGENTS.md`** — guía operativa para agentes y modelos que trabajen en el
   repositorio: qué es el proyecto, los comandos y a qué documento leer según
@@ -37,11 +37,15 @@ sección vive en un archivo propio dentro de `informe/capitulos/`, con su
   orden de las secciones y flujo de trabajo.
 - **`sistema/diagramas/README.md`** — las reglas que deben respetar los
   diagramas del sistema.
-- **`sistema/tablero/README.md`** — cómo se genera y se usa el tablero
+- **`tablero/README.md`** — cómo se genera y se usa el tablero
   kanban de las 39 tareas.
+- **`bd/diccionario-datos.md`** — el esquema de la base de datos y las reglas
+  de negocio que lo gobiernan.
+- **`web/README.md`** — puesta en marcha de la web del sistema: base de
+  datos, autenticación y despliegue.
 - **`sistema/estimacion/README.md`** — cómo se calcula el costo del sistema
   con el método ágil y de dónde sale cada cifra.
-- **`documentacion/registro-cambios/`** — bitácora de los trabajos aceptados,
+- **`docs/changelog/`** — bitácora de los trabajos aceptados,
   con el detalle del contenido aplicado en cada uno.
 
 ---
@@ -176,16 +180,22 @@ proyecto-formativo/
 │   │   ├── otros/           DER, arquitectura y mockups
 │   │   ├── estilos/         Tema visual de PlantUML
 │   │   └── ejemplos-plantilla/  Ejemplos heredados, no del proyecto
-│   ├── base-de-datos/       Esquema SQL y diccionario de datos
 │   ├── historias-usuario/   Backlog de historias de usuario (CSV y MD)
-│   ├── tablero/             Tablero kanban generado desde el backlog
 │   ├── estimacion/          Estimación de costos del sistema
 │   ├── verificar-uml.py     Comprueba los diagramas UML
 │   └── verificar-rutas.py   Comprueba que las rutas existan
-├── documentacion/           Guías y bitácora
+├── tablero/                 Tablero kanban de las 39 tareas
+│   ├── README.md            Cómo se genera y se usa
+│   ├── generar.py           Genera el tablero desde el backlog
+│   └── tablero.md            El tablero (generado)
+├── bd/                      La base de datos
+│   ├── esquema.sql          Script de creación del esquema
+│   └── diccionario-datos.md  El esquema y las reglas de negocio
+├── web/                     La web del sistema (Nuxt, Drizzle, Better Auth)
+├── docs/                    Guías y bitácora
 │   ├── GUIA-LATEX.md        Guía de LaTeX y del proyecto
 │   ├── INSTALACION-WINDOWS.md  Instalación en Windows 11
-│   └── registro-cambios/    Bitácora de los trabajos aceptados
+│   └── changelog/           Bitácora de los trabajos aceptados
 ├── entregables/             Lo que se entrega
 │   ├── Informe de Proyecto Formativo - Sistema de Gestión de
 │   │   Paquetes Turísticos y Reservas.pdf   (PDF final)
@@ -204,8 +214,10 @@ proyecto-formativo/
 | `informe/finales/glosario.tex` | Sí | Términos y acrónimos |
 | `informe/anexos/*.tex` | Sí | Material complementario |
 | `sistema/diagramas/uml/*.puml` | Sí | Diagramas UML |
-| `sistema/base-de-datos/*.sql` | Sí | Esquema de la base de datos |
+| `bd/*.sql` | Sí | Esquema de la base de datos |
 | `sistema/historias-usuario/*` | Sí | Backlog de historias de usuario |
+| `web/**` | Sí | La web del sistema |
+| `tablero/tablero.md` | Solo columnas | El texto de las tarjetas sale del backlog |
 | `main.tex` | Poco | Solo para agregar o quitar capítulos |
 | `si3apa7.cls` | No\* | Ya impone el formato |
 | `entornos-apa.sty` | No\* | Ya define las tablas y figuras |
@@ -213,6 +225,35 @@ proyecto-formativo/
 | `_build/` | Nunca | Se regenera solo |
 
 \* Solo si necesita cambiar el formato para todo el documento.
+
+### La web del sistema
+
+El repositorio es un **monorepo** con dos módulos: el informe (esta raíz) y
+la web del sistema (`web/`).
+
+| Módulo | Dónde | Qué es |
+|---|---|---|
+| Informe | La raíz | El documento LaTeX, los diagramas, el backlog, el tablero y el esquema de la base |
+| Web | `web/` | La aplicación: Nuxt 4, Drizzle ORM, Better Auth y Neon |
+
+La web necesita Node.js 22 o superior (el repositorio fija la versión con
+[mise](https://mise.jdx.dev), en `mise.toml`):
+
+```bash
+make web-install   # instala las dependencias del espacio de trabajo
+make web-dev       # levanta la aplicación en http://localhost:3000
+make web-build     # compila la aplicación para producción
+make db-crear      # crea el esquema en la base de DATABASE_URL
+```
+
+La puesta en marcha completa —proyecto en Neon, variables de entorno,
+creación del esquema y despliegue en Vercel— está en **`web/README.md`**.
+El esquema de la base de datos se crea con el script `bd/esquema.sql`, que
+es la fuente canónica; sus reglas están descritas en `bd/diccionario-datos.md`.
+
+> En sistemas de archivos que no admiten enlaces simbólicos (exFAT, FAT),
+> npm no puede instalar el espacio de trabajo. En ese caso, instala las
+> dependencias dentro de `web/` o trabaja en una partición con ext4.
 
 ---
 
@@ -256,7 +297,7 @@ Para agregar un capítulo, cree el archivo y añada su `\input` en
   niveles de título, el orden de las secciones y el flujo para agregar una
   sección nueva están en **`informe/README.md`**.
 - **La sintaxis de LaTeX** (tablas, figuras, citas, comillas y guiones) está
-  en **`documentacion/GUIA-LATEX.md`**, con ejemplos copiables.
+  en **`docs/GUIA-LATEX.md`**, con ejemplos copiables.
 
 ---
 
@@ -264,7 +305,7 @@ Para agregar un capítulo, cree el archivo y añada su `\input` en
 
 Los diagramas son archivos `.puml` dentro de `sistema/diagramas/uml/`. El
 flujo completo (crear, generar e insertar en el informe) está en
-`documentacion/GUIA-LATEX.md`, y las reglas del modelo que deben respetar
+`docs/GUIA-LATEX.md`, y las reglas del modelo que deben respetar
 en `sistema/diagramas/README.md`.
 
 ```bash

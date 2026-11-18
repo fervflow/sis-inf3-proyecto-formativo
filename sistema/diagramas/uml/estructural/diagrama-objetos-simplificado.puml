@@ -6,7 +6,7 @@ hide circle
 skinparam linetype ortho
 
 object "Usuario · Luis Mamani" as USU_MAMANI {
-  idUsuario = 12
+  id = "u-12"
   nombres = "Luis"
   apellidos = "Mamani"
   correo = "luis.mamani@correo.bo"
@@ -14,7 +14,7 @@ object "Usuario · Luis Mamani" as USU_MAMANI {
 }
 
 object "Usuario · Elena Roca" as USU_ROCA {
-  idUsuario = 4
+  id = "u-4"
   nombres = "Elena"
   apellidos = "Roca"
   correo = "e.rica@vizcachatours.bo"

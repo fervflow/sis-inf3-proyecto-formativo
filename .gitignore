@@ -22,3 +22,20 @@ Thumbs.db
 
 # Archivos generados
 entregables/
+
+# Dependencias y salidas de la web (Nuxt)
+node_modules/
+.nuxt/
+.output/
+.nitro/
+.data/
+.cache/
+dist/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Volcados de sesión de OpenCode
+session-*.json

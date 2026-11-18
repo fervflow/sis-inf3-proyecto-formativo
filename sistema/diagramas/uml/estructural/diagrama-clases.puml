@@ -17,16 +17,23 @@ package "Acceso" {
   }
 
   class Usuario {
-    - idUsuario : BIGINT
+    - id : String
     - nombres : String
     - apellidos : String
     - correo : String
     - estado : EstadoUsuario
     - fechaCreacion : DateTime
-    + autenticar(credenciales) : Boolean
+    + iniciarSesion(credenciales) : Boolean
     + cambiarEstado(estado) : void
     + esPersonal() : Boolean
     + esCliente() : Boolean
+  }
+
+  class Sesion {
+    - id : String
+    - token : String
+    - expira : DateTime
+    + cerrar() : void
   }
 }
 
@@ -325,6 +332,7 @@ Usuario "1" <-- "0..*" Pago : "> registra
 Usuario "1" <-- "0..*" Pago : "> valida
 Usuario "1" <-- "0..*" HistorialReserva : "> audita
 Usuario "1" <-- "0..*" HistorialSalida : "> audita
+Usuario "1" <-- "0..*" Sesion : "> abre
 
 ' --- Relaciones de clientes ------------------------------------------
 Cliente "1" <-- "0..*" Pasajero : "> agrupa
