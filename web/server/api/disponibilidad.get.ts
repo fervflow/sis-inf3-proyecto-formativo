@@ -23,7 +23,7 @@ export default defineEventHandler(async () => {
   }>(sql`
     SELECT id_salida, codigo_paquete, paquete, fecha_salida, fecha_retorno,
            cupo_maximo, pasajeros_ocupados, cupo_disponible, precio
-    FROM vista_disponibilidad_salida
+    FROM turismo.vista_disponibilidad_salida
     WHERE fecha_salida >= CURRENT_DATE
     ORDER BY fecha_salida, codigo_paquete
   `)

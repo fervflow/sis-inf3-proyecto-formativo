@@ -11,13 +11,13 @@ import { consultar } from '../utils/db'
 export default defineEventHandler(async () => {
   const [conexion] = await consultar<{ ok: number }>(sql`select 1 as ok`)
   const [paquetes] = await consultar<{ n: number }>(
-    sql`select count(*)::int as n from paquete`,
+    sql`select count(*)::int as n from turismo.paquete`,
   )
   const [salidas] = await consultar<{ n: number }>(
-    sql`select count(*)::int as n from salida`,
+    sql`select count(*)::int as n from turismo.salida`,
   )
   const [reservas] = await consultar<{ n: number }>(
-    sql`select count(*)::int as n from reserva`,
+    sql`select count(*)::int as n from turismo.reserva`,
   )
 
   return {

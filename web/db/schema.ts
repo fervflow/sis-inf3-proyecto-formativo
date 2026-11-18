@@ -16,7 +16,7 @@ import {
   date,
   index,
   numeric,
-  pgTable,
+  pgSchema,
   smallint,
   text,
   timestamp,
@@ -25,9 +25,19 @@ import {
   bigint,
 } from 'drizzle-orm/pg-core'
 
+/**
+ * El esquema de la base es `turismo` (ver `bd/esquema.sql`).
+ *
+ * Las tablas se declaran con su esquema porque la aplicación se conecta
+ * con la cadena *pooled* de Neon: el pooler no admite el parámetro
+ * `search_path` en el arranque de la conexión, de modo que las tablas
+ * tienen que ir calificadas.
+ */
+const turismo = pgSchema('turismo')
+
 // --- Roles --------------------------------------------------------------
 
-export const rol = pgTable('rol', {
+export const rol = turismo.table('rol', {
   idRol: smallint('id_rol').primaryKey().generatedAlwaysAsIdentity(),
   codigo: varchar('codigo', { length: 20 }).notNull().unique(),
   nombre: varchar('nombre', { length: 60 }).notNull(),
@@ -48,7 +58,7 @@ export type NuevoRol = typeof rol.$inferInsert
  * columna real va en snake_case: el adaptador de Drizzle busca la
  * propiedad por su nombre.
  */
-export const usuario = pgTable('usuario', {
+export const usuario = turismo.table('usuario', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
@@ -63,7 +73,7 @@ export const usuario = pgTable('usuario', {
   estado: varchar('estado', { length: 15 }).notNull().default('activo'),
 })
 
-export const session = pgTable('session', {
+export const session = turismo.table('session', {
   id: text('id').primaryKey(),
   userId: text('user_id')
     .notNull()
@@ -76,7 +86,7 @@ export const session = pgTable('session', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (tabla) => [index('ix_session_user').on(tabla.userId)])
 
-export const account = pgTable('account', {
+export const account = turismo.table('account', {
   id: text('id').primaryKey(),
   userId: text('user_id')
     .notNull()
@@ -94,7 +104,7 @@ export const account = pgTable('account', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (tabla) => [index('ix_account_user').on(tabla.userId)])
 
-export const verification = pgTable('verification', {
+export const verification = turismo.table('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
@@ -104,7 +114,7 @@ export const verification = pgTable('verification', {
 }, (tabla) => [index('ix_verification_identifier').on(tabla.identifier)])
 
 /** Registro de accesos: lo exige el criterio de HU-08. */
-export const acceso = pgTable('acceso', {
+export const acceso = turismo.table('acceso', {
   idAcceso: bigint('id_acceso', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   idUsuario: text('id_usuario').references(() => usuario.id, { onDelete: 'set null' }),
   fechaHora: timestamp('fecha_hora', { withTimezone: true }).notNull().defaultNow(),
@@ -115,7 +125,7 @@ export const acceso = pgTable('acceso', {
 
 // --- Clientes y pasajeros ------------------------------------------------
 
-export const cliente = pgTable('cliente', {
+export const cliente = turismo.table('cliente', {
   idCliente: bigint('id_cliente', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   idUsuario: text('id_usuario')
     .unique()
@@ -134,7 +144,7 @@ export const cliente = pgTable('cliente', {
   uniqueIndex('uq_cliente_documento').on(tabla.tipoDocumento, tabla.numeroDocumento),
 ])
 
-export const pasajero = pgTable('pasajero', {
+export const pasajero = turismo.table('pasajero', {
   idPasajero: bigint('id_pasajero', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   idCliente: bigint('id_cliente', { mode: 'number' })
     .notNull()
@@ -151,7 +161,7 @@ export const pasajero = pgTable('pasajero', {
 
 // --- Paquetes y proveedores ---------------------------------------------
 
-export const proveedor = pgTable('proveedor', {
+export const proveedor = turismo.table('proveedor', {
   idProveedor: bigint('id_proveedor', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   nombre: varchar('nombre', { length: 150 }).notNull(),
   tipo: varchar('tipo', { length: 20 }).notNull(),
@@ -162,7 +172,7 @@ export const proveedor = pgTable('proveedor', {
   estado: varchar('estado', { length: 15 }).notNull().default('activo'),
 })
 
-export const paquete = pgTable('paquete', {
+export const paquete = turismo.table('paquete', {
   idPaquete: bigint('id_paquete', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   codigo: varchar('codigo', { length: 20 }).notNull().unique(),
   nombre: varchar('nombre', { length: 150 }).notNull(),
@@ -181,7 +191,7 @@ export const paquete = pgTable('paquete', {
     .defaultNow(),
 })
 
-export const paqueteProveedor = pgTable(
+export const paqueteProveedor = turismo.table(
   'paquete_proveedor',
   {
     idPaquete: bigint('id_paquete', { mode: 'number' })
@@ -198,7 +208,7 @@ export const paqueteProveedor = pgTable(
 
 // --- Salidas -------------------------------------------------------------
 
-export const salida = pgTable(
+export const salida = turismo.table(
   'salida',
   {
     idSalida: bigint('id_salida', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -226,7 +236,7 @@ export const salida = pgTable(
 
 // --- Cotizaciones --------------------------------------------------------
 
-export const cotizacion = pgTable(
+export const cotizacion = turismo.table(
   'cotizacion',
   {
     idCotizacion: bigint('id_cotizacion', { mode: 'number' })
@@ -265,7 +275,7 @@ export const cotizacion = pgTable(
 
 // --- Reservas ------------------------------------------------------------
 
-export const reserva = pgTable(
+export const reserva = turismo.table(
   'reserva',
   {
     idReserva: bigint('id_reserva', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -311,7 +321,7 @@ export const reserva = pgTable(
   ],
 )
 
-export const reservaPasajero = pgTable(
+export const reservaPasajero = turismo.table(
   'reserva_pasajero',
   {
     idReserva: bigint('id_reserva', { mode: 'number' })
@@ -326,7 +336,7 @@ export const reservaPasajero = pgTable(
 
 // --- Pagos ---------------------------------------------------------------
 
-export const pago = pgTable(
+export const pago = turismo.table(
   'pago',
   {
     idPago: bigint('id_pago', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -357,7 +367,7 @@ export const pago = pgTable(
 
 // --- Auditoría -----------------------------------------------------------
 
-export const historialReserva = pgTable(
+export const historialReserva = turismo.table(
   'historial_reserva',
   {
     idHistorial: bigint('id_historial', { mode: 'number' })
@@ -377,7 +387,7 @@ export const historialReserva = pgTable(
   (tabla) => [index('ix_historial_reserva').on(tabla.idReserva, tabla.fechaCambio)],
 )
 
-export const historialSalida = pgTable(
+export const historialSalida = turismo.table(
   'historial_salida',
   {
     idHistorial: bigint('id_historial', { mode: 'number' })

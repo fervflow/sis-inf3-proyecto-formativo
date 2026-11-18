@@ -431,7 +431,9 @@ CREATE INDEX ix_historial_salida ON historial_salida (id_salida, fecha_cambio);
 -- ---------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION fn_actualizar_fecha_modificacion()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = turismo, public
+AS $$
 BEGIN
     NEW.fecha_actualizacion = now();
     RETURN NEW;
@@ -457,7 +459,9 @@ CREATE TRIGGER tr_reserva_actualizacion
 -- El código de la reserva se deriva de su identificador, de modo que la
 -- aplicación no tenga que inventarlo.
 CREATE OR REPLACE FUNCTION fn_asignar_codigo_reserva()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = turismo, public
+AS $$
 BEGIN
     IF NEW.codigo IS NULL OR NEW.codigo = '' THEN
         NEW.codigo := 'R' || lpad(NEW.id_reserva::TEXT, 8, '0');
@@ -488,7 +492,9 @@ CREATE OR REPLACE FUNCTION fn_crear_reserva(
     p_origen          VARCHAR,
     p_id_usuario      TEXT,
     p_id_cotizacion   BIGINT DEFAULT NULL
-) RETURNS BIGINT AS $$
+) RETURNS BIGINT
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_cupo_maximo SMALLINT;
     v_ocupados    INT;
@@ -571,7 +577,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fn_confirmar_reserva(
     p_id_reserva BIGINT,
     p_id_usuario TEXT
-) RETURNS BOOLEAN AS $$
+) RETURNS BOOLEAN
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_estado      VARCHAR(15);
     v_expiracion  TIMESTAMPTZ;
@@ -636,7 +644,9 @@ CREATE OR REPLACE FUNCTION fn_actualizar_salida(
     p_capacidad      INTEGER DEFAULT NULL,
     p_precio         NUMERIC DEFAULT NULL,
     p_motivo         VARCHAR DEFAULT NULL
-) RETURNS BOOLEAN AS $$
+) RETURNS BOOLEAN
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_ocupados INT;
     v_anterior RECORD;
@@ -727,7 +737,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fn_solicitar_cancelacion(
     p_id_reserva BIGINT,
     p_id_usuario TEXT
-) RETURNS BOOLEAN AS $$
+) RETURNS BOOLEAN
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_estado VARCHAR(15);
 BEGIN
@@ -768,7 +780,9 @@ CREATE OR REPLACE FUNCTION fn_ejecutar_cancelacion(
     p_id_reserva BIGINT,
     p_motivo     VARCHAR,
     p_id_usuario TEXT
-) RETURNS BOOLEAN AS $$
+) RETURNS BOOLEAN
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_estado VARCHAR(15);
 BEGIN
@@ -820,7 +834,9 @@ CREATE OR REPLACE FUNCTION fn_registrar_pago(
     p_id_usuario  TEXT,
     p_referencia  VARCHAR DEFAULT NULL,
     p_observacion VARCHAR DEFAULT NULL
-) RETURNS BIGINT AS $$
+) RETURNS BIGINT
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_id_pago BIGINT;
 BEGIN
@@ -843,7 +859,9 @@ CREATE OR REPLACE FUNCTION fn_validar_pago(
     p_id_pago    BIGINT,
     p_id_usuario TEXT,
     p_anular     BOOLEAN DEFAULT false
-) RETURNS BOOLEAN AS $$
+) RETURNS BOOLEAN
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_estado VARCHAR(15);
 BEGIN
@@ -890,7 +908,9 @@ $$ LANGUAGE plpgsql;
 --  auditado. El personal puede ejecutarla una vez al día.
 
 CREATE OR REPLACE FUNCTION fn_vencer_solicitudes_pendientes()
-RETURNS INT AS $$
+RETURNS INT
+SET search_path = turismo, public
+AS $$
 DECLARE
     v_vencidas INT := 0;
     r RECORD;

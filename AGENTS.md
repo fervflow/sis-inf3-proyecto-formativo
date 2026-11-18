@@ -46,7 +46,8 @@ acción, objetivo general y objetivos específicos.
 | Instalar las dependencias de la web | `make web-install` | `npm install` |
 | Levantar la web en desarrollo | `make web-dev` | `npm run dev --workspace web` |
 | Compilar la web | `make web-build` | `npm run build --workspace web` |
-| Crear el esquema de la base | `make db-crear` | `psql "$DATABASE_URL" -f bd/esquema.sql` |
+| Crear el esquema de la base | `make db-crear` | `psql "$DATABASE_URL_UNPOOLED" -f bd/esquema.sql` |
+| Traer las variables de la rama de Neon | `make neon-env` | `neon env pull` |
 | Compilar la hoja de resumen de la estimación | `make estimacion` | `.\build.ps1 -Estimacion` |
 | Compilar la hoja de resumen con metodología Scrum | `make estimacion-scrum` | `.\build.ps1 -EstimacionScrum` |
 | Republish el PDF | `make publicar` | — |

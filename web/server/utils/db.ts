@@ -23,19 +23,15 @@ let conexion: NodePgDatabase<typeof schema> | undefined
  */
 export function useDb(): NodePgDatabase<typeof schema> {
   if (!conexion) {
-    const config = useRuntimeConfig()
-    const url = config.databaseUrl
+    const url = configServidor().databaseUrl
     if (!url) {
       throw new Error(
-        'Falta DATABASE_URL. Copiá web/.env.example a web/.env y completalo.',
+        'Falta DATABASE_URL. Ejecutá «neon env pull» en la raíz del repositorio, ' +
+          'o copiá web/.env.example a web/.env y completalo.',
       )
     }
     pool = new Pool({
       connectionString: url,
-      // El esquema de la base es `turismo` (ver `bd/esquema.sql`). El
-      // `search_path` lo fija la conexión para que las consultas usen
-      // tablas y vistas sin calificarlas.
-      options: '-c search_path=turismo,public',
       max: 5,
       // La aplicación abre y cierra conexiones en cada petición; sin esto
       // el pool mantiene conexiones abiertas que un entorno sin estado no

@@ -1,3 +1,23 @@
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { loadEnvFile } from 'node:process'
+
+// Archivos de entorno que se cargan en `process.env` antes de resolver la
+// configuración: el de la aplicación y los del repositorio, donde la CLI
+// de Neon deja las variables de la rama.
+//
+// El orden importa: en Node gana el primer valor, así que el archivo de la
+// aplicación manda sobre el de Neon, y una variable ya presente en el
+// entorno manda sobre todas.
+const ARCHIVOS_DE_ENTORNO = ['.env', '../.env', '../.env.local']
+
+for (const archivo of ARCHIVOS_DE_ENTORNO) {
+  const ruta = fileURLToPath(new URL(archivo, import.meta.url))
+  if (existsSync(ruta)) {
+    loadEnvFile(ruta)
+  }
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -14,13 +34,15 @@ export default defineNuxtConfig({
     typeCheck: false,
   },
 
-  // Las variables del servidor no se exponen al cliente. En Vercel se
-  // declaran en Settings → Environment Variables; en local, en `web/.env`.
+  // Los valores por defecto van vacíos a propósito: la configuración real
+  // se lee en tiempo de ejecución (ver `server/utils/config.ts`), para que
+  // las credenciales no queden escritas dentro del paquete compilado.
+  // En Vercel funcionan tanto `DATABASE_URL` como `NUXT_DATABASE_URL`.
   runtimeConfig: {
-    databaseUrl: process.env.DATABASE_URL,
-    betterAuthSecret: process.env.BETTER_AUTH_SECRET,
-    betterAuthUrl: process.env.BETTER_AUTH_URL,
-    cronSecret: process.env.CRON_SECRET,
+    databaseUrl: '',
+    betterAuthSecret: '',
+    betterAuthUrl: '',
+    cronSecret: '',
     public: {
       appName: 'Vizcacha Tours',
     },

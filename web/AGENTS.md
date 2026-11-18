@@ -44,11 +44,26 @@ atención del personal de agencia y el acceso directo del cliente.
 | Qué | Comando |
 |---|---|
 | Instalar dependencias | `npm install` (en la raíz del repositorio) |
+| Traer las variables de la rama de Neon | `neon env pull` (o `make neon-env`) |
 | Levantar en desarrollo | `npm run dev --workspace web` o `make web-dev` |
 | Comprobar los tipos | `npm run typecheck --workspace web` |
 | Compilar | `npm run build --workspace web` o `make web-build` |
 | Comprobar el esquema | `npm run db:check --workspace web` |
-| Crear el esquema de la base | `make db-crear` |
+| Crear el esquema de la base | `make db-crear` (usa la conexión directa) |
+
+## Las variables de entorno
+
+La CLI de Neon deja las variables de la rama en `.env.local`, en la raíz del
+repositorio, y la aplicación las carga sola (`nuxt.config.ts`).
+
+El orden importa: en Node **gana el primer valor**, y la aplicación carga
+`web/.env`, el `.env` de la raíz y el `.env.local` de la raíz, en ese orden.
+Un `web/.env` con valores de ejemplo tapa los de Neon: ese archivo solo
+sirve para desvíos locales, y para eso lleva valores reales.
+
+Los valores se leen **en tiempo de ejecución** (`server/utils/config.ts`),
+no al compilar: las credenciales no quedan escritas dentro del paquete
+desplegado.
 
 ## Antes de terminar
 

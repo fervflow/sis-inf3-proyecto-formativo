@@ -14,7 +14,7 @@ import { consultar } from '../utils/db'
  * `Authorization` cuando esa variable está declarada en el proyecto.
  */
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  const config = configServidor()
 
   if (config.cronSecret) {
     const encabezado = getHeader(event, 'authorization') ?? ''
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const [resultado] = await consultar<{ vencidas: number }>(
-    sql`select fn_vencer_solicitudes_pendientes() as vencidas`,
+    sql`select turismo.fn_vencer_solicitudes_pendientes() as vencidas`,
   )
 
   return { vencidas: resultado?.vencidas ?? 0 }

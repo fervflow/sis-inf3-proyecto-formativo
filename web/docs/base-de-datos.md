@@ -19,17 +19,55 @@ conozca los tipos. **Si cambia uno, cambian los dos.**
 ```ts
 pool = new Pool({
   connectionString: url,
-  options: '-c search_path=turismo,public',
   max: 5,
   idleTimeoutMillis: 10_000,
 })
 ```
 
-- El `search_path` apunta al esquema `turismo`, que es donde viven las
-  tablas y las vistas.
-- En producción se usa la cadena de conexión **pooled** de Neon: es la que
-  multiplexa las conexiones y evita agotarlas en un entorno sin estado.
-- El pool es único por proceso: no se abre uno por petición.
+- En producción se usa la cadena **pooled** de Neon: multiplexa las
+  conexiones y evita agotarlas en un entorno sin estado.
+- Las **migraciones** usan la cadena **directa** (`DATABASE_URL_UNPOOLED`):
+  el pooler no admite operaciones de sesión.
+
+### El esquema va calificado
+
+El pooler de Neon **no acepta el parámetro `search_path` en el arranque de
+la conexión**, de modo que no se puede confiar en el `search_path` de la
+sesión. Por eso:
+
+- Las tablas se declaran dentro del esquema con `pgSchema('turismo')` en
+  `db/schema.ts`, y el SQL crudo usa `turismo.` delante.
+- Cada función PL/pgSQL **fija su propio `search_path`**:
+
+  ```sql
+  CREATE OR REPLACE FUNCTION fn_crear_reserva(...)
+  RETURNS BIGINT
+  SET search_path = turismo, public
+  AS $$
+  ```
+
+  Así la función se comporta igual se llame desde la aplicación, desde
+  `psql` o desde otra herramienta.
+
+Las vistas no necesitan nada de esto: al crearlas, PostgreSQL guarda la
+dependencia con el identificador de la tabla, no con el nombre.
+
+## Las variables de entorno
+
+| Variable | Para qué |
+|---|---|
+| `DATABASE_URL` | La aplicación: cadena *pooled* |
+| `DATABASE_URL_UNPOOLED` | Migraciones y tareas de administración |
+| `BETTER_AUTH_SECRET` | Secreto de la sesión |
+| `BETTER_AUTH_URL` | Origen permitido de la aplicación |
+| `CRON_SECRET` | Protege el barrido diario |
+
+Las deja la CLI de Neon en `.env.local`, en la raíz del repositorio:
+`neon env pull` (o `make neon-env`). La aplicación las carga sola; ver
+`nuxt.config.ts`.
+
+Los valores se leen **en tiempo de ejecución**, no al compilar, para que las
+credenciales no queden escritas dentro del paquete desplegado.
 
 ## Las reglas críticas están en la base
 
@@ -119,12 +157,13 @@ tiempo para respetar el plazo de 48 horas.
 ## Crear la base
 
 ```bash
+# Con la de Neon (la rama es la que diga `.neon`):
+make neon-env     # trae las variables a .env.local
+make db-crear     # aplica el script con la conexión directa
+
 # Con una base local (Docker o Podman):
 podman run -d --name vizcacha -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:18
 psql -h 127.0.0.1 -U postgres -f bd/esquema.sql
-
-# Con la de Neon:
-make db-crear
 ```
 
 El script es idempotente en las inserciones de roles y se puede volver a

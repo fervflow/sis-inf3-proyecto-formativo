@@ -45,7 +45,7 @@ LATEXMK := $(shell command -v latexmk 2>/dev/null)
 SVG2PDF := $(shell command -v rsvg-convert 2>/dev/null)
 PDFTOPPM := $(shell command -v pdftoppm 2>/dev/null)
 
-.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar estimacion estimacion-scrum web-install web-dev web-build web-preview web-check db-crear ver clean distclean ayuda
+.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar estimacion estimacion-scrum web-install web-dev web-build web-preview web-check db-crear neon-env ver clean distclean ayuda
 
 all: pdf
 
@@ -195,10 +195,17 @@ web-preview:
 web-check:
 	npm run db:check --workspace $(WEB)
 
-# Crea el esquema en la base indicada por DATABASE_URL.
+# Crea el esquema en la base. Las migraciones van por la conexión directa
+# (DATABASE_URL_UNPOOLED): el pooler de Neon no admite operaciones de sesión.
 db-crear:
-	@test -n "$(DATABASE_URL)" || { echo "Falta la variable DATABASE_URL."; exit 1; }
-	psql "$(DATABASE_URL)" -v ON_ERROR_STOP=1 -f $(BD)/esquema.sql
+	@url="$(DATABASE_URL_UNPOOLED)"; \
+	if [ -z "$$url" ]; then url="$(DATABASE_URL)"; fi; \
+	if [ -z "$$url" ]; then echo "Falta DATABASE_URL o DATABASE_URL_UNPOOLED."; exit 1; fi; \
+	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/esquema.sql
+
+# Trae de Neon las variables de la rama a .env.local (en la raíz).
+neon-env:
+	neon env pull
 
 # --- Utilidades -------------------------------------------------------
 ver: pdf
@@ -230,6 +237,7 @@ ayuda:
 	@echo "make web-dev      levanta la web en modo desarrollo"
 	@echo "make web-build    compila la web para produccion"
 	@echo "make db-crear     crea el esquema en la base de DATABASE_URL"
+	@echo "make neon-env    trae de Neon las variables de la rama"
 	@echo "make ver        inspecciona el PDF (paginas, tamano, fuentes)"
 	@echo "make clean      borra archivos auxiliares"
 	@echo "make distclean  borra auxiliares, diagramas y PNG"

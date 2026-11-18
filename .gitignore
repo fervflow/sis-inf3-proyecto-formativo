@@ -39,3 +39,4 @@ dist/
 
 # Volcados de sesión de OpenCode
 session-*.json
+.neon

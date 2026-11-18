@@ -11,18 +11,30 @@ en el orden en que conviene hacerlo.
 
 La base de datos del sistema. Plan gratuito suficiente para el proyecto.
 
-- [ ] **Crear el proyecto.** En la consola de Neon, «Create project» con la
-      región **AWS South America (São Paulo)** (`aws-sa-east-1`), la más
-      cercana a Bolivia, y PostgreSQL 18. La región es fija: si más adelante
-      hay que cambiarla, se crea otro proyecto y se migra.
-- [ ] **Copiar la cadena de conexión *pooled*.** Connection string →
-      *Pooled connection*. Es la que va en `DATABASE_URL`: multiplexa las
-      conexiones y evita agotarlas en un entorno sin estado como Vercel. La
-      cadena directa no sirve para el despliegue.
-- [ ] **Crear el esquema.** `make db-crear` (usa `DATABASE_URL`). El script
-      es idempotente en las inserciones de roles.
-- [ ] **Crear un rol de la aplicación** con menos privilegios que el dueño
-      de la base, y usar ese rol en `DATABASE_URL`. Hoy se usa el dueño.
+**Hecho:**
+
+- [x] **Proyecto creado**: `wandering-base-66944645`, organización
+      `org-shiny-hat-62410919`, rama `production`, región **AWS South
+      America (São Paulo)** (`sa-east-1`), PostgreSQL 18. La región es
+      fija: si alguna vez hay que cambiarla, se crea otro proyecto y se
+      migra.
+- [x] **Configuración en el repositorio**: `neon.ts` (la política de la
+      rama) y `.neon` (el puntero local a la rama, que no se versiona).
+- [x] **Variables descargadas**: `neon env pull` dejó en `.env.local`
+      `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (directa) y los
+      identificadores de la rama. La aplicación las carga sola.
+- [x] **Esquema creado**: 18 tablas, 3 vistas, 10 funciones y 5
+      disparadores, con los tres roles sembrados.
+
+**Falta:**
+
+- [ ] **Secretos de la aplicación**, que la CLI no trae: añadirlos a
+      `.env.local` y al panel de Vercel.
+      - `BETTER_AUTH_SECRET`, con `openssl rand -base64 32`.
+      - `BETTER_AUTH_URL`, con el dominio del proyecto.
+      - `CRON_SECRET`, para proteger el barrido diario.
+- [ ] **Rol de la aplicación** con menos privilegios que el dueño de la
+      base, y usar ese rol en `DATABASE_URL`. Hoy se usa el dueño.
 - [ ] **Ramas de base por rama de Git.** `neon branches create --parent
       main` da una base completa y gratis (10 por proyecto). Sugerencia:
       `main` = producción, `develop` = desarrollo, una por previsualización
@@ -47,8 +59,7 @@ identidad vive en la aplicación y así el esquema queda bajo control.
 - [ ] **Declarar las variables de entorno**, en producción y en
       previsualización: `DATABASE_URL`, `BETTER_AUTH_SECRET`,
       `BETTER_AUTH_URL` (el dominio del proyecto) y `CRON_SECRET`.
-- [ ] **Generar `BETTER_AUTH_SECRET`** con `openssl rand -base64 32`, y que
-      sea distinto del de desarrollo.
+      `DATABASE_URL` es la cadena *pooled* de Neon.
 - [ ] **Barrido diario**: ya está declarado en `web/vercel.json`. El plan
       Hobby permite una ejecución al día, que es la que necesita el
       vencimiento de las solicitudes; más frecuencia exigiría Pro.
@@ -82,13 +93,12 @@ Fotos de paquetes, proveedores o documentos.
 
 ## Entorno local
 
-- [ ] **Node.js 22 o superior.** El repositorio fija la versión con mise
-      (`mise.toml`).
-- [ ] **Instalar las dependencias** desde la raíz del repositorio:
+- [x] **Node.js 22 o superior**, fijado con mise (`mise.toml`).
+- [x] **Dependencias instaladas** desde la raíz del repositorio:
       `npm install` (instala el espacio de trabajo completo).
-- [ ] **`.env` local** en `web/`, a partir de `web/.env.example`.
-- [ ] **PostgreSQL local** con Podman o Docker para el desarrollo y las
-      pruebas:
+- [x] **`.env.local` en la raíz** con las variables de la rama de Neon.
+- [ ] **PostgreSQL local** con Podman o Docker, para el desarrollo y las
+      pruebas cuando no se quiera usar la base de Neon:
       `podman run -d --name vizcacha -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:18`
       y `psql -h 127.0.0.1 -U postgres -f bd/esquema.sql`.
 

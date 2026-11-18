@@ -13,7 +13,7 @@ import * as schema from '../../db/schema'
  * declaran como campos adicionales.
  */
 function crearAuth() {
-  const config = useRuntimeConfig()
+  const config = configServidor()
 
   return betterAuth({
     baseURL: config.betterAuthUrl,

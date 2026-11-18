@@ -27,41 +27,59 @@ informe, que vive en la raíz.
 - Node.js 22 o superior. El repositorio usa [mise](https://mise.jdx.dev)
   para fijar la versión (`mise.toml`).
 - Una base de datos PostgreSQL en Neon, con el plan gratuito alcanza.
+- La CLI de Neon, para traer las variables de la rama:
+  `npm i -g neon@latest`.
 
 ## Puesta en marcha
 
-1. **Crear el proyecto en Neon.** En la consola, «Create project» con la
-   región **AWS South America (São Paulo)**, la más cercana a Bolivia. Copiar
-   la *pooled connection string*.
+1. **La base de datos ya está creada** en Neon: proyecto
+   `wandering-base-66944645`, rama `production`, región
+   **AWS South America (São Paulo)**, la más cercana a Bolivia. La
+   configuración está en `neon.ts`, en la raíz del repositorio.
 
-2. **Preparar las variables de entorno.**
+2. **Traer las variables de la rama.** La CLI escribe `.env.local` en la
+   raíz del repositorio, y la aplicación las carga sola:
 
    ```bash
-   cp .env.example .env
+   neon login        # la primera vez
+   neon env pull    # o: make neon-env
    ```
 
-   Completar `DATABASE_URL`, `BETTER_AUTH_SECRET` (con
-   `openssl rand -base64 32`), `BETTER_AUTH_URL` y `CRON_SECRET`.
+   Quedan `DATABASE_URL` (pooled, para la aplicación) y
+   `DATABASE_URL_UNPOOLED` (directa, para las migraciones).
 
-3. **Crear el esquema.** La fuente canónica del esquema es el script de la
-   raíz del repositorio:
+3. **Declarar los secretos de la aplicación**, que la CLI no trae:
 
    ```bash
-   psql "$DATABASE_URL" -f ../bd/esquema.sql
+   echo 'BETTER_AUTH_SECRET=…' >> .env.local   # openssl rand -base64 32
+   echo 'BETTER_AUTH_URL=http://localhost:3000' >> .env.local
+   echo 'CRON_SECRET=…' >> .env.local
    ```
 
-   El script crea el esquema `turismo` completo: tablas, vistas,
-   funciones y disparadores. No hay migraciones porque la base todavía no
-   existía.
-
-4. **Instalar y levantar.**
+4. **Crear el esquema.** La fuente canónica es el script de la raíz del
+   repositorio, y las migraciones van por la conexión **directa**:
 
    ```bash
-   npm install
-   npm run dev
+   make db-crear
+   ```
+
+   El script crea el esquema `turismo` completo: tablas, vistas, funciones
+   y disparadores. No hay migraciones porque la base se acaba de crear.
+
+5. **Instalar y levantar.**
+
+   ```bash
+   npm install     # en la raíz del repositorio: instala el espacio de trabajo
+   make web-dev
    ```
 
    La aplicación queda en `http://localhost:3000`.
+
+> **Ojo con el orden de los archivos de entorno.** En Node gana el primer
+> valor cargado, y la aplicación carga en este orden: `web/.env`, el
+> `.env` de la raíz y el `.env.local` de la raíz. Si `web/.env` tiene
+> valores de ejemplo, tapa los de Neon: ese archivo solo sirve para
+> desvíos locales, y para eso se deja con los valores reales.
 
 ## Estructura
 
