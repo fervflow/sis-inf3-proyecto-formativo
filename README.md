@@ -43,6 +43,9 @@ sección vive en un archivo propio dentro de `informe/capitulos/`, con su
   de negocio que lo gobiernan.
 - **`web/README.md`** — puesta en marcha de la web del sistema: base de
   datos, autenticación y despliegue.
+- **`web/AGENTS.md`** y **`web/docs/`** — reglas de trabajo de la
+  aplicación: arquitectura, sistema de diseño, componentes, tipos, textos,
+  base de datos, autenticación, pruebas y seguridad.
 - **`sistema/estimacion/README.md`** — cómo se calcula el costo del sistema
   con el método ágil y de dónde sale cada cifra.
 - **`docs/changelog/`** — bitácora de los trabajos aceptados,

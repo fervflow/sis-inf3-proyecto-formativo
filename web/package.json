@@ -8,9 +8,11 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
     "db:check": "drizzle-kit check"
   },
   "dependencies": {
+    "@nuxt/ui": "^4.13.0",
     "better-auth": "^1.7.25",
     "drizzle-orm": "^0.45.4",
     "nuxt": "^4.6.4",
@@ -20,9 +22,11 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^22.18.1",
     "@types/pg": "^8.15.5",
     "drizzle-kit": "^0.31.11",
+    "tailwindcss": "^4.3.5",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.3.14"
   }

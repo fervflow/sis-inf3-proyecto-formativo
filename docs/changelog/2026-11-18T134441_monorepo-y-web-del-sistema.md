@@ -12,10 +12,9 @@
 
 El proyecto tenía el informe, sus diagramas, el backlog, el tablero y el
 esquema de la base de datos, pero ninguna implementación. Con el alcance ya
-definido —17 historias, 39 tareas y 188 horas-persona de esfuerzo
-estimado— se decidió la pila de la web: **Nuxt 4** con **Drizzle ORM**,
-**Better Auth** para la identidad y **Neon** como PostgreSQL, desplegada en
-**Vercel**.
+definido en el backlog, se decidió la pila de la web: **Nuxt 4** con
+**Drizzle ORM**, **Better Auth** para la identidad y **Neon** como
+PostgreSQL, desplegada en **Vercel**.
 
 Deliberadamente **no** se movió el proyecto LaTeX a una carpeta propia: vive
 en la raíz y desde ahí se compila con `make`. Reorganizarlo habría roto el
@@ -56,7 +55,7 @@ son ahora de texto.
 
 El tablero y la base de datos suben a la raíz porque son material de trabajo
 del día a día, no especificación del sistema; `sistema/` queda con lo que
-es: el diseño (diagramas, backlog y estimación). La carpeta de la web se
+es: el diseño (diagramas y backlog). La carpeta de la web se
 llama `web/`, no `app/`: dentro de ella, `web/app/` es la carpeta de origen
 de Nuxt 4, que usa ese nombre por convención propia. El `verificador-rutas.py`
 se invirtió: `docs/` es ahora la ruta vigente y `documentacion/` pasó a
@@ -113,8 +112,8 @@ cuatro atajos del `Makefile`: `app-install`, `app-dev`, `app-build` y
 - `sistema/verificar-rutas.py`: rutas vigentes y obsoletas.
 - `sistema/diagramas/uml/estructural/*.puml`: el modelo de acceso.
 - `Makefile`, `AGENTS.md`, `README.md`, `informe/README.md`,
-  `docs/INSTALACION-WINDOWS.md`, `sistema/estimacion/*` y
-  `sistema/historias-usuario/historias-usuario.md`: rutas y documentación.
+  `docs/INSTALACION-WINDOWS.md` y los documentos que apuntan a rutas
+  movidas: rutas y documentación.
 - `.gitignore`: dependencias, salidas de la aplicación y volcados de sesión.
 
 ## Validación

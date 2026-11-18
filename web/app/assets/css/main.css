@@ -1,0 +1,44 @@
+/**
+ * Estilos globales.
+ *
+ * El orden importa: primero Tailwind, después los estilos de Nuxt UI y al
+ * final los tokens del sistema de diseño, que redefinen las variables de
+ * Nuxt UI para que la marca mande sobre la biblioteca.
+ */
+@import "tailwindcss";
+@import "@nuxt/ui";
+@import "../../design/tokens.css";
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  background-color: var(--vt-color-fondo);
+  color: var(--vt-color-texto);
+  font-family: var(--vt-fuente);
+  font-size: var(--vt-texto-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Un enlace dentro de la interfaz se distingue sin depender del color. */
+a {
+  text-underline-offset: 0.2em;
+}
+
+/* El foco visible es obligatorio: se navega con el teclado. */
+:focus-visible {
+  outline: 2px solid var(--vt-color-marca-500);
+  outline-offset: 2px;
+}
+
+/* Los elementos que solo se leen con lector de pantalla. */
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

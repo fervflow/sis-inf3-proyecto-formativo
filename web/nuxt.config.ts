@@ -3,6 +3,17 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  // Nuxt UI aporta los componentes; el sistema de diseño de la aplicación
+  // (app/design/) manda sobre ellos: los tokens redefinen sus variables.
+  modules: ['@nuxt/ui'],
+
+  css: ['~/assets/css/main.css'],
+
+  typescript: {
+    strict: true,
+    typeCheck: false,
+  },
+
   // Las variables del servidor no se exponen al cliente. En Vercel se
   // declaran en Settings → Environment Variables; en local, en `web/.env`.
   runtimeConfig: {

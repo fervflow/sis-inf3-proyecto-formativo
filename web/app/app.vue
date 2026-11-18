@@ -1,97 +1,65 @@
 <template>
-  <div class="app">
-    <NuxtRouteAnnouncer />
-    <header class="app__cabecera">
-      <NuxtLink to="/" class="app__marca">
-        <strong>{{ appName }}</strong>
-        <span>Gestión de paquetes turísticos y reservas</span>
-      </NuxtLink>
-      <nav class="app__menu">
-        <NuxtLink to="/">Inicio</NuxtLink>
-        <NuxtLink to="/disponibilidad">Disponibilidad</NuxtLink>
-      </nav>
-    </header>
-    <main class="app__contenido">
-      <NuxtPage />
-    </main>
-    <footer class="app__pie">
-      <p>
-        Sistema web de gestión de paquetes turísticos y reservas · Proyecto
-        formativo de Sistemas de Información III · UPDS, sede Potosí.
-      </p>
-    </footer>
-  </div>
+  <UApp>
+    <div class="flex min-h-screen flex-col">
+      <header class="border-b border-(--vt-color-borde) bg-(--vt-color-superficie)">
+        <div
+          class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3"
+        >
+          <NuxtLink to="/" class="flex flex-col text-inherit no-underline">
+            <span class="text-(--vt-texto-lg) font-(--vt-texto-peso-fuerte)">
+              {{ t('app.nombre') }}
+            </span>
+            <span class="text-xs text-(--vt-color-texto-suave)">
+              {{ t('app.subtitulo') }}
+            </span>
+          </NuxtLink>
+
+          <nav class="flex items-center gap-1">
+            <UButton
+              to="/"
+              variant="ghost"
+              color="neutral"
+              :label="t('nav.inicio')"
+            />
+            <UButton
+              to="/disponibilidad"
+              variant="ghost"
+              color="neutral"
+              :label="t('nav.disponibilidad')"
+            />
+            <USelect
+              v-model="idioma"
+              :items="idiomasDisponibles"
+              value-key="valor"
+              class="w-32"
+              :aria-label="t('app.idioma')"
+            />
+          </nav>
+        </div>
+      </header>
+
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+        <NuxtPage />
+      </main>
+
+      <footer class="border-t border-(--vt-color-borde) py-6">
+        <p
+          class="mx-auto w-full max-w-6xl px-4 text-xs text-(--vt-color-texto-suave)"
+        >
+          {{ t('app.pie') }}
+        </p>
+      </footer>
+    </div>
+  </UApp>
 </template>
 
 <script setup lang="ts">
-const appName = useRuntimeConfig().public.appName
+import { idiomas } from '~/i18n'
+
+const { t, idioma } = useTexto()
+
+const idiomasDisponibles = [
+  { valor: 'es', etiqueta: 'Español' },
+  { valor: 'en', etiqueta: 'English' },
+]
 </script>
-
-<style>
-:root {
-  color-scheme: light dark;
-  --borde: color-mix(in srgb, currentColor 15%, transparent);
-  --tenue: color-mix(in srgb, currentColor 60%, transparent);
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  line-height: 1.6;
-}
-
-.app {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 1.5rem;
-}
-
-.app__cabecera {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--borde);
-}
-
-.app__marca {
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-}
-
-.app__marca span {
-  font-size: 0.9rem;
-  color: var(--tenue);
-}
-
-.app__menu {
-  display: flex;
-  gap: 1rem;
-}
-
-.app__menu a {
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.app__menu a:hover,
-.app__menu a.router-link-active {
-  border-bottom-color: currentColor;
-}
-
-.app__contenido {
-  padding: 2rem 0;
-}
-
-.app__pie {
-  padding-top: 1rem;
-  border-top: 1px solid var(--borde);
-  font-size: 0.85rem;
-  color: var(--tenue);
-}
-</style>

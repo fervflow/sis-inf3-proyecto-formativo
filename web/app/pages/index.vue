@@ -1,92 +1,62 @@
 <template>
-  <div>
-    <h1>Gestión de paquetes turísticos y reservas</h1>
-    <p class="intro">
-      Sistema web para la agencia Vizcacha Tours, en Potosí. Atiende a dos
-      canales con el mismo proceso validado: la atención del personal de
-      agencia y el acceso directo del cliente.
-    </p>
+  <div class="space-y-8">
+    <BaseEncabezadoPagina
+      :titulo="t('inicio.titulo')"
+      :descripcion="t('inicio.introduccion')"
+    />
 
-    <section>
-      <h2>Qué se puede hacer</h2>
-      <ul>
-        <li>Registrar y mantener los paquetes turísticos y sus proveedores.</li>
-        <li>Programar salidas con fecha, cupo y precio.</li>
-        <li>Consultar la disponibilidad y registrar reservas con validación de cupos.</li>
-        <li>Registrar clientes y pasajeros, cotizaciones, anticipos y saldos.</li>
-        <li>Confirmar solicitudes, consultar reportes y auditar los cambios.</li>
+    <BaseTarjeta :titulo="t('inicio.queSePuedeHacer')">
+      <ul class="list-disc space-y-1 pl-5 text-(--vt-texto-sm)">
+        <li v-for="clave in capacidades" :key="clave">
+          {{ t(clave) }}
+        </li>
       </ul>
-    </section>
+    </BaseTarjeta>
 
-    <section>
-      <h2>Estado del sistema</h2>
-      <p>
-        <button type="button" :disabled="pendiente" @click="comprobar">
-          {{ pendiente ? 'Comprobando…' : 'Comprobar la conexión con la base' }}
-        </button>
+    <BaseTarjeta :titulo="t('salud.titulo')">
+      <template #acciones>
+        <UButton
+          :label="pendiente ? t('salud.comprobando') : t('salud.comprobar')"
+          :loading="pendiente"
+          color="primary"
+          variant="outline"
+          @click="comprobar"
+        />
+      </template>
+
+      <p v-if="error" class="text-(--vt-texto-sm) text-(--vt-color-error-600)">
+        {{ t('errores.conexion', { detalle: error }) }}
       </p>
-      <p v-if="error" class="error">{{ error }}</p>
-      <dl v-else-if="estado" class="estado">
-        <div><dt>Conexión</dt><dd>{{ estado.base.conectado ? 'correcta' : 'fallida' }}</dd></div>
-        <div><dt>Paquetes</dt><dd>{{ estado.base.paquetes }}</dd></div>
-        <div><dt>Salidas</dt><dd>{{ estado.base.salidas }}</dd></div>
-        <div><dt>Reservas</dt><dd>{{ estado.base.reservas }}</dd></div>
+
+      <dl v-else-if="estado" class="flex flex-wrap gap-6">
+        <BaseDato
+          :etiqueta="t('salud.conexion')"
+          :valor="estado.base.conectado ? t('salud.conectada') : t('salud.fallida')"
+        />
+        <BaseDato :etiqueta="t('salud.paquetes')" :valor="estado.base.paquetes" />
+        <BaseDato :etiqueta="t('salud.salidas')" :valor="estado.base.salidas" />
+        <BaseDato :etiqueta="t('salud.reservas')" :valor="estado.base.reservas" />
       </dl>
-    </section>
+    </BaseTarjeta>
   </div>
 </template>
 
 <script setup lang="ts">
-interface Estado {
-  estado: string
-  base: { conectado: boolean; paquetes: number; salidas: number; reservas: number }
-}
+import type { EstadoSalud } from '#shared/types/api'
+import type { ClaveMensaje } from '~/i18n'
 
-const pendiente = ref(false)
-const estado = ref<Estado | null>(null)
-const error = ref('')
+const { t } = useTexto()
+const { cargando: pendiente, error, datos: estado, pedir } = useApi<EstadoSalud>()
+
+const capacidades = [
+  'inicio.capacidades.1',
+  'inicio.capacidades.2',
+  'inicio.capacidades.3',
+  'inicio.capacidades.4',
+  'inicio.capacidades.5',
+] satisfies ClaveMensaje[]
 
 async function comprobar() {
-  pendiente.value = true
-  error.value = ''
-  try {
-    estado.value = await $fetch<Estado>('/api/health')
-  } catch (fallo) {
-    error.value = `No se pudo comprobar: ${(fallo as Error).message}`
-  } finally {
-    pendiente.value = false
-  }
+  await pedir('/api/health')
 }
 </script>
-
-<style scoped>
-.intro {
-  max-width: 46rem;
-  font-size: 1.05rem;
-}
-
-.error {
-  color: #b3261e;
-}
-
-.estado {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
-
-.estado div {
-  border-left: 2px solid color-mix(in srgb, currentColor 25%, transparent);
-  padding-left: 0.75rem;
-}
-
-.estado dt {
-  font-size: 0.85rem;
-  color: color-mix(in srgb, currentColor 60%, transparent);
-}
-
-.estado dd {
-  margin: 0;
-  font-size: 1.25rem;
-}
-</style>

@@ -64,3 +64,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-17 17:16 | `2026-11-17T171611_criterios-y-desglose-de-tareas.md` | Criterios de aceptación de las 17 historias y desglose de las 39 tareas del backlog. |
 | 2026-11-17 17:53 | `2026-11-17T175303_tablero-kanban.md` | Tablero kanban generado desde el backlog, con comandos de regeneración, verificación y requisitos de visualización. |
 | 2026-11-18 13:44 | `2026-11-18T134441_monorepo-y-web-del-sistema.md` | Monorepo: la web del sistema (Nuxt, Drizzle, Better Auth, Neon), el esquema con Better Auth y la reorganización del repositorio. |
+| 2026-11-18 14:57 | `2026-11-18T145700_estructura-de-desarrollo-de-la-web.md` | Estructura de desarrollo agéntico de la web: sistema de diseño, textos centralizados, componentes base, tipos compartidos y documentación. |

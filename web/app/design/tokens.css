@@ -1,0 +1,154 @@
+/**
+ * Tokens del sistema de diseño.
+ *
+ * Este archivo es la fuente única de la identidad visual. Nuxt UI es la
+ * implementación: sus variables (`--ui-color-*`) se redefinen aquí con
+ * nuestros tokens (`--vt-*`), de modo que reestilizar la aplicación sea
+ * cambiar este bloque y nada más.
+ *
+ * Dos capas:
+ *
+ * 1. `--vt-*`: nuestros tokens. Semánticos, con nombre del dominio.
+ * 2. `--ui-color-*`: el mapeo a las variables que lee Nuxt UI.
+ *
+ * Reglas:
+ *
+ * - Un componente nunca escribe un color, un radio o una sombra en su
+ *   plantilla: usa el componente base o una variable de Nuxt UI.
+ * - Para agregar un token, se agrega al final de su bloque, con su
+ *   comentario, y se documenta en `docs/design-system.md`.
+ * - Los tonos de un color siguen la escala 50 a 950, de más claro a más
+ *   oscuro, como las paletas de Tailwind.
+ */
+
+:root {
+  /* ------------------------------------------------------------------
+   * 1. Tokens del proyecto
+   * ---------------------------------------------------------------- */
+
+  /* Marca: verde azulado, el color de la agencia. */
+  --vt-color-marca-50: oklch(0.97 0.02 185);
+  --vt-color-marca-100: oklch(0.93 0.05 185);
+  --vt-color-marca-200: oklch(0.87 0.08 185);
+  --vt-color-marca-300: oklch(0.79 0.11 185);
+  --vt-color-marca-400: oklch(0.7 0.12 185);
+  --vt-color-marca-500: oklch(0.62 0.11 185);
+  --vt-color-marca-600: oklch(0.53 0.1 185);
+  --vt-color-marca-700: oklch(0.44 0.08 185);
+  --vt-color-marca-800: oklch(0.36 0.06 185);
+  --vt-color-marca-900: oklch(0.3 0.05 185);
+  --vt-color-marca-950: oklch(0.22 0.04 185);
+
+  /* Neutro: arena cálida, el fondo del papel. */
+  --vt-color-neutro-50: oklch(0.98 0.004 90);
+  --vt-color-neutro-100: oklch(0.96 0.005 90);
+  --vt-color-neutro-200: oklch(0.92 0.006 90);
+  --vt-color-neutro-300: oklch(0.86 0.007 90);
+  --vt-color-neutro-400: oklch(0.7 0.008 90);
+  --vt-color-neutro-500: oklch(0.56 0.009 90);
+  --vt-color-neutro-600: oklch(0.45 0.009 90);
+  --vt-color-neutro-700: oklch(0.37 0.009 90);
+  --vt-color-neutro-800: oklch(0.28 0.008 90);
+  --vt-color-neutro-900: oklch(0.22 0.007 90);
+  --vt-color-neutro-950: oklch(0.16 0.006 90);
+
+  /* Semánticos de estado. */
+  --vt-color-exito-500: oklch(0.72 0.15 155);
+  --vt-color-exito-600: oklch(0.62 0.14 155);
+  --vt-color-advertencia-500: oklch(0.79 0.15 80);
+  --vt-color-advertencia-600: oklch(0.7 0.15 75);
+  --vt-color-error-500: oklch(0.62 0.2 25);
+  --vt-color-error-600: oklch(0.55 0.2 25);
+  --vt-color-info-500: oklch(0.66 0.14 240);
+  --vt-color-info-600: oklch(0.58 0.14 240);
+
+  /* Superficies y bordes, sobre el fondo del documento. */
+  --vt-color-fondo: var(--vt-color-neutro-50);
+  --vt-color-superficie: oklch(1 0 0);
+  --vt-color-superficie-alterna: var(--vt-color-neutro-100);
+  --vt-color-texto: var(--vt-color-neutro-900);
+  --vt-color-texto-suave: var(--vt-color-neutro-600);
+  --vt-color-borde: var(--vt-color-neutro-200);
+
+  /* Espaciado: escala de 4 px con los pasos habituales. */
+  --vt-espaciado-0: 0;
+  --vt-espaciado-1: 0.25rem;
+  --vt-espaciado-2: 0.5rem;
+  --vt-espaciado-3: 0.75rem;
+  --vt-espaciado-4: 1rem;
+  --vt-espaciado-6: 1.5rem;
+  --vt-espaciado-8: 2rem;
+  --vt-espaciado-12: 3rem;
+  --vt-espaciado-16: 4rem;
+
+  /* Radios. */
+  --vt-radio-sm: 0.25rem;
+  --vt-radio-md: 0.5rem;
+  --vt-radio-lg: 0.75rem;
+  --vt-radio-full: 9999px;
+
+  /* Sombras discretas: la jerarquía la hace el borde, no la sombra. */
+  --vt-sombra-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --vt-sombra-md: 0 4px 12px -2px rgb(0 0 0 / 0.08);
+  --vt-sombra-lg: 0 12px 32px -8px rgb(0 0 0 / 0.12);
+
+  /* Tipografía. */
+  --vt-fuente: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --vt-fuente-mono: ui-monospace, 'JetBrains Mono', 'Fira Code', monospace;
+  --vt-texto-xs: 0.75rem;
+  --vt-texto-sm: 0.875rem;
+  --vt-texto-base: 1rem;
+  --vt-texto-lg: 1.125rem;
+  --vt-texto-xl: 1.25rem;
+  --vt-texto-2xl: 1.5rem;
+  --vt-texto-3xl: 1.875rem;
+  --vt-texto-peso-normal: 400;
+  --vt-texto-peso-medio: 500;
+  --vt-texto-peso-fuerte: 600;
+
+  /* Movimiento: breve y discreto. */
+  --vt-transicion: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --vt-transicion-lenta: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ------------------------------------------------------------------
+   * 2. Mapeo a las variables de Nuxt UI
+   * ---------------------------------------------------------------- */
+
+  --ui-color-primary-50: var(--vt-color-marca-50);
+  --ui-color-primary-100: var(--vt-color-marca-100);
+  --ui-color-primary-200: var(--vt-color-marca-200);
+  --ui-color-primary-300: var(--vt-color-marca-300);
+  --ui-color-primary-400: var(--vt-color-marca-400);
+  --ui-color-primary-500: var(--vt-color-marca-500);
+  --ui-color-primary-600: var(--vt-color-marca-600);
+  --ui-color-primary-700: var(--vt-color-marca-700);
+  --ui-color-primary-800: var(--vt-color-marca-800);
+  --ui-color-primary-900: var(--vt-color-marca-900);
+  --ui-color-primary-950: var(--vt-color-marca-950);
+
+  --ui-color-neutral-50: var(--vt-color-neutro-50);
+  --ui-color-neutral-100: var(--vt-color-neutro-100);
+  --ui-color-neutral-200: var(--vt-color-neutro-200);
+  --ui-color-neutral-300: var(--vt-color-neutro-300);
+  --ui-color-neutral-400: var(--vt-color-neutro-400);
+  --ui-color-neutral-500: var(--vt-color-neutro-500);
+  --ui-color-neutral-600: var(--vt-color-neutro-600);
+  --ui-color-neutral-700: var(--vt-color-neutro-700);
+  --ui-color-neutral-800: var(--vt-color-neutro-800);
+  --ui-color-neutral-900: var(--vt-color-neutro-900);
+  --ui-color-neutral-950: var(--vt-color-neutro-950);
+
+  --ui-radius: var(--vt-radio-md);
+  --ui-font: var(--vt-fuente);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vt-color-fondo: var(--vt-color-neutro-950);
+    --vt-color-superficie: var(--vt-color-neutro-900);
+    --vt-color-superficie-alterna: var(--vt-color-neutro-800);
+    --vt-color-texto: var(--vt-color-neutro-50);
+    --vt-color-texto-suave: var(--vt-color-neutro-300);
+    --vt-color-borde: var(--vt-color-neutro-700);
+  }
+}

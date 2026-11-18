@@ -1,92 +1,60 @@
 <template>
-  <div>
-    <h1>Disponibilidad</h1>
-    <p class="intro">
-      Salidas programadas y lugares disponibles. El cupo se calcula en la
-      base de datos a partir de las reservas vigentes.
-    </p>
+  <div class="space-y-8">
+    <BaseEncabezadoPagina
+      :titulo="t('disponibilidad.titulo')"
+      :descripcion="t('disponibilidad.introduccion')"
+    />
 
-    <p v-if="pendiente">Cargando…</p>
-    <p v-else-if="error" class="error">{{ error }}</p>
-    <p v-else-if="salidas.length === 0">
-      No hay salidas programadas desde hoy.
-    </p>
+    <BaseTarjeta>
+      <BaseTablaDatos
+        v-if="salidas.length > 0"
+        :columnas="columnas"
+        :filas="salidas"
+        :cargando="pendiente"
+        :texto-vacio="t('disponibilidad.vacia')"
+      >
+        <template #celda="{ columna, fila, valor }">
+          <span v-if="columna.clave === 'paquete'">
+            {{ fila.paquete }}
+            <span class="text-xs text-(--vt-color-texto-suave)">
+              {{ fila.codigo_paquete }}
+            </span>
+          </span>
+          <span v-else class="tabular-nums">{{ valor }}</span>
+        </template>
+      </BaseTablaDatos>
 
-    <table v-else>
-      <thead>
-        <tr>
-          <th>Paquete</th>
-          <th>Salida</th>
-          <th>Retorno</th>
-          <th class="num">Cupo</th>
-          <th class="num">Ocupados</th>
-          <th class="num">Disponibles</th>
-          <th class="num">Precio</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="salida in salidas" :key="salida.id_salida">
-          <td>{{ salida.paquete }} <span class="codigo">{{ salida.codigo_paquete }}</span></td>
-          <td>{{ salida.fecha_salida }}</td>
-          <td>{{ salida.fecha_retorno }}</td>
-          <td class="num">{{ salida.cupo_maximo }}</td>
-          <td class="num">{{ salida.pasajeros_ocupados }}</td>
-          <td class="num">{{ salida.cupo_disponible }}</td>
-          <td class="num">{{ salida.precio }}</td>
-        </tr>
-      </tbody>
-    </table>
+      <BaseEstadoVacio
+        v-else-if="!pendiente && !error"
+        :titulo="t('disponibilidad.vacia')"
+      />
+
+      <p v-if="error" class="text-(--vt-texto-sm) text-(--vt-color-error-600)">
+        {{ t('errores.conexion', { detalle: error }) }}
+      </p>
+    </BaseTarjeta>
   </div>
 </template>
 
 <script setup lang="ts">
-interface Salida {
-  id_salida: number
-  codigo_paquete: string
-  paquete: string
-  fecha_salida: string
-  fecha_retorno: string
-  cupo_maximo: number
-  pasajeros_ocupados: number
-  cupo_disponible: number
-  precio: string
-}
+import type { RespuestaDisponibilidad, SalidaDisponible } from '#shared/types/api'
+import type { ColumnaTabla } from '#shared/types/ui'
 
-const { data, error, pending } = await useFetch<{ salidas: Salida[] }>(
-  '/api/disponibilidad',
-)
-const pendiente = computed(() => pending.value)
-const salidas = computed(() => data.value?.salidas ?? [])
+const { t } = useTexto()
+const { cargando: pendiente, error, datos, pedir } = useApi<RespuestaDisponibilidad>()
+
+const salidas = computed<SalidaDisponible[]>(() => datos.value?.salidas ?? [])
+
+// Las etiquetas se calculan de nuevo cuando cambia el idioma.
+const columnas = computed<ColumnaTabla<SalidaDisponible>[]>(() => [
+  { clave: 'paquete', etiqueta: t('disponibilidad.columnas.paquete') },
+  { clave: 'fecha_salida', etiqueta: t('disponibilidad.columnas.salida') },
+  { clave: 'fecha_retorno', etiqueta: t('disponibilidad.columnas.retorno') },
+  { clave: 'cupo_maximo', etiqueta: t('disponibilidad.columnas.cupo'), alineacion: 'derecha' },
+  { clave: 'pasajeros_ocupados', etiqueta: t('disponibilidad.columnas.ocupados'), alineacion: 'derecha' },
+  { clave: 'cupo_disponible', etiqueta: t('disponibilidad.columnas.disponibles'), alineacion: 'derecha' },
+  { clave: 'precio', etiqueta: t('disponibilidad.columnas.precio'), alineacion: 'derecha' },
+])
+
+await pedir('/api/disponibilidad')
 </script>
-
-<style scoped>
-.intro {
-  max-width: 46rem;
-  color: color-mix(in srgb, currentColor 70%, transparent);
-}
-
-.error {
-  color: #b3261e;
-}
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-}
-
-.num {
-  text-align: right;
-}
-
-.codigo {
-  font-size: 0.8rem;
-  color: color-mix(in srgb, currentColor 55%, transparent);
-}
-</style>

@@ -10,7 +10,17 @@ informe, que vive en la raíz.
   tipos.
 - **Autenticación:** Better Auth, con las tablas de sesión y cuentas en la
   misma base de datos.
+- **Interfaz:** Nuxt UI como implementación, con un sistema de diseño
+  propio (`app/design/`) que manda sobre ella y textos centralizados
+  (`app/i18n/`).
 - **Despliegue:** Vercel, con la carpeta raíz del proyecto en `web/`.
+
+## Documentación
+
+| Documento | De qué trata |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) | La guía operativa para agentes y modelos: reglas que no se negocian y a qué documento leer según la tarea |
+| [`docs/`](docs/README.md) | Las guías de trabajo: arquitectura, convenciones, sistema de diseño, componentes, tipos, textos, base de datos, autenticación, pruebas, seguridad y flujo de trabajo |
 
 ## Requisitos
 
@@ -57,19 +67,27 @@ informe, que vive en la raíz.
 
 ```text
 web/
-├── app/                    Interfaz (Nuxt 4 usa app/ como carpeta de origen)
-│   ├── app.vue             Marco con cabecera, contenido y pie
-│   └── pages/              Inicio y disponibilidad
-├── server/                 Servidor Nitro
-│   ├── api/                Rutas de la API
+├── AGENTS.md              Guía operativa para agentes y modelos
+├── docs/                  Documentación de la web
+├── app/                   Interfaz (Nuxt 4 usa app/ como carpeta de origen)
+│   ├── app.vue            Marco de la aplicación
+│   ├── app.config.ts      Tema de Nuxt UI
+│   ├── assets/css/        Estilos globales
+│   ├── components/base/   Componentes reutilizables (BaseTarjeta, BaseTablaDatos…)
+│   ├── composables/       Lógica reutilizable (useTexto, useApi)
+│   ├── design/            Sistema de diseño: tokens y tema
+│   ├── i18n/              Textos centralizados de la interfaz
+│   └── pages/             Vistas
+├── server/                Servidor Nitro
+│   ├── api/               Rutas de la API
 │   │   ├── auth/           Rutas de Better Auth
 │   │   ├── disponibilidad.get.ts
 │   │   ├── health.get.ts
 │   │   └── vencer-solicitudes.post.ts   Barrido diario
 │   ├── middleware/         Sesión de la petición
 │   └── utils/              Conexión a la base y configuración de Better Auth
-├── db/schema.ts            El esquema en TypeScript (refleja bd/esquema.sql)
-└── drizzle.config.ts       Configuración de Drizzle Kit
+├── shared/types/          Tipos compartidos entre interfaz y servidor
+└── db/schema.ts            El esquema en TypeScript (refleja bd/esquema.sql)
 ```
 
 ## Decisiones que conviene conocer
