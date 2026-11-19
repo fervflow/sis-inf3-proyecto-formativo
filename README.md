@@ -124,8 +124,7 @@ proyecto-formativo/
 | `bd/esquema.sql` | Sí | Esquema de la base de datos |
 | `sistema/historias-usuario/*` | Sí | Backlog |
 | `web/**` | Sí | La web del sistema |
-| `tablero/tablero.md` | Solo columnas | El texto sale del backlog |
-| `tablero/planificacion.csv` | Sí | Fechas y costos de cada tarea |
+| `tablero/tablero.md` | Sí, desde la vista kanban | Fuente de ejecución: columnas, texto, prioridad, fechas y costos |
 | `main.tex` | Poco | Agregar o quitar capítulos |
 | `si3apa7.cls` y `entornos-apa.sty` | No\* | Ya definen el formato |
 | `entregables/` y `_build/` | Nunca | Se regeneran |

@@ -38,8 +38,9 @@ de acción, objetivo general y objetivos específicos.
 | Regenerar los diagramas | `make diagramas` | `.\build.ps1 -Diagramas` |
 | Exportar los diagramas a PNG | `make png` | `.\build.ps1 -Png` |
 | Verificar diagramas y rutas | `make verificar` | — |
-| Regenerar el tablero kanban | `make tablero` | `py tablero/generar.py` |
-| Verificar el tablero kanban | `make tablero-verificar` | `py tablero/generar.py --check` |
+| Validar el tablero kanban | `make tablero-validar` | `py tablero/validar.py` |
+| Ver el resumen del tablero | `make tablero-resumen` | `py tablero/resumen.py` |
+| Actualizar el backlog desde el tablero | `make tablero-backlog` | `py tablero/exportar.py` |
 | Instalar dependencias de la web | `make web-install` | `npm install` |
 | Levantar la web en desarrollo | `make web-dev` | `npm run dev --workspace web` |
 | Compilar la web | `make web-build` | `npm run build --workspace web` |
@@ -56,9 +57,9 @@ nunca `pdflatex`.
 ## Fronteras
 
 - `entregables/` y `_build/` son salidas: no se editan a mano.
-- `tablero/tablero.md` es generado: solo se mueven tarjetas; el texto se
-  cambia en el backlog y las fechas y costos en
-  `tablero/planificacion.csv`, y se regenera.
+- `tablero/tablero.md` es la fuente de ejecución: se edita desde la vista
+  kanban. `make tablero-backlog` actualiza la tabla, el desglose y el resumen
+  del backlog; `make tablero-validar` comprueba el formato.
 - `bd/esquema.sql` es la fuente canónica del esquema; `web/db/schema.ts` lo
   refleja y cambian juntos.
 - `node_modules/`, `_build/`, `entregables/` y las salidas de Nuxt no se

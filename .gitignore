@@ -20,6 +20,10 @@ _build/
 .DS_Store
 Thumbs.db
 
+# Caché de Python
+__pycache__/
+*.pyc
+
 # Archivos generados
 entregables/
 

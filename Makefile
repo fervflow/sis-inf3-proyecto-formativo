@@ -45,7 +45,7 @@ LATEXMK := $(shell command -v latexmk 2>/dev/null)
 SVG2PDF := $(shell command -v rsvg-convert 2>/dev/null)
 PDFTOPPM := $(shell command -v pdftoppm 2>/dev/null)
 
-.PHONY: all pdf diagramas png publicar verificar tablero tablero-verificar estimacion estimacion-scrum web-install web-dev web-build web-preview web-check db-crear neon-env ver clean distclean ayuda
+.PHONY: all pdf diagramas png publicar verificar tablero-validar tablero-resumen tablero-backlog estimacion estimacion-scrum web-install web-dev web-build web-preview web-check db-crear neon-env ver clean distclean ayuda
 
 all: pdf
 
@@ -169,13 +169,16 @@ verificar:
 	@python3 $(SISTEMA)/verificar-rutas.py
 
 # --- Tablero kanban ----------------------------------------------------
-#  Las tarjetas se generan desde el backlog; el tablero solo conserva la
-#  columna de cada una. La verificacion no escribe: falla si quedo viejo.
-tablero:
-	python3 $(TABLERO)/generar.py
+#  El tablero es la fuente de ejecución. El backlog y el resumen se
+#  derivan de él; la validación no escribe nada.
+tablero-validar:
+	python3 $(TABLERO)/validar.py
 
-tablero-verificar:
-	python3 $(TABLERO)/generar.py --check
+tablero-resumen:
+	python3 $(TABLERO)/resumen.py
+
+tablero-backlog:
+	python3 $(TABLERO)/exportar.py
 
 # --- La web del sistema -------------------------------------------------
 #  Atajos sobre el espacio de trabajo de npm. La base de datos se crea
@@ -229,8 +232,9 @@ ayuda:
 	@echo "make png        exporta los diagramas a PNG en $(ENTREGAS)/diagramas/png"
 	@echo "make publicar   copia el PDF a $(ENTREGAS)/ con el nombre definitivo"
 	@echo "make verificar  revisa los diagramas y las rutas del proyecto"
-	@echo "make tablero    regenera el tablero kanban desde el backlog"
-	@echo "make tablero-verificar  comprueba que el tablero este al dia"
+	@echo "make tablero-validar  comprueba el formato del tablero kanban"
+	@echo "make tablero-resumen  imprime el estado del tablero"
+	@echo "make tablero-backlog  actualiza el backlog desde el tablero"
 	@echo "make estimacion compila la hoja de resumen de la estimacion"
 	@echo "make estimacion-scrum  compila la hoja de resumen con metodologia scrum"
 	@echo "make web-install  instala las dependencias de la web"

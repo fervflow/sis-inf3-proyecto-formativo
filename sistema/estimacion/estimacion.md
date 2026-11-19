@@ -270,7 +270,7 @@ medición, y el esfuerzo por punto deja de ser un supuesto.
 
 La estimación depende de tres datos que cambian con el tablero:
 
-1. **Tareas en `Hecho`** y **puntos cerrados**: `make tablero-verificar`.
+1. **Tareas en `Hecho`** y **puntos cerrados**: `make tablero-resumen`.
 2. **Throughput observado**: tareas cerradas por día hábil desde el inicio.
 3. **Esfuerzo por punto**: horas-persona acumuladas ÷ puntos cerrados.
 

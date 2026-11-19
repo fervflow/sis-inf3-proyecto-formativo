@@ -47,8 +47,8 @@ prioridad media si el MVP puede resolverla de forma manual.
 
 | Prioridad | Criterio | Historias |
 |---|---|---|
-| Alta | Sostiene el flujo mínimo: acceso, catálogo, salida con cupo, disponibilidad, reserva, confirmación y pago. Sin estas historias no hay proceso validado. | HU-08, HU-01, HU-02, HU-03, HU-06, HU-17, HU-14 |
-| Media | Necesaria para operar, pero se puede resolver después del flujo mínimo o de forma manual durante el MVP. | HU-15, HU-04, HU-10, HU-12, HU-07, HU-09, HU-13 |
+| Alta | Sostiene el flujo mínimo: acceso, catálogo, salida con cupo, disponibilidad, reserva, confirmación y pago. Sin estas historias no hay proceso validado. | HU-01, HU-02, HU-03, HU-06, HU-08, HU-14, HU-17 |
+| Media | Necesaria para operar, pero se puede resolver después del flujo mínimo o de forma manual durante el MVP. | HU-04, HU-07, HU-09, HU-10, HU-12, HU-13, HU-15 |
 | Baja | Complementaria o fuera del alcance inmediato: cotizaciones, reportes y avisos por correo. | HU-05, HU-11, HU-16 |
 
 La distribución queda en 7 historias de prioridad alta, 7 de prioridad
@@ -351,16 +351,15 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 **Responsable:** Programador A · **2 tareas** · **Criterios:** los de HU-01
 
-- **T-HU-01.1** Registrar y editar paquetes con destino, itinerario,
-  servicios y precio.
+- **T-HU-01.1** Registrar y editar paquetes con destino, itinerario, servicios
+  y precio.
 - **T-HU-01.2** Mostrar el listado y validar campos obligatorios y precios.
 
 ### HU-02 · Registro de fechas de salida y cupos
 
 **Responsable:** Programador A · **2 tareas** · **Criterios:** los de HU-02
 
-- **T-HU-02.1** Registrar las fechas de salida y la capacidad de cada
-  paquete.
+- **T-HU-02.1** Registrar las fechas de salida y la capacidad de cada paquete.
 - **T-HU-02.2** Validar cupos positivos y evitar salidas duplicadas.
 
 ### HU-03 · Consulta de disponibilidad
@@ -369,15 +368,15 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 - **T-HU-03.1** Consultar cupos por paquete y fecha de salida, desde la web o
   en la oficina.
-- **T-HU-03.2** Calcular los disponibles descontando las reservas pendientes
-  y confirmadas, y comprobar el resultado.
+- **T-HU-03.2** Calcular los disponibles descontando las reservas pendientes y
+  confirmadas, y comprobar el resultado.
 
 ### HU-04 · Registro y actualización de la ficha del cliente
 
 **Responsable:** Programador B · **2 tareas** · **Criterios:** los de HU-04
 
-- **T-HU-04.1** Registrar clientes con documento y datos de contacto,
-  evitando duplicados.
+- **T-HU-04.1** Registrar clientes con documento y datos de contacto, evitando
+  duplicados.
 - **T-HU-04.2** Consultar y actualizar la información de los clientes.
 
 ### HU-10 · Registrar proveedores y vincularlos a los paquetes
@@ -393,16 +392,15 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 - **T-HU-05.1** Seleccionar cliente y paquete y calcular el precio de la
   cotización.
-- **T-HU-05.2** Mostrar servicios, importe y condiciones, sin descontar
-  cupos.
+- **T-HU-05.2** Mostrar servicios, importe y condiciones, sin descontar cupos.
 
 ### HU-06 · Registro de reservas con validación de cupos
 
 **Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-06
 
 - **T-HU-06.1** Crear una reserva desde la atención del personal o como
-  solicitud del cliente, con su origen, el cliente, la salida y la cantidad
-  de pasajeros.
+  solicitud del cliente, con su origen, el cliente, la salida y la cantidad de
+  pasajeros.
 - **T-HU-06.2** Verificar los cupos antes de guardar y rechazar las reservas
   que excedan la capacidad.
 - **T-HU-06.3** Guardar la reserva en estado pendiente con su fecha de
@@ -421,8 +419,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 **Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-07
 
-- **T-HU-07.1** Consultar las reservas de ambos canales, su estado y su
-  fecha de vencimiento.
+- **T-HU-07.1** Consultar las reservas de ambos canales, su estado y su fecha
+  de vencimiento.
 - **T-HU-07.2** Confirmar o modificar reservas y volver a verificar los cupos.
 - **T-HU-07.3** Conservar los cambios realizados para su seguimiento.
 
@@ -458,8 +456,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 **Responsable:** Programador B · **2 tareas** · **Criterios:** los de HU-13
 
-- **T-HU-13.1** Registrar la solicitud de cancelación del cliente y
-  conservar su historial, sin cambiar el estado de la reserva.
+- **T-HU-13.1** Registrar la solicitud de cancelación del cliente y conservar
+  su historial, sin cambiar el estado de la reserva.
 - **T-HU-13.2** Ejecutar la cancelación indicando el motivo y la fecha,
   liberar el cupo una sola vez y verificar la nueva disponibilidad.
 
@@ -469,8 +467,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 - **T-HU-14.1** Registrar anticipos y pagos con importe, fecha, método y
   concepto, desde el personal o desde la cuenta del cliente.
-- **T-HU-14.2** Validar o anular el pago y calcular el total abonado, el
-  saldo pendiente y el historial de pagos.
+- **T-HU-14.2** Validar o anular el pago y calcular el total abonado, el saldo
+  pendiente y el historial de pagos.
 
 ### HU-16 · Avisos de cambios de fecha y capacidad de una salida
 
@@ -478,23 +476,27 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 - **T-HU-16.1** Generar el aviso al cliente afectado cuando cambia la fecha o
   la capacidad de una salida.
-- **T-HU-16.2** Mostrar el aviso con el valor anterior y el nuevo, y
-  comprobar que solo lo vea el cliente afectado.
+- **T-HU-16.2** Mostrar el aviso con el valor anterior y el nuevo, y comprobar
+  que solo lo vea el cliente afectado.
 
 ## Convenciones del backlog
 
-- El **CSV** es la fuente tabular: UTF-8 con BOM y separador `;`. Sus
-  columnas son ID, historia, actor, canal, prioridad, riesgo, estimación y
-  tareas. La prioridad y el riesgo van en columnas separadas.
+- El **CSV** conserva los datos tabulares: UTF-8 con BOM y separador `;`.
+  Sus columnas son ID, historia, actor, canal, prioridad, riesgo, estimación
+  y tareas. La prioridad, el riesgo y la cantidad de tareas se actualizan
+  desde el tablero con `make tablero-backlog`.
 - Este documento **Markdown** es la versión legible: añade el enunciado
   completo, los criterios de aceptación, el desglose de tareas y las
-  observaciones de revisión.
+  observaciones de revisión. La tabla del backlog, el desglose, el criterio
+  de prioridades y el resumen se derivan del tablero.
 - El **desglose de tareas** se documenta solo en esta versión legible: el CSV
   conserva la cantidad de tareas por historia, no su detalle.
 - El desglose mantiene el formato `### HU-NN · título`,
   `**Responsable:** Programador A · N tareas` y `- **T-HU-NN.n** texto`
-  porque `tablero/generar.py` lo lee para generar el tablero. Un
-  cambio de formato exige actualizar el generador.
+  porque `tablero/exportar.py` lo escribe. Un cambio de formato exige
+  actualizar el exportador.
+- El texto de las historias y sus criterios se editan aquí; las tareas, sus
+  fechas, costos, prioridad y responsable se editan en el tablero.
 - Las historias **no se incluyen en `main.tex`** sin una instrucción
   explícita.
 - Los datos del backlog **no se corrigen** salvo que el usuario lo solicite.
