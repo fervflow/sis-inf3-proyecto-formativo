@@ -75,6 +75,8 @@ Base de datos (Drizzle ORM → PostgreSQL)
 |---|---|---|
 | `GET /api/<recurso>` | `/api/disponibilidad` | Consulta |
 | `POST /api/<recurso>` | `/api/vencer-solicitudes` | Acción |
+| `GET /api/cuenta` | — | Sesión en curso |
+| `GET /api/admin/<recurso>` | `/api/admin/usuarios` | Solo rol `ADMIN` |
 | `GET /api/auth/*` | — | Better Auth |
 
 Los nombres son en español y en plural; las acciones usan verbo.

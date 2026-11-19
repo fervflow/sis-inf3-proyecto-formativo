@@ -6,7 +6,7 @@
  * aquí.
  */
 
-import type { EstadoReserva } from './domain'
+import type { EstadoReserva, EstadoUsuario, Rol } from './domain'
 
 /** Respuesta de la comprobación de estado. */
 export interface EstadoSalud {
@@ -56,4 +56,42 @@ export interface ReservaResumen {
 /** Respuesta de la consulta de reservas. */
 export interface RespuestaReservas {
   reservas: ReservaResumen[]
+}
+
+/** Cuenta de la sesión en curso. */
+export interface CuentaActual {
+  id: string
+  usuario: string
+  nombres: string
+  apellidos: string
+  rol: Rol
+  estado: EstadoUsuario
+  debeCambiarPassword: boolean
+}
+
+/** Respuesta de la cuenta de la sesión en curso. */
+export interface RespuestaCuenta {
+  usuario: CuentaActual | null
+}
+
+/** Una cuenta tal como la ve el panel de administración. */
+export interface UsuarioAdmin {
+  id: string
+  usuario: string
+  nombres: string
+  apellidos: string
+  rol: Rol
+  estado: EstadoUsuario
+  debeCambiarPassword: boolean
+  creadoEn: string
+}
+
+/** Respuesta de la lista de cuentas. */
+export interface RespuestaUsuarios {
+  usuarios: UsuarioAdmin[]
+}
+
+/** Respuesta de una operación que no devuelve datos. */
+export interface RespuestaOperacion {
+  ok: true
 }

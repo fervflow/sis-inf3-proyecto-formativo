@@ -67,8 +67,14 @@ negocio.
 | `verification` | `verification` | Correo de verificación y tokens de un solo uso. |
 
 Los campos que el dominio necesita de la cuenta son **campos adicionales**
-de `usuario`: `id_rol`, `nombres`, `apellidos`, `telefono` y `estado`. El
-nombre visible de la cuenta (`name`) se arma con `nombres` y `apellidos`.
+de `usuario`: `id_rol`, `nombres`, `apellidos`, `telefono`, `estado` y
+`debe_cambiar_password`. El nombre visible de la cuenta (`name`) se arma con
+`nombres` y `apellidos`.
+
+`debe_cambiar_password` lo usa la aplicación, no Better Auth: la contraseña
+inicial de una cuenta creada por el administrador es el nombre de usuario y
+se obliga a cambiarla en el primer ingreso. El nombre de usuario no tiene
+columna: se deriva del correo interno (`usuario@vizcacha.tours`).
 
 El **registro de accesos** va aparte, en `acceso`, porque la trazabilidad de
 los ingresos es una regla del negocio (criterio de HU-08) y no una función

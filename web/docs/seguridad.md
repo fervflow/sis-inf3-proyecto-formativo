@@ -38,6 +38,9 @@ es la lista corta de lo que aplica.
   viven en Vercel y en el `.env` local, que está ignorado.
 - Un secreto no se escribe en el código, no se imprime en los registros y no
   se manda a terceros sin decidirlo antes.
+- El MVP no envía correo: las cuentas son internas, el registro público está
+  cerrado y la contraseña inicial la entrega el administrador. Ver
+  `docs/autenticacion.md`.
 
 ## Rutas de la API
 

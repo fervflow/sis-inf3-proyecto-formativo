@@ -64,6 +64,9 @@ CREATE TABLE usuario (
     apellidos           VARCHAR(100) NOT NULL,
     telefono            VARCHAR(30),
     estado              VARCHAR(15) NOT NULL DEFAULT 'activo',
+    -- Contraseña inicial: la aplicación la obliga a cambiar en el primer
+    -- ingreso. Better Auth no conoce esta columna; la lee la aplicación.
+    debe_cambiar_password BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT ck_user_estado CHECK (estado IN ('activo', 'inactivo', 'bloqueado')),
     CONSTRAINT ck_user_correo CHECK (email = lower(email))
 );
@@ -440,9 +443,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- La tabla `usuario` es de Better Auth y su columna se llama `updated_at`,
+-- no `fecha_actualizacion`: necesita su propia función.
+CREATE OR REPLACE FUNCTION fn_actualizar_fecha_usuario()
+RETURNS TRIGGER
+SET search_path = turismo, public
+AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER tr_user_actualizacion
     BEFORE UPDATE ON usuario
-    FOR EACH ROW EXECUTE FUNCTION fn_actualizar_fecha_modificacion();
+    FOR EACH ROW EXECUTE FUNCTION fn_actualizar_fecha_usuario();
 
 CREATE TRIGGER tr_paquete_actualizacion
     BEFORE UPDATE ON paquete

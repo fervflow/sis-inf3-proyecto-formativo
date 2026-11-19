@@ -14,7 +14,7 @@
             </span>
           </NuxtLink>
 
-          <nav class="flex items-center gap-1">
+          <nav class="flex flex-wrap items-center gap-1">
             <UButton
               to="/"
               variant="ghost"
@@ -27,6 +27,35 @@
               color="neutral"
               :label="t('nav.disponibilidad')"
             />
+            <UButton
+              v-if="esAdmin"
+              to="/admin/usuarios"
+              variant="ghost"
+              color="neutral"
+              :label="t('nav.usuarios')"
+            />
+
+            <template v-if="cuenta?.usuario">
+              <span
+                class="hidden px-2 text-(--vt-texto-sm) text-(--vt-color-texto-suave) sm:inline"
+              >
+                {{ cuenta.usuario.nombres }}
+              </span>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                :label="t('nav.salir')"
+                @click="salir"
+              />
+            </template>
+            <UButton
+              v-else
+              to="/ingresar"
+              variant="ghost"
+              color="neutral"
+              :label="t('nav.ingresar')"
+            />
+
             <USelect
               v-model="idioma"
               :items="idiomasDisponibles"
@@ -54,9 +83,23 @@
 </template>
 
 <script setup lang="ts">
+import type { RespuestaCuenta } from '#shared/types/api'
 import { idiomas } from '~/i18n'
 
 const { t, idioma } = useTexto()
+
+const { data: cuenta } = await useFetch<RespuestaCuenta>('/api/cuenta', {
+  key: 'cuenta',
+})
+
+const esAdmin = computed(() => cuenta.value?.usuario?.rol === 'ADMIN')
+
+/** Cierra la sesión y vuelve al ingreso. */
+async function salir() {
+  await $fetch('/api/auth/sign-out', { method: 'POST' })
+  await refreshNuxtData('cuenta')
+  await navigateTo('/ingresar')
+}
 
 const idiomasDisponibles = [
   { valor: 'es', etiqueta: 'Español' },

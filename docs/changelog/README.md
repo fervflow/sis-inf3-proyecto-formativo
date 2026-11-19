@@ -67,3 +67,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-18 14:57 | `2026-11-18T145700_estructura-de-desarrollo-de-la-web.md` | Estructura de desarrollo agéntico de la web: sistema de diseño, textos centralizados, componentes base, tipos compartidos y documentación. |
 | 2026-11-18 17:37 | `2026-11-18T173757_neon-y-ajuste-del-esquema.md` | Base de datos en Neon (São Paulo) y ajuste del esquema, las funciones y la configuración para el pooler. |
 | 2026-11-19 14:25 | `2026-11-19T142508_configuracion-multiplataforma-y-readmes-concisos.md` | Configuración de VS Code sin rutas locales y READMEs reducidos y sin duplicación. |
+| 2026-11-19 15:18 | `2026-11-19T151851_cuentas-internas-y-gestion-de-usuarios.md` | Cuentas internas sin correo, cambio obligatorio de contraseña y panel de administración de usuarios. |

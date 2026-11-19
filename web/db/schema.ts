@@ -71,6 +71,14 @@ export const usuario = turismo.table('usuario', {
   apellidos: varchar('apellidos', { length: 100 }).notNull(),
   telefono: varchar('telefono', { length: 30 }),
   estado: varchar('estado', { length: 15 }).notNull().default('activo'),
+  /**
+   * Contraseña inicial pendiente de cambio en el primer ingreso.
+   * Better Auth no conoce este campo: lo lee la aplicación para decidir
+   * si redirige a `/cambiar-password`.
+   */
+  debeCambiarPassword: boolean('debe_cambiar_password')
+    .notNull()
+    .default(false),
 })
 
 export const session = turismo.table('session', {

@@ -33,6 +33,14 @@ function crearAuth() {
         apellidos: { type: 'string', required: true },
         telefono: { type: 'string', required: false },
         estado: { type: 'string', required: false, defaultValue: 'activo', input: false },
+        // La contraseña inicial debe cambiarse en el primer ingreso. Lo
+        // controla la aplicación: el formulario de alta no lo envía.
+        debeCambiarPassword: {
+          type: 'boolean',
+          required: false,
+          defaultValue: false,
+          input: false,
+        },
       },
     },
 
@@ -46,11 +54,10 @@ function crearAuth() {
           request?: { headers?: { get?: (nombre: string) => string | null } }
         }
 
-        // El gancho corre en cada ruta de la biblioteca: solo interesan
-        // el alta de la cuenta y el inicio de sesión.
-        const esAcceso =
-          contexto.path?.startsWith('/sign-in') ||
-          contexto.path?.startsWith('/sign-up')
+        // El gancho corre en cada ruta de la biblioteca: solo interesa el
+        // inicio de sesión. Las cuentas las crea el administrador, de modo
+        // que un alta no es un acceso de la persona usuaria.
+        const esAcceso = contexto.path?.startsWith('/sign-in')
 
         if (!esAcceso) {
           return {}

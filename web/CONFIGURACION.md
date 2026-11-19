@@ -20,25 +20,31 @@
 
 **Falta:**
 
-- [ ] **Secretos de la aplicación**, en `.env.local` y en Vercel:
+- [x] **Secretos de la aplicación**, en `.env.local` y en Vercel:
       `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `BETTER_AUTH_URL` y
       `CRON_SECRET`.
-- [ ] **Rol de la aplicación** con menos privilegios que el dueño de la
-      base, y usarlo en `DATABASE_URL`.
+- [x] **Rol de la aplicación** con menos privilegios que el dueño de la
+      base (`vizcacha_app`, `read_write` sobre `turismo`), usado en
+      `DATABASE_URL`.
 - [ ] **Ramas de base por rama de Git**: `main` para producción, `develop`
       para desarrollo y una por previsualización.
 - [ ] **Vigilar el plan gratuito**: 100 CU-horas, 1 GB de Postgres, 5 GB de
       egreso y 6 horas de historial. El cómputo se pausa a los 5 minutos
       sin uso.
-- [ ] *Opcional:* activar `pg_stat_statements` para ver consultas lentas.
+- [x] *Opcional:* activar `pg_stat_statements` para ver consultas lentas.
 
 No se usa el «Managed Better Auth» de Neon: la identidad vive en la
 aplicación y el esquema queda bajo control.
 
+**Usuarios del MVP:** el registro público está cerrado y el correo queda
+fuera de alcance. Las cuentas se crean desde `/admin/usuarios`; el nombre de
+usuario es el identificador y la contraseña inicial. Ver
+`docs/autenticacion.md`.
+
 ## Vercel
 
-- [ ] **Importar el repositorio** y fijar **Root Directory = `web`**.
-- [ ] **Declarar las variables** en producción y previsualización:
+- [x] **Importar el repositorio** y fijar **Root Directory = `web`**.
+- [x] **Declarar las variables** en producción:
       `DATABASE_URL` (pooled), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` y
       `CRON_SECRET`.
 - [ ] **Barrido diario**: ya está en `web/vercel.json`; el plan Hobby
@@ -47,7 +53,10 @@ aplicación y el esquema queda bajo control.
 - [ ] **Dominio** y nameservers o registros DNS.
 - [ ] **Producción desde `main`** y previsualización desde cada rama.
 
-## Correo
+## Correo (post-MVP)
+
+**Fuera del MVP.** Las cuentas son internas y no se envía correo; ver
+`docs/autenticacion.md`. Queda pendiente para la etapa siguiente.
 
 - [ ] **Elegir proveedor**: Resend (3.000 correos al mes), Postmark o
       Brevo.

@@ -65,6 +65,15 @@ raíz.
 
    La aplicación queda en `http://localhost:3000`.
 
+6. **Crear la cuenta administradora.** El registro público está cerrado:
+
+   ```bash
+   node web/scripts/crear-admin.mjs administrador
+   ```
+
+   Entra con `administrador` / `administrador`; la aplicación obliga a
+   cambiar la contraseña en el primer ingreso.
+
 > **Orden de los archivos de entorno.** En Node gana el primer valor
 > cargado. La aplicación carga `web/.env`, el `.env` de la raíz y
 > `.env.local` de la raíz, en ese orden. Un `web/.env` con valores de
@@ -105,8 +114,10 @@ web/
 
 ## Pendientes
 
-- [ ] Crear la primera cuenta de administrador y su rol.
-- [ ] Formulario de ingreso y cierre de sesión.
+- [x] Cuentas internas, ingreso y administración de usuarios.
+- [x] Crear la primera cuenta de administrador y su rol.
+- [ ] Solicitud pública de acceso y bandeja de aprobación (post-MVP).
+- [ ] Correo: verificación y avisos de HU-16 (post-MVP).
 - [ ] Páginas y rutas de API de cada historia.
 - [ ] Semilla de datos de prueba.
 
