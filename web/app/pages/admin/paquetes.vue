@@ -37,7 +37,7 @@
           />
 
           <span v-else-if="columna.clave === 'precioBase'" class="tabular-nums">
-            {{ formatearPrecio(fila.precioBase) }}
+            {{ moneda(fila.precioBase) }}
           </span>
 
           <div
@@ -179,6 +179,7 @@ const RUTA: string = '/api/admin/paquetes'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
+const { moneda } = useFormato()
 
 const {
   data,
@@ -228,13 +229,6 @@ function colorEstado(
   if (estado === 'activo') return 'success'
   if (estado === 'borrador') return 'warning'
   return 'neutral'
-}
-
-function formatearPrecio(valor: string): string {
-  return new Intl.NumberFormat('es-BO', {
-    style: 'currency',
-    currency: 'BOB',
-  }).format(Number(valor))
 }
 
 // --- Alta y edición -----------------------------------------------------

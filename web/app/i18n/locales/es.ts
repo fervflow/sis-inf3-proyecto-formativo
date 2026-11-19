@@ -24,14 +24,35 @@ export const es = {
   'nav.clientes': 'Clientes',
   'nav.paquetes': 'Paquetes',
   'nav.usuarios': 'Usuarios',
+  'nav.gestion': 'Gestión',
+  'nav.principal': 'Navegación principal',
+  'nav.menu': 'Abrir el menú',
   'nav.cuenta': 'Mi cuenta',
   'nav.salir': 'Cerrar sesión',
   'nav.ingresar': 'Ingresar',
 
+  'idioma.es': 'Español',
+  'idioma.en': 'English',
+
   'inicio.titulo': 'Gestión de paquetes turísticos y reservas',
+  'inicio.etiqueta': 'Vizcacha Tours · Potosí',
   'inicio.introduccion':
     'Sistema web para la agencia Vizcacha Tours, en Potosí. Atiende a dos canales con el mismo proceso validado: la atención del personal de agencia y el acceso directo del cliente.',
+  'inicio.ingresar': 'Ingresar al sistema',
+  'inicio.verDisponibilidad': 'Ver disponibilidad',
+  'inicio.irAlPanel': 'Ir al panel',
+  'inicio.cuentas':
+    'Las cuentas las entrega la agencia; no hay registro público.',
   'inicio.queSePuedeHacer': 'Qué se puede hacer',
+  'inicio.tarjetas.paquetes.titulo': 'Paquetes y salidas',
+  'inicio.tarjetas.paquetes.texto':
+    'Catálogo vigente, fechas, cupos y precios en un solo lugar.',
+  'inicio.tarjetas.reservas.titulo': 'Reservas con cupo validado',
+  'inicio.tarjetas.reservas.texto':
+    'El cupo se descuenta en la base: no se vende dos veces el mismo lugar.',
+  'inicio.tarjetas.equipo.titulo': 'Para el equipo y para el cliente',
+  'inicio.tarjetas.equipo.texto':
+    'El personal atiende y el turista consulta; el proceso es el mismo.',
   'inicio.capacidades.1':
     'Registrar y mantener los paquetes turísticos y sus proveedores.',
   'inicio.capacidades.2':

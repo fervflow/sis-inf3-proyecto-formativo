@@ -82,6 +82,13 @@ Ejemplo de tabla:
 
 La tabla entrega `columna`, `fila` y `valor` a la plantilla.
 
+## La barra de navegación
+
+`app/components/BarraNavegacion.vue` es la cabecera de toda la aplicación.
+Recibe la cuenta de la sesión y emite `salir`; no pide datos ni llama a la
+API. Los enlaces de gestión dependen del rol, y el menú de la cuenta
+incluye el cierre de sesión.
+
 ## Componentes por módulo
 
 Cuando una historia tenga varias vistas, sus componentes viven con ella:

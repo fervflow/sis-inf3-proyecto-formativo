@@ -69,3 +69,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-19 14:25 | `2026-11-19T142508_configuracion-multiplataforma-y-readmes-concisos.md` | Configuración de VS Code sin rutas locales y READMEs reducidos y sin duplicación. |
 | 2026-11-19 15:18 | `2026-11-19T151851_cuentas-internas-y-gestion-de-usuarios.md` | Cuentas internas sin correo, cambio obligatorio de contraseña y panel de administración de usuarios. |
 | 2026-11-19 15:46 | `2026-11-19T154655_paquetes-y-fichas-de-clientes.md` | Gestión de paquetes turísticos (HU-01) y fichas de clientes (HU-04), con permiso de personal. |
+| 2026-11-19 16:05 | `2026-11-19T160504_portada-navegacion-y-estados-de-carga.md` | Convenciones de la interfaz, encabezado nuevo, portada sin prueba de conexión y aviso de carga. |

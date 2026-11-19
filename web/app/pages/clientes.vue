@@ -42,7 +42,7 @@
       >
         <template #celda="{ columna, fila, valor }">
           <span v-if="columna.clave === 'documento'" class="tabular-nums">
-            {{ fila.tipoDocumento }} {{ fila.numeroDocumento }}
+            {{ etiquetaTipo(fila.tipoDocumento) }} {{ fila.numeroDocumento }}
           </span>
 
           <UBadge

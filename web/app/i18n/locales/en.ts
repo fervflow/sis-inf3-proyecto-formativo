@@ -18,14 +18,35 @@ export const en: Mensajes = {
   'nav.clientes': 'Clients',
   'nav.paquetes': 'Packages',
   'nav.usuarios': 'Users',
+  'nav.gestion': 'Management',
+  'nav.principal': 'Main navigation',
+  'nav.menu': 'Open menu',
   'nav.cuenta': 'My account',
   'nav.salir': 'Sign out',
   'nav.ingresar': 'Sign in',
 
+  'idioma.es': 'Spanish',
+  'idioma.en': 'English',
+
   'inicio.titulo': 'Tour package and booking management',
+  'inicio.etiqueta': 'Vizcacha Tours · Potosí',
   'inicio.introduccion':
     'Web system for the Vizcacha Tours agency, in Potosí. It serves two channels through the same validated process: the agency staff and the customer’s direct access.',
+  'inicio.ingresar': 'Sign in',
+  'inicio.verDisponibilidad': 'Check availability',
+  'inicio.irAlPanel': 'Go to dashboard',
+  'inicio.cuentas':
+    'Accounts are provided by the agency; there is no public sign-up.',
   'inicio.queSePuedeHacer': 'What you can do',
+  'inicio.tarjetas.paquetes.titulo': 'Packages and departures',
+  'inicio.tarjetas.paquetes.texto':
+    'Current catalogue, dates, capacity and prices in one place.',
+  'inicio.tarjetas.reservas.titulo': 'Bookings with validated capacity',
+  'inicio.tarjetas.reservas.texto':
+    'Capacity is deducted in the database: the same place is never sold twice.',
+  'inicio.tarjetas.equipo.titulo': 'For the team and the customer',
+  'inicio.tarjetas.equipo.texto':
+    'Staff serve and tourists check; it is the same process.',
   'inicio.capacidades.1': 'Register and maintain tour packages and their suppliers.',
   'inicio.capacidades.2': 'Schedule departures with a date, a capacity and a price.',
   'inicio.capacidades.3': 'Check availability and record bookings with capacity validation.',
