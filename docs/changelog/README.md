@@ -68,3 +68,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-18 17:37 | `2026-11-18T173757_neon-y-ajuste-del-esquema.md` | Base de datos en Neon (São Paulo) y ajuste del esquema, las funciones y la configuración para el pooler. |
 | 2026-11-19 14:25 | `2026-11-19T142508_configuracion-multiplataforma-y-readmes-concisos.md` | Configuración de VS Code sin rutas locales y READMEs reducidos y sin duplicación. |
 | 2026-11-19 15:18 | `2026-11-19T151851_cuentas-internas-y-gestion-de-usuarios.md` | Cuentas internas sin correo, cambio obligatorio de contraseña y panel de administración de usuarios. |
+| 2026-11-19 15:46 | `2026-11-19T154655_paquetes-y-fichas-de-clientes.md` | Gestión de paquetes turísticos (HU-01) y fichas de clientes (HU-04), con permiso de personal. |

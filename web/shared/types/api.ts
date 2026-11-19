@@ -6,7 +6,14 @@
  * aquí.
  */
 
-import type { EstadoReserva, EstadoUsuario, Rol } from './domain'
+import type {
+  EstadoCliente,
+  EstadoPaquete,
+  EstadoReserva,
+  EstadoUsuario,
+  Rol,
+  TipoDocumento,
+} from './domain'
 
 /** Respuesta de la comprobación de estado. */
 export interface EstadoSalud {
@@ -94,4 +101,43 @@ export interface RespuestaUsuarios {
 /** Respuesta de una operación que no devuelve datos. */
 export interface RespuestaOperacion {
   ok: true
+}
+
+/** Un paquete turístico tal como lo edita el administrador. */
+export interface PaqueteAdmin {
+  idPaquete: number
+  codigo: string
+  nombre: string
+  descripcion: string | null
+  duracionDias: number
+  precioBase: string
+  itinerario: string | null
+  serviciosIncluidos: string | null
+  estado: EstadoPaquete
+  fechaActualizacion: string
+}
+
+/** Respuesta de la lista de paquetes. */
+export interface RespuestaPaquetes {
+  paquetes: PaqueteAdmin[]
+}
+
+/** La ficha de un cliente. */
+export interface ClienteResumen {
+  idCliente: number
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
+  nombres: string
+  apellidos: string
+  correo: string | null
+  telefono: string | null
+  direccion: string | null
+  fechaNacimiento: string | null
+  estado: EstadoCliente
+  fechaRegistro: string
+}
+
+/** Respuesta de la lista de clientes. */
+export interface RespuestaClientes {
+  clientes: ClienteResumen[]
 }

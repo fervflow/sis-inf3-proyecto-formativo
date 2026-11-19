@@ -69,6 +69,7 @@ interfaz:
 | `usuario.estado` no es `activo` | Se borran sus sesiones y se corta la petición |
 | `debe_cambiar_password` es true | Solo se puede llegar a `/cambiar-password` |
 | Ruta `/admin` o `/api/admin` sin rol `ADMIN` | Redirección o 403 |
+| Ruta `/clientes` o `/api/clientes` sin rol `ADMIN` ni `PERSONAL` | Redirección o 403 |
 
 ## Proteger una ruta
 

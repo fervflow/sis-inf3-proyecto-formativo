@@ -28,6 +28,20 @@
               :label="t('nav.disponibilidad')"
             />
             <UButton
+              v-if="esPersonal"
+              to="/clientes"
+              variant="ghost"
+              color="neutral"
+              :label="t('nav.clientes')"
+            />
+            <UButton
+              v-if="esAdmin"
+              to="/admin/paquetes"
+              variant="ghost"
+              color="neutral"
+              :label="t('nav.paquetes')"
+            />
+            <UButton
               v-if="esAdmin"
               to="/admin/usuarios"
               variant="ghost"
@@ -93,6 +107,11 @@ const { data: cuenta } = await useFetch<RespuestaCuenta>('/api/cuenta', {
 })
 
 const esAdmin = computed(() => cuenta.value?.usuario?.rol === 'ADMIN')
+const esPersonal = computed(
+  () =>
+    cuenta.value?.usuario?.rol === 'ADMIN' ||
+    cuenta.value?.usuario?.rol === 'PERSONAL',
+)
 
 /** Cierra la sesión y vuelve al ingreso. */
 async function salir() {

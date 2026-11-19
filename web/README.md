@@ -116,9 +116,10 @@ web/
 
 - [x] Cuentas internas, ingreso y administración de usuarios.
 - [x] Crear la primera cuenta de administrador y su rol.
+- [x] Paquetes turísticos y fichas de clientes.
 - [ ] Solicitud pública de acceso y bandeja de aprobación (post-MVP).
 - [ ] Correo: verificación y avisos de HU-16 (post-MVP).
-- [ ] Páginas y rutas de API de cada historia.
+- [ ] Páginas y rutas de API del resto de las historias.
 - [ ] Semilla de datos de prueba.
 
 Las 39 historias del backlog son el plan de desarrollo; el tablero lleva el

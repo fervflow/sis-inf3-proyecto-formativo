@@ -1,7 +1,7 @@
 import { getSessionCookie } from 'better-auth/cookies'
 import { eq } from 'drizzle-orm'
 import * as schema from '../../db/schema'
-import { ROL_ADMIN } from '../utils/autorizacion'
+import { ROL_ADMIN, ROL_PERSONAL } from '../utils/autorizacion'
 
 /**
  * Sesión de la petición.
@@ -94,6 +94,19 @@ export default defineEventHandler(async (event) => {
   // la interfaz.
   if (ruta.startsWith('/admin') || ruta.startsWith('/api/admin')) {
     if (sesion.user.idRol !== ROL_ADMIN) {
+      if (esApi) {
+        throw createError({ statusCode: 403, statusMessage: 'sin_permiso' })
+      }
+      return sendRedirect(event, '/')
+    }
+  }
+
+  // La ficha de clientes la maneja el personal; el turista no entra.
+  if (ruta.startsWith('/clientes') || ruta.startsWith('/api/clientes')) {
+    const esPersonal =
+      sesion.user.idRol === ROL_ADMIN || sesion.user.idRol === ROL_PERSONAL
+
+    if (!esPersonal) {
       if (esApi) {
         throw createError({ statusCode: 403, statusMessage: 'sin_permiso' })
       }

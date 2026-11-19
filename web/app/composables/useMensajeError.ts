@@ -24,6 +24,12 @@ const CODIGOS: Record<string, ClaveMensaje> = {
   password_incorrecta: 'errores.passwordIncorrecta',
   sin_contrasena: 'errores.sinContrasena',
   datos_invalidos: 'errores.datosInvalidos',
+  paquete_duplicado: 'errores.paqueteDuplicado',
+  paquete_inexistente: 'errores.paqueteInexistente',
+  codigo_invalido: 'errores.codigoInvalido',
+  cliente_duplicado: 'errores.clienteDuplicado',
+  cliente_inexistente: 'errores.clienteInexistente',
+  fecha_futura: 'errores.fechaFutura',
 }
 
 /** Devuelve el texto de un fallo de la API. */

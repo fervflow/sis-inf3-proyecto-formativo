@@ -12,6 +12,9 @@ import type { H3Event } from 'h3'
 /** El rol de administrador en la tabla `rol`. */
 export const ROL_ADMIN = 1
 
+/** El rol de personal de la agencia en la tabla `rol`. */
+export const ROL_PERSONAL = 2
+
 /** Datos de la cuenta que viajan en la sesión. */
 export interface UsuarioSesion {
   id: string
@@ -60,6 +63,17 @@ export function exigirAdmin(event: H3Event): SesionActual {
   const sesion = exigirSesion(event)
 
   if (sesion.user.idRol !== ROL_ADMIN) {
+    throw createError({ statusCode: 403, statusMessage: 'sin_permiso' })
+  }
+
+  return sesion
+}
+
+/** Exige una cuenta con sesión de administrador o personal de agencia. */
+export function exigirPersonal(event: H3Event): SesionActual {
+  const sesion = exigirSesion(event)
+
+  if (sesion.user.idRol !== ROL_ADMIN && sesion.user.idRol !== ROL_PERSONAL) {
     throw createError({ statusCode: 403, statusMessage: 'sin_permiso' })
   }
 
