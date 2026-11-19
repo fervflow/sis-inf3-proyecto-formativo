@@ -21,23 +21,38 @@ revisión.
 | ID | Historia de usuario | Actor | Canal | Prioridad | Riesgo | Estimación | N° tareas |
 |---|---|---|---|---|---|---|---|
 | HU-08 | Iniciar sesión y acceder según el rol | Personal, Cliente | Web | Alta | Alto | 3 pts | 3 tareas |
-| HU-15 | Abrir una cuenta de cliente y acceder a su información | Cliente | Web | Alta | Alto | 3 pts | 3 tareas |
+| HU-15 | Abrir una cuenta de cliente y acceder a su información | Cliente | Web | Media | Alto | 3 pts | 3 tareas |
 | HU-01 | Gestión de paquetes turísticos | Administrador | Web | Alta | Medio | 3 pts | 2 tareas |
 | HU-02 | Registro de fechas de salida y cupos | Administrador | Web | Alta | Alto | 2 pts | 2 tareas |
 | HU-03 | Consulta de disponibilidad | Cliente, Personal | Web, Oficina | Alta | Medio | 2 pts | 2 tareas |
-| HU-04 | Registro y actualización de la ficha del cliente | Personal | Web, Oficina | Alta | Medio | 2 pts | 2 tareas |
+| HU-04 | Registro y actualización de la ficha del cliente | Personal | Web, Oficina | Media | Medio | 2 pts | 2 tareas |
 | HU-10 | Registrar proveedores y vincularlos a los paquetes | Administrador | Web | Media | Bajo | 2 pts | 2 tareas |
-| HU-05 | Elaboración de cotizaciones | Personal | Web, Oficina | Media | Medio | 3 pts | 2 tareas |
+| HU-05 | Elaboración de cotizaciones | Personal | Web, Oficina | Baja | Medio | 3 pts | 2 tareas |
 | HU-06 | Registro de reservas con validación de cupos | Personal, Cliente | Web, Oficina | Alta | Alto | 5 pts | 3 tareas |
-| HU-12 | Registro de pasajeros y vinculación a una reserva | Personal, Cliente | Web | Alta | Medio | 3 pts | 2 tareas |
-| HU-07 | Seguimiento y actualización de reservas | Personal | Web | Alta | Medio | 3 pts | 3 tareas |
+| HU-12 | Registro de pasajeros y vinculación a una reserva | Personal, Cliente | Web | Media | Medio | 3 pts | 2 tareas |
+| HU-07 | Seguimiento y actualización de reservas | Personal | Web | Media | Medio | 3 pts | 3 tareas |
 | HU-17 | Confirmación de solicitudes y control de su vencimiento | Personal | Web | Alta | Alto | 3 pts | 3 tareas |
-| HU-09 | Modificar fechas o capacidad de una salida | Administrador | Web | Alta | Alto | 3 pts | 2 tareas |
-| HU-11 | Consultar reportes de ocupación y reservas por fecha | Personal | Web | Media | Medio | 2 pts | 2 tareas |
-| HU-13 | Solicitud y ejecución de la cancelación de una reserva | Cliente, Personal | Web, Oficina | Alta | Alto | 3 pts | 2 tareas |
+| HU-09 | Modificar fechas o capacidad de una salida | Administrador | Web | Media | Alto | 3 pts | 2 tareas |
+| HU-11 | Consultar reportes de ocupación y reservas por fecha | Personal | Web | Baja | Medio | 2 pts | 2 tareas |
+| HU-13 | Solicitud y ejecución de la cancelación de una reserva | Cliente, Personal | Web, Oficina | Media | Alto | 3 pts | 2 tareas |
 | HU-14 | Registro y validación de anticipos y saldos de una reserva | Cliente, Personal | Web, Oficina | Alta | Medio | 3 pts | 2 tareas |
-| HU-16 | Avisos de cambios de fecha y capacidad de una salida | Cliente | Web | Alta | Medio | 2 pts | 2 tareas |
+| HU-16 | Avisos de cambios de fecha y capacidad de una salida | Cliente | Web | Baja | Medio | 2 pts | 2 tareas |
 | **TOTAL** | **17 historias de usuario** | | | | | **47 pts** | **39 tareas** |
+
+## Criterio de prioridades
+
+La prioridad mide cuánto sostiene el flujo mínimo de reservas, no el
+esfuerzo ni el riesgo. Una historia con riesgo alto puede quedar en
+prioridad media si el MVP puede resolverla de forma manual.
+
+| Prioridad | Criterio | Historias |
+|---|---|---|
+| Alta | Sostiene el flujo mínimo: acceso, catálogo, salida con cupo, disponibilidad, reserva, confirmación y pago. Sin estas historias no hay proceso validado. | HU-08, HU-01, HU-02, HU-03, HU-06, HU-17, HU-14 |
+| Media | Necesaria para operar, pero se puede resolver después del flujo mínimo o de forma manual durante el MVP. | HU-15, HU-04, HU-10, HU-12, HU-07, HU-09, HU-13 |
+| Baja | Complementaria o fuera del alcance inmediato: cotizaciones, reportes y avisos por correo. | HU-05, HU-11, HU-16 |
+
+La distribución queda en 7 historias de prioridad alta, 7 de prioridad
+media y 3 de prioridad baja.
 
 ## Actores
 
@@ -309,6 +324,9 @@ de esa historia. El responsable indicado corresponde al reparto de trabajo
 entre los dos programadores: 20 tareas para el programador A y 19 para el
 programador B.
 
+En el tablero, el programador A aparece como **EV** y el programador B como
+**RE**.
+
 ### HU-08 · Iniciar sesión y acceder según el rol
 
 **Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-08
@@ -490,8 +508,9 @@ programador B.
 | Estimación total | 47 pts |
 | Tareas totales | 39 |
 | Tareas desglosadas | 39 |
-| Prioridad alta | 14 |
-| Prioridad media | 3 |
+| Prioridad alta | 7 |
+| Prioridad media | 7 |
+| Prioridad baja | 3 |
 | Riesgo alto | 7 |
 | Riesgo medio | 9 |
 | Riesgo bajo | 1 |

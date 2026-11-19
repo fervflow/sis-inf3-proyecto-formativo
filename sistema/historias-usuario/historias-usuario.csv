@@ -1,19 +1,19 @@
 ﻿ID;Historia de usuario;Actor;Canal;Prioridad;Riesgo;Estimación;N° tareas
 HU-08;Iniciar sesión y acceder según el rol;Personal, Cliente;Web;Alta;Alto;3 pts;3 tareas
-HU-15;Abrir una cuenta de cliente y acceder a su información;Cliente;Web;Alta;Alto;3 pts;3 tareas
+HU-15;Abrir una cuenta de cliente y acceder a su información;Cliente;Web;Media;Alto;3 pts;3 tareas
 HU-01;Gestión de paquetes turísticos;Administrador;Web;Alta;Medio;3 pts;2 tareas
 HU-02;Registro de fechas de salida y cupos;Administrador;Web;Alta;Alto;2 pts;2 tareas
 HU-03;Consulta de disponibilidad;Cliente, Personal;Web, Oficina;Alta;Medio;2 pts;2 tareas
-HU-04;Registro y actualización de la ficha del cliente;Personal;Web, Oficina;Alta;Medio;2 pts;2 tareas
+HU-04;Registro y actualización de la ficha del cliente;Personal;Web, Oficina;Media;Medio;2 pts;2 tareas
 HU-10;Registrar proveedores y vincularlos a los paquetes;Administrador;Web;Media;Bajo;2 pts;2 tareas
-HU-05;Elaboración de cotizaciones;Personal;Web, Oficina;Media;Medio;3 pts;2 tareas
+HU-05;Elaboración de cotizaciones;Personal;Web, Oficina;Baja;Medio;3 pts;2 tareas
 HU-06;Registro de reservas con validación de cupos;Personal, Cliente;Web, Oficina;Alta;Alto;5 pts;3 tareas
-HU-12;Registro de pasajeros y vinculación a una reserva;Personal, Cliente;Web;Alta;Medio;3 pts;2 tareas
-HU-07;Seguimiento y actualización de reservas;Personal;Web;Alta;Medio;3 pts;3 tareas
+HU-12;Registro de pasajeros y vinculación a una reserva;Personal, Cliente;Web;Media;Medio;3 pts;2 tareas
+HU-07;Seguimiento y actualización de reservas;Personal;Web;Media;Medio;3 pts;3 tareas
 HU-17;Confirmación de solicitudes y control de su vencimiento;Personal;Web;Alta;Alto;3 pts;3 tareas
-HU-09;Modificar fechas o capacidad de una salida;Administrador;Web;Alta;Alto;3 pts;2 tareas
-HU-11;Consultar reportes de ocupación y reservas por fecha;Personal;Web;Media;Medio;2 pts;2 tareas
-HU-13;Solicitud y ejecución de la cancelación de una reserva;Cliente, Personal;Web, Oficina;Alta;Alto;3 pts;2 tareas
+HU-09;Modificar fechas o capacidad de una salida;Administrador;Web;Media;Alto;3 pts;2 tareas
+HU-11;Consultar reportes de ocupación y reservas por fecha;Personal;Web;Baja;Medio;2 pts;2 tareas
+HU-13;Solicitud y ejecución de la cancelación de una reserva;Cliente, Personal;Web, Oficina;Media;Alto;3 pts;2 tareas
 HU-14;Registro y validación de anticipos y saldos de una reserva;Cliente, Personal;Web, Oficina;Alta;Medio;3 pts;2 tareas
-HU-16;Avisos de cambios de fecha y capacidad de una salida;Cliente;Web;Alta;Medio;2 pts;2 tareas
+HU-16;Avisos de cambios de fecha y capacidad de una salida;Cliente;Web;Baja;Medio;2 pts;2 tareas
 TOTAL;17 historias de usuario;;;;;47 pts;39 tareas

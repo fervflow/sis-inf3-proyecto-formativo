@@ -104,7 +104,7 @@ proyecto-formativo/
 │   ├── historias-usuario/   Backlog (MD y CSV)
 │   └── estimacion/          Estimación de esfuerzo y costo
 ├── bd/                      Esquema y diccionario de datos
-├── tablero/                 Tablero kanban generado
+├── tablero/                 Tablero kanban y planificación
 ├── web/                     Aplicación Nuxt, Drizzle y Better Auth
 ├── docs/                    Guías y bitácora
 ├── entregables/             PDF final y diagramas generados
@@ -125,6 +125,7 @@ proyecto-formativo/
 | `sistema/historias-usuario/*` | Sí | Backlog |
 | `web/**` | Sí | La web del sistema |
 | `tablero/tablero.md` | Solo columnas | El texto sale del backlog |
+| `tablero/planificacion.csv` | Sí | Fechas y costos de cada tarea |
 | `main.tex` | Poco | Agregar o quitar capítulos |
 | `si3apa7.cls` y `entornos-apa.sty` | No\* | Ya definen el formato |
 | `entregables/` y `_build/` | Nunca | Se regeneran |

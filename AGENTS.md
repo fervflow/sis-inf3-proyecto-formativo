@@ -57,7 +57,8 @@ nunca `pdflatex`.
 
 - `entregables/` y `_build/` son salidas: no se editan a mano.
 - `tablero/tablero.md` es generado: solo se mueven tarjetas; el texto se
-  cambia en el backlog y se regenera.
+  cambia en el backlog y las fechas y costos en
+  `tablero/planificacion.csv`, y se regenera.
 - `bd/esquema.sql` es la fuente canónica del esquema; `web/db/schema.ts` lo
   refleja y cambian juntos.
 - `node_modules/`, `_build/`, `entregables/` y las salidas de Nuxt no se

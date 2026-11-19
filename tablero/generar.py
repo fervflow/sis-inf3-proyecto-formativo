@@ -6,6 +6,10 @@ del contenido de cada tarjeta (texto, historia y responsable); el CSV es la
 fuente de la prioridad, el riesgo y la cantidad de tareas. El tablero solo
 guarda el estado: la columna en la que está cada tarjeta.
 
+Los datos de planificación —fechas y costos— viven en
+`tablero/planificacion.csv`, una fila por tarea. Así el tablero se puede
+regenerar sin perder lo que se haya cargado.
+
 Uso:
 
     python3 tablero/generar.py            # regenera el tablero
@@ -18,16 +22,72 @@ consistencia o, con `--check`, si el tablero está desactualizado.
 import csv
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 DOCUMENTO = RAIZ / 'sistema' / 'historias-usuario' / 'historias-usuario.md'
 DATOS = RAIZ / 'sistema' / 'historias-usuario' / 'historias-usuario.csv'
+PLANIFICACION = RAIZ / 'tablero' / 'planificacion.csv'
 TABLERO = RAIZ / 'tablero' / 'tablero.md'
 
 COLUMNAS = ['Por hacer', 'En curso', 'En pruebas / QA',
             'Listo para producción', 'Hecho']
 INICIAL = 'Por hacer'
+
+# Iniciales de los dos programadores en el tablero. El backlog sigue
+# nombrando al programador A y al B; el tablero usa las iniciales.
+INICIALES = {'A': 'EV', 'B': 'RE'}
+
+# Etiqueta de prioridad. La extensión la extrae del texto y la muestra como
+# insignia; el color se configura en los ajustes del tablero. La prioridad
+# también queda escrita, para no depender del color.
+ETIQUETA_PRIORIDAD = {
+    'Alta': '#prio-alta',
+    'Media': '#prio-media',
+    'Baja': '#prio-baja',
+}
+
+# La fecha de entrega que se usa cuando la planificación no trae una.
+ENTREGA_POR_DEFECTO = '26/11/2026'
+
+# Ajustes del tablero. Se conservan los que ya tenga el archivo; estos se
+# usan cuando se genera desde cero. `inline-metadata-position: footer`
+# muestra los campos `[Clave:: valor]` como etiquetas al pie de la tarjeta.
+AJUSTES_POR_DEFECTO = '''%% kanban:settings
+{
+  "kanban-plugin": "basic",
+  "date-format": "DD/MM/YYYY",
+  "date-display-format": "DD/MM/YYYY",
+  "inline-metadata-position": "footer",
+  "move-task-metadata": true,
+  "move-tags": true,
+  "move-dates": true,
+  "show-relative-date": false,
+  "tag-action": "kanban",
+  "tag-colors": [
+    {
+      "tagKey": "prio-alta",
+      "color": "#a94a52",
+      "backgroundColor": "#ffffff"
+    },
+    {
+      "tagKey": "prio-media",
+      "color": "#b08a3e",
+      "backgroundColor": "#1a1a1a"
+    },
+    {
+      "tagKey": "prio-baja",
+      "color": "#4f7d5c",
+      "backgroundColor": "#ffffff"
+    }
+  ]
+}
+%%'''
+
+# Campos de `planificacion.csv`.
+CAMPOS_PLAN = ['tarea', 'inicio', 'fin', 'entrega',
+               'costo_inicial', 'costo_pendiente']
 
 # Límites de trabajo en curso por columna. None significa que la columna
 # no tiene tope: es la cola de entrada o el histórico, donde acumular no
@@ -133,6 +193,10 @@ def leer_datos():
         cantidad = re.match(r'(\d+)', fila[7])
         if not cantidad:
             raise Error(f'{fila[0]}: la cantidad de tareas no es un número')
+        if fila[4] not in ETIQUETA_PRIORIDAD:
+            raise Error(
+                f'{fila[0]}: prioridad desconocida «{fila[4]}». '
+                f'Se esperan: {", ".join(ETIQUETA_PRIORIDAD)}')
         datos[fila[0]] = {
             'historia': fila[1],
             'prioridad': fila[4],
@@ -143,6 +207,83 @@ def leer_datos():
     if not totales:
         raise Error('el CSV no tiene la fila TOTAL')
     return datos, totales
+
+
+def leer_planificacion():
+    """Lee fechas y costos de cada tarea desde `planificacion.csv`."""
+    if not PLANIFICACION.exists():
+        raise Error(f'no existe el CSV {PLANIFICACION}')
+
+    with PLANIFICACION.open(encoding='utf-8-sig', newline='') as archivo:
+        filas = [fila for fila in csv.reader(archivo, delimiter=';') if fila]
+
+    if not filas:
+        raise Error('planificacion.csv está vacío')
+    if [campo.strip() for campo in filas[0]] != CAMPOS_PLAN:
+        raise Error(
+            'planificacion.csv: la cabecera debe ser '
+            + ';'.join(CAMPOS_PLAN))
+
+    plan = {}
+    for numero_fila, fila in enumerate(filas[1:], 2):
+        if len(fila) != len(CAMPOS_PLAN):
+            raise Error(
+                f'planificacion.csv, línea {numero_fila}: se esperan '
+                f'{len(CAMPOS_PLAN)} columnas')
+        tarea = fila[0].strip()
+        if not re.fullmatch(r'T-HU-\d{2}\.\d+', tarea):
+            raise Error(
+                f'planificacion.csv, línea {numero_fila}: tarea inválida '
+                f'«{tarea}»')
+        if tarea in plan:
+            raise Error(f'planificacion.csv: tarea repetida {tarea}')
+
+        valores = [campo.strip() for campo in fila[1:]]
+        for fecha in valores[:3]:
+            if fecha:
+                try:
+                    datetime.strptime(fecha, '%d/%m/%Y')
+                except ValueError:
+                    raise Error(
+                        f'planificacion.csv, línea {numero_fila}: fecha '
+                        f'inválida «{fecha}» (se espera DD/MM/AAAA)')
+        for valor in valores[3:]:
+            if valor:
+                try:
+                    costo = float(valor.replace(',', '.'))
+                except ValueError:
+                    raise Error(
+                        f'planificacion.csv, línea {numero_fila}: costo '
+                        f'inválido «{valor}»')
+                if costo < 0:
+                    raise Error(
+                        f'planificacion.csv, línea {numero_fila}: el costo '
+                        f'no puede ser negativo')
+
+        plan[tarea] = {
+            'inicio': valores[0],
+            'fin': valores[1],
+            'entrega': valores[2] or ENTREGA_POR_DEFECTO,
+            'costo_inicial': valores[3],
+            'costo_pendiente': valores[4],
+        }
+
+    return plan
+
+
+def fecha_o_guion(valor):
+    """Muestra la fecha o un guion cuando todavía no está cargada."""
+    return valor or '—'
+
+
+def moneda(valor):
+    """Formatea un costo en bolivianos, o un guion si está vacío."""
+    if not valor:
+        return '—'
+    numero = float(valor.replace(',', '.'))
+    texto = f'{numero:,.2f}'
+    texto = texto.replace(',', '\x00').replace('.', ',').replace('\x00', '.')
+    return f'Bs {texto}'
 
 
 def comprobar(historias, datos, totales):
@@ -200,7 +341,7 @@ def leer_tablero():
             continue
 
         tarjeta = re.match(
-            r'^- (?:\[[ xX]\] )?\*\*(T-HU-\d{2}\.\d+)\*\*', linea)
+            r'^- (?:\[[ xX]\] )?.*?\*\*(T-HU-\d{2}\.\d+)\*\*', linea)
         if not tarjeta:
             continue
         if actual not in COLUMNAS:
@@ -232,8 +373,21 @@ def bloques_finales(texto):
     return bloque if bloque.endswith('%%') else ''
 
 
-def construir(historias, datos, estado, ajustes=''):
+def construir(historias, datos, plan, estado, ajustes=''):
     """Arma el contenido del tablero respetando la columna de cada tarjeta."""
+    tareas = [tarea for historia in historias.values()
+              for tarea in historia['tareas']]
+    ids = {tarea['id'] for tarea in tareas}
+    faltan = sorted(ids - set(plan))
+    sobran = sorted(set(plan) - ids)
+    if faltan:
+        raise Error(
+            'planificacion.csv: faltan las tareas ' + ', '.join(faltan))
+    if sobran:
+        raise Error(
+            'planificacion.csv: tareas que no están en el backlog: '
+            + ', '.join(sobran))
+
     orden = {hu: indice for indice, hu in enumerate(datos)}
     tarjetas = []
     for hu, historia in historias.items():
@@ -243,9 +397,10 @@ def construir(historias, datos, estado, ajustes=''):
                 'id': tarea['id'],
                 'texto': re.sub(r'\s+', ' ', tarea['texto']).strip(),
                 'hu': hu,
-                'responsable': historia['responsable'].split()[-1],
+                'responsable': INICIALES[historia['responsable'].split()[-1]],
                 'prioridad': datos[hu]['prioridad'],
                 'riesgo': datos[hu]['riesgo'],
+                'plan': plan[tarea['id']],
                 'orden': (orden[hu], numero),
             })
     tarjetas.sort(key=lambda tarjeta: tarjeta['orden'])
@@ -261,10 +416,25 @@ def construir(historias, datos, estado, ajustes=''):
         lineas.append(f'## {columna}{sufijo}')
         lineas.append('')
         for tarjeta in por_columna[columna]:
+            etiqueta = ETIQUETA_PRIORIDAD[tarjeta['prioridad']]
+            # La barra final es un salto de línea duro de Markdown: separa el
+            # encabezado de la descripción en la tarjeta.
             lineas.append(
-                f"- [ ] **{tarjeta['id']}** {tarjeta['texto']} · "
-                f"{tarjeta['hu']} · {tarjeta['responsable']} · "
-                f"{tarjeta['prioridad']}/{tarjeta['riesgo']}")
+                f"- [ ] **{tarjeta['id']}** · "
+                f"{tarjeta['responsable']} · {tarjeta['hu']} \\")
+            lineas.append(f"  {tarjeta['texto']}")
+            plan_tarea = tarjeta['plan']
+            campos = ' '.join([
+                f"[Inicio:: {fecha_o_guion(plan_tarea['inicio'])}]",
+                f"[Fin:: {fecha_o_guion(plan_tarea['fin'])}]",
+                f"[Entrega:: {plan_tarea['entrega']}]",
+                f"[Costo inicial:: {moneda(plan_tarea['costo_inicial'])}]",
+                f"[Costo pendiente:: {moneda(plan_tarea['costo_pendiente'])}]",
+                f"[Prioridad y riesgo:: "
+                f"{tarjeta['prioridad']}/{tarjeta['riesgo']}]",
+                etiqueta,
+            ])
+            lineas.append(f'  {campos}')
         if por_columna[columna]:
             lineas.append('')
 
@@ -302,9 +472,11 @@ def main():
         historias = leer_documento()
         datos, totales = leer_datos()
         comprobar(historias, datos, totales)
+        plan = leer_planificacion()
         estado, anterior = leer_tablero()
+        ajustes = bloques_finales(anterior) or AJUSTES_POR_DEFECTO
         contenido, por_columna, tarjetas = construir(
-            historias, datos, estado, bloques_finales(anterior))
+            historias, datos, plan, estado, ajustes)
     except Error as error:
         print(f'ERROR: {error}', file=sys.stderr)
         return 1
@@ -339,9 +511,12 @@ def main():
         f'{columna}: {len(por_columna[columna])}'
         + (f'/{LIMITES[columna]}' if columna in LIMITES else '')
         for columna in COLUMNAS)
-    a = sum(1 for tarjeta in tarjetas if tarjeta['responsable'] == 'A')
-    b = len(tarjetas) - a
-    print(f'{len(tarjetas)} tarjetas ({a} de A, {b} de B) · {resumen}')
+    summary_a = sum(
+        1 for tarjeta in tarjetas
+        if tarjeta['responsable'] == INICIALES['A'])
+    summary_b = len(tarjetas) - summary_a
+    print(f'{len(tarjetas)} tarjetas ({summary_a} de EV, {summary_b} de RE) '
+          f'· {resumen}')
     return 0
 
 

@@ -1,5 +1,5 @@
 /**
- * Textos de la interfaz, en español.
+ * Textos de la interfaz, en español latino neutro.
  *
  * Este archivo es la única fuente de los textos que ve la persona usuaria.
  * Ningún componente escribe texto suelto: todo pasa por `useTexto()`.
@@ -88,17 +88,17 @@ export const es = {
 
   'ingreso.titulo': 'Ingresar al sistema',
   'ingreso.introduccion':
-    'Las cuentas las crea el administrador. Escribí el nombre de usuario que te entregó.',
+    'Las cuentas las crea el administrador. Escribe el nombre de usuario que te entregó.',
   'ingreso.usuario': 'Usuario',
   'ingreso.contrasena': 'Contraseña',
   'ingreso.pista':
     'La primera vez, la contraseña es el mismo nombre de usuario.',
   'ingreso.error': 'Usuario o contraseña incorrectos.',
-  'ingreso.bloqueada': 'La cuenta no está activa. Consultá con el administrador.',
+  'ingreso.bloqueada': 'La cuenta no está activa. Consulta con el administrador.',
 
   'cambio.titulo': 'Cambiar la contraseña',
   'cambio.introduccion':
-    'Estás usando la contraseña inicial. Elegí una nueva para continuar.',
+    'Estás usando la contraseña inicial. Elige una nueva para continuar.',
   'cambio.actual': 'Contraseña actual',
   'cambio.nueva': 'Contraseña nueva',
   'cambio.repetir': 'Repetir la contraseña nueva',
@@ -106,7 +106,7 @@ export const es = {
   'cambio.corta': 'La contraseña nueva debe tener al menos 8 caracteres.',
   'cambio.igual': 'La contraseña nueva debe ser distinta de la actual.',
   'cambio.error':
-    'No se pudo cambiar la contraseña. Revisá la contraseña actual.',
+    'No se pudo cambiar la contraseña. Revisa la contraseña actual.',
   'cambio.exito': 'Contraseña actualizada.',
 
   'usuarios.titulo': 'Usuarios',
@@ -229,15 +229,15 @@ export const es = {
   'errores.usuarioInvalido':
     'El usuario solo admite minúsculas, números, punto, guion y guion bajo.',
   'errores.usuarioReservado': 'Ese nombre de usuario está reservado.',
-  'errores.propiaCuenta': 'No podés modificar tu propia cuenta desde el panel.',
-  'errores.sinPermiso': 'No tenés permisos para esta operación.',
-  'errores.sinSesion': 'Tu sesión expiró. Volvé a ingresar.',
+  'errores.propiaCuenta': 'No puedes modificar tu propia cuenta desde el panel.',
+  'errores.sinPermiso': 'No tienes permisos para esta operación.',
+  'errores.sinSesion': 'Tu sesión expiró. Vuelve a ingresar.',
   'errores.cuentaInactiva': 'La cuenta no está activa.',
-  'errores.cambioPendiente': 'Primero tenés que cambiar la contraseña.',
+  'errores.cambioPendiente': 'Primero tienes que cambiar la contraseña.',
   'errores.passwordIgual':
     'La contraseña nueva debe ser distinta de la actual.',
   'errores.passwordIncorrecta': 'La contraseña actual no es correcta.',
-  'errores.datosInvalidos': 'Revisá los datos ingresados.',
+  'errores.datosInvalidos': 'Revisa los datos ingresados.',
   'errores.usuarioInexistente': 'La cuenta no existe.',
   'errores.rolInvalido': 'El rol elegido no es válido.',
   'errores.sinContrasena': 'La cuenta no tiene una contraseña para restablecer.',
