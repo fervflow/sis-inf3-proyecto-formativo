@@ -303,7 +303,7 @@ sistema no pueda cumplir.
 
 ## Desglose de tareas
 
-Las 39 tareas se detailan por historia, en el orden del backlog. Cada tarea
+Las 39 tareas se detallan por historia, en el orden del backlog. Cada tarea
 hereda los criterios de aceptación de su historia y la prioridad y el riesgo
 de esa historia. El responsable indicado corresponde al reparto de trabajo
 entre los dos programadores: 20 tareas para el programador A y 19 para el

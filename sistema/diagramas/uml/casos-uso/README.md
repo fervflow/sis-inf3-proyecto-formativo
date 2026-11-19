@@ -1,29 +1,27 @@
 # Casos de uso
 
-Diagrama de casos de uso del sistema de gestión de paquetes turísticos y
-reservas. Los 17 casos de uso del backlog se agrupan en **14 casos de uso**:
-el diagrama muestra lo que el actor quiere conseguir, no las tareas internas
-de programación.
+Diagrama de casos de uso del sistema. Los 17 casos del backlog se agrupan
+en **14 casos de uso**: muestra lo que el actor quiere conseguir, no las
+tareas internas.
 
 | Archivo | Contenido | Tamaño |
 |---|---|---|
-| `casos-uso.puml` | Actores, casos de uso y sus relaciones `<<include>>` y `<<extend>>`. | 820 × 1078 pt |
+| `casos-uso.puml` | Actores, casos de uso y relaciones `include` / `extend` | 820 × 1078 pt |
 
 ## Actores
 
 | Actor | Casos de uso |
 |---|---|
-| Cliente (turista) | Acceder al sistema, Abrir cuenta de cliente, Consultar disponibilidad, Registrar reserva, Registrar pasajeros, Cancelar reserva, Registrar y validar pagos, Recibir avisos de cambios |
-| Personal de agencia | Acceder al sistema, Consultar disponibilidad, Elaborar cotización, Registrar reserva, Registrar pasajeros, Gestionar la reserva, Confirmar solicitudes, Cancelar reserva, Registrar y validar pagos, Consultar reportes |
-| Administrador | Acceder al sistema, Administrar la oferta, Programar y modificar salidas, Consultar reportes |
+| Cliente (turista) | Acceder, abrir cuenta, consultar disponibilidad, registrar reserva y pasajeros, cancelar, pagar, recibir avisos |
+| Personal de agencia | Acceder, consultar disponibilidad, cotizar, registrar reserva y pasajeros, gestionar reservas, confirmar, cancelar, validar pagos, reportes |
+| Administrador | Acceder, administrar la oferta, programar y modificar salidas, reportes |
 
-Los tres vienen de la tabla de actores del backlog. El administrador es un
-rol propio del sistema (`rol.codigo = 'ADMIN'`), no una extensión del
-personal de agencia.
+El administrador es un rol propio (`rol.codigo = 'ADMIN'`), no una
+extensión del personal.
 
 ## Trazabilidad con el backlog
 
-| Caso de uso | Historia de usuario |
+| Caso de uso | Historia |
 |---|---|
 | Acceder al sistema | HU-08 |
 | Abrir cuenta de cliente | HU-15 |
@@ -42,28 +40,26 @@ personal de agencia.
 
 ## Relaciones
 
-**`<<include>>`: el caso de uso incluye a otro, siempre.**
+**`include`** (siempre):
 
-| Caso | Incluye a | Por qué |
+| Caso | Incluye | Motivo |
 |---|---|---|
-| Elaborar cotización | Consultar disponibilidad | El precio de la propuesta se calcula sobre los cupos de la salida. |
-| Registrar reserva | Consultar disponibilidad | La reserva valida el cupo antes de guardarse. |
-| Registrar reserva | Registrar pasajeros | Los pasajeros quedan identificados y vinculados a la reserva. |
-| Consultar reportes | Consultar disponibilidad | El reporte publica la ocupación y los cupos libres por fecha. |
+| Elaborar cotización | Consultar disponibilidad | El precio depende del cupo |
+| Registrar reserva | Consultar disponibilidad | La reserva valida el cupo |
+| Registrar reserva | Registrar pasajeros | Los pasajeros quedan vinculados |
+| Consultar reportes | Consultar disponibilidad | El reporte publica ocupación y cupos |
 
-**`<<extend>>`: el caso de uso es una variante de otro, con precondición.**
+**`extend`** (variante con precondición):
 
-| Caso | Extiende a | Precondición |
+| Caso | Extiende | Precondición |
 |---|---|---|
-| Confirmar solicitudes | Gestionar la reserva | La solicitud está pendiente y dentro del plazo. |
-| Cancelar reserva | Gestionar la reserva | La reserva no está finalizada. |
-| Registrar y validar pagos | Gestionar la reserva | La reserva está confirmada. |
-| Recibir avisos de cambios | Programar y modificar salidas | Cambió la fecha o la capacidad de la salida. |
+| Confirmar solicitudes | Gestionar la reserva | Pendiente y dentro del plazo |
+| Cancelar reserva | Gestionar la reserva | No finalizada |
+| Registrar y validar pagos | Gestionar la reserva | Confirmada |
+| Recibir avisos de cambios | Programar y modificar salidas | Cambió fecha o capacidad |
 
-Las cuatro extensiones cuelgan de los dos casos de uso generales: la gestión
-de la reserva y el mantenimiento de las salidas. Así se ve en el diagrama que
-confirmar, cancelar y cobrar **no son procesos aparte**: son maneras
-particulares de gestionar la reserva, con su precondición.
+Confirmar, cancelar y cobrar no son procesos aparte: son formas de
+gestionar la reserva, con su precondición.
 
 ## Generación
 

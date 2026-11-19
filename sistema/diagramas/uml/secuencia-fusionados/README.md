@@ -1,25 +1,23 @@
 # Diagramas fusionados
 
-Variantes que combinan dos historias de usuario con alto solapamiento. Se
-agregan como **alternativas**, no reemplazan a los diagramas individuales de
+Variantes que combinan dos historias con alto solapamiento. Son
+**alternativas**: no reemplazan a los diagramas individuales de
 `../secuencia/`.
 
 | Archivo | Historias | Contenido |
 |---|---|---|
-| `hu-03-05-consulta-cotizacion.puml` | HU-03 + HU-05 | Consulta de disponibilidad y, si el cliente acepta, elaboración de la cotización. |
-| `hu-07-13-gestion-estado-reserva.puml` | HU-07 + HU-13 | Seguimiento, confirmación, finalización o cancelación de una reserva. |
+| `hu-03-05-consulta-cotizacion.puml` | HU-03 + HU-05 | Consulta de disponibilidad y elaboración de la cotización |
+| `hu-07-13-gestion-estado-reserva.puml` | HU-07 + HU-13 | Seguimiento, confirmación, finalización o cancelación |
 
 ## Diferencias con los originales
 
-- El diagrama de HU-03 + HU-05 usa dos controles: disponibilidad y
-  cotizaciones.
-- El diagrama de HU-07 + HU-13 agrega `SELECT ... FOR UPDATE` antes de
-  validar y cambiar el estado.
-- La cancelación conserva el motivo, el historial y el aviso al turista.
-  La solicitud de cancelación del cliente se registra antes de que el
-  personal la ejecute, porque el estado no cambia por la sola petición.
-- El aviso al cliente se emite cuando cambia la fecha o la capacidad de una
-  salida (HU-16).
+- HU-03 + HU-05 usa dos controles: disponibilidad y cotizaciones.
+- HU-07 + HU-13 agrega `SELECT ... FOR UPDATE` antes de validar y cambiar
+  el estado.
+- La cancelación conserva motivo, historial y aviso; la solicitud del
+  cliente se registra antes de que el personal la ejecute.
+- El aviso se emite cuando cambia la fecha o la capacidad de una salida
+  (HU-16).
 
 ## Generación
 

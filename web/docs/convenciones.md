@@ -2,48 +2,44 @@
 
 ## General
 
-- **Idioma:** los textos, los comentarios y los nombres de dominio van en
-  español. Las palabras del framework (`useFetch`, `defineProps`,
-  `computed`) van en inglés, porque así los lee todo el mundo.
-- **Tipos:** TypeScript estricto. `strict: true` está activo; `any` no se
-  usa. Si el tipo no se puede expresar, se usa `unknown` y se estrecha.
-- **Formato:** sin punto y coma, comillas simples, dos espacios de
-  sangría, líneas de hasta 80 caracteres.
-- **Comentarios:** explican el porqué, no el qué. Un comentario que repite
-  la línea siguiente sobra.
+- **Idioma:** textos, comentarios y nombres de dominio en español; las
+  palabras del framework (`useFetch`, `defineProps`, `computed`) en inglés.
+- **Tipos:** TypeScript estricto, sin `any`. Si no se puede expresar, se usa
+  `unknown` y se estrecha.
+- **Formato:** sin punto y coma, comillas simples, dos espacios, líneas de
+  hasta 80 caracteres.
+- **Comentarios:** explican el porqué, no el qué.
 
 ## Nombres
 
 | Elemento | Convención | Ejemplo |
 |---|---|---|
-| Componente | PascalCase, con prefijo del módulo | `BaseTarjeta`, `TablaReservas` |
+| Componente | PascalCase con prefijo del módulo | `BaseTarjeta`, `TablaReservas` |
 | Archivo de componente | PascalCase | `TablaDatos.vue` |
 | Composable | `use` + PascalCase | `useTexto`, `useApi` |
 | Variable y función | camelCase | `cupoDisponible`, `crearReserva` |
 | Constante | SCREAMING_SNAKE_CASE | `IDIOMA_POR_DEFECTO` |
-| Tipo o interfaz | PascalCase | `EstadoReserva`, `ColumnaTabla` |
+| Tipo o interfaz | PascalCase | `EstadoReserva` |
 | Clave de texto | `area.elemento` en minúsculas | `disponibilidad.columnas.cupo` |
 | Rama de git | `tipo/corta-descripcion` | `feat/barrido-solicitudes` |
 
 ## Tipos
 
-- `interface` para objetos con forma conocida; `type` para uniones.
-- Los tipos del dominio se declaran una vez, en `shared/types/domain.ts`,
-  y se derivan de las restricciones de la base.
-- Las respuestas de la API se declaran en `shared/types/api.ts`; la ruta y
-  la vista usan el mismo tipo.
-- `as const` en los objetos de constantes, para que TypeScript conserve
-  los valores literales.
-- Las enumeraciones de la base son uniones de cadenas literales, no
-  enumeraciones de TypeScript.
+- `interface` para objetos; `type` para uniones.
+- Los tipos del dominio viven en `shared/types/domain.ts` y se derivan de la
+  base.
+- Las respuestas se declaran en `shared/types/api.ts`; la ruta y la vista
+  usan el mismo tipo.
+- `as const` en constantes para conservar valores literales.
+- Las enumeraciones de la base son uniones de cadenas, no `enum`.
 
 ## Imports
 
-- Los alias del framework: `~/` apunta a `app/`, `#shared/` a `shared/`.
+- `~/` apunta a `app/`; `#shared/` a `shared/`.
 - Los imports de tipo usan `import type`.
-- Los imports se ordenan: librerías externas, alias, rutas relativas.
-- Un componente no importa con rutas relativas dentro de `app/components/`:
-  se usa el nombre del componente, que Nuxt registra solo.
+- Orden: librerías externas, alias, rutas relativas.
+- Dentro de `app/components/` no se usan rutas relativas: Nuxt registra los
+  componentes por nombre.
 
 ## Componentes
 
@@ -64,30 +60,24 @@ const emit = defineEmits<{
 </script>
 ```
 
-- Un componente declara sus props con tipos; nada de `props: {}` sin tipo.
-- Los valores por omisión van en `withDefaults`.
-- Los eventos se declaran en `defineEmits` con su carga útil.
-- `defineModel` para el estado de dos vías.
-- Un componente no pide datos ni llama a la API: recibe props y emite
-  eventos.
+- Props siempre tipadas; valores por omisión en `withDefaults`.
+- Eventos declarados en `defineEmits` con su carga útil.
+- `defineModel` para estado de dos vías.
+- Un componente no pide datos ni llama a la API: recibe props y emite.
 
 ## Composables
 
-- Un composable devuelve un objeto con valores y funciones.
-- Empieza por `use`.
-- No guarda estado global sin motivo: `useState` solo para lo que se
-  comparte entre vistas.
-- No escribe texto de la interfaz: devuelve datos y la vista traduce.
+- Empiezan por `use` y devuelven un objeto con valores y funciones.
+- No guardan estado global sin motivo: `useState` solo para lo compartido.
+- No escriben textos de interfaz: devuelven datos y la vista traduce.
 
 ## Servidor
 
-- Una ruta por archivo, en `server/api/`.
+- Una ruta por archivo en `server/api/`.
 - La entrada se valida con Zod antes de tocar la base.
-- Las reglas de negocio con bloqueo de fila se llaman como funciones de la
-  base, no se reimplementan.
-- Los errores se propagan con `createError` y un código correcto.
-- Nada de `console.log` en el servidor: se usa `console.error` con
-  contexto cuando hay que registrar algo.
+- Las reglas con bloqueo de fila se llaman como funciones de la base.
+- Los errores se propagan con `createError`.
+- Nada de `console.log`: se usa `console.error` con contexto.
 
 ## Rutas de la API
 
@@ -104,9 +94,8 @@ export default defineEventHandler(async (event) => {
 })
 ```
 
-- El nombre del archivo es el verbo y el recurso.
-- La respuesta es un objeto con una clave, nunca un arreglo suelto: así se
-  puede ampliar sin romper a quien consume.
+El nombre del archivo es el verbo y el recurso. La respuesta es un objeto con
+una clave, nunca un arreglo suelto.
 
 ## Git
 
@@ -114,15 +103,14 @@ export default defineEventHandler(async (event) => {
   disponibilidad`.
 - Tipos: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`.
 - Una rama, un trabajo.
-- Nada de archivos generados: `node_modules/`, `.nuxt/`, `.output/` y
-  `dist/` están fuera del repositorio.
+- No se versionan `node_modules/`, `.nuxt/`, `.output/` ni `dist/`.
 
-## Qué se revisa antes de dar por terminado
+## Antes de terminar
 
 - [ ] `npm run typecheck --workspace web` sin errores.
 - [ ] `npm run build --workspace web` compila.
 - [ ] Los textos nuevos existen en todos los idiomas.
-- [ ] Ningún color escrito a mano en una plantilla.
+- [ ] Ningún color escrito a mano.
 - [ ] Las entradas que cruzan la red están validadas.
 - [ ] Si se tocó el esquema, `bd/esquema.sql` y `web/db/schema.ts` están
       alineados.

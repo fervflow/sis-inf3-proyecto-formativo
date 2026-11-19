@@ -5,15 +5,14 @@
 | Tipo | Archivo | Quién lo usa |
 |---|---|---|
 | Valores del dominio | `shared/types/domain.ts` | Interfaz y servidor |
-| Respuestas de la API | `shared/types/api.ts` | La ruta que responde y la vista que pide |
-| Tipos de los componentes | `shared/types/ui.ts` | Componentes y vistas |
+| Respuestas de la API | `shared/types/api.ts` | Ruta y vista |
+| Tipos de componentes | `shared/types/ui.ts` | Componentes y vistas |
 
-`shared/` es la carpeta que Nuxt comparte entre la interfaz y el servidor:
-se importa con el alias `#shared/`.
+`shared/` se importa con el alias `#shared/`.
 
-## Los tipos del dominio son el reflejo de la base
+## El dominio refleja la base
 
-Cada restricción `CHECK` del esquema tiene su tipo:
+Cada restricción `CHECK` tiene su tipo:
 
 ```ts
 // bd/esquema.sql
@@ -33,8 +32,7 @@ Cuando cambia la base, cambian los dos archivos.
 
 ## Contratos de la API
 
-Una ruta declara lo que devuelve; la vista declara lo que espera. Es el
-mismo tipo.
+La ruta declara lo que devuelve y la vista lo que espera: el mismo tipo.
 
 ```ts
 // shared/types/api.ts
@@ -43,12 +41,12 @@ export interface RespuestaDisponibilidad {
 }
 ```
 
-La respuesta siempre es un objeto con una clave, nunca un arreglo suelto:
-así se puede ampliar el contrato sin romper a quien lo consume.
+La respuesta es un objeto con una clave, nunca un arreglo suelto: así se
+puede ampliar sin romper a quien consume.
 
 ## Validación con Zod
 
-Todo lo que entra por la red se valida en el servidor, antes de tocar la
+Todo lo que entra por la red se valida en el servidor antes de tocar la
 base:
 
 ```ts
@@ -65,13 +63,10 @@ export default defineEventHandler(async (event) => {
 })
 ```
 
-- El esquema de Zod es la frontera: lo que no está en el esquema no pasa.
-- Los mensajes de error de validación se traducen en la interfaz, no se
-  muestran en crudo.
+El esquema es la frontera: lo que no está en él no pasa. Los mensajes se
+traducen en la interfaz, no se muestran en crudo.
 
-## Genéricos en los componentes
-
-Un componente que trabaja con cualquier forma de dato declara un genérico:
+## Genéricos en componentes
 
 ```vue
 <script setup lang="ts" generic="Fila extends object">
@@ -86,25 +81,23 @@ defineProps<{
 
 ## En el servidor
 
-- `unknown` cuando el tipo aún no se conoce; se estrecha con `typeof`,
-  `in` o un esquema de Zod.
-- `any` no se usa. Si hace falta, el tipo se define en `shared/types/`.
-- Los parámetros de las funciones PL/pgSQL se llaman con el mismo nombre
-  que en el SQL: `p_cantidad`, `p_id_usuario`.
+- `unknown` cuando el tipo no se conoce; se estrecha con `typeof`, `in` o
+  Zod.
+- `any` no se usa.
+- Los parámetros de las funciones PL/pgSQL conservan su nombre:
+  `p_cantidad`, `p_id_usuario`.
 
 ## En la interfaz
 
-- Los datos de la API se tipan al pedir: `useApi<RespuestaDisponibilidad>()`.
-- Los `ref` que guardan datos de la API llevan el tipo:
-  `ref<SalidaDisponible[]>([])`.
+- Los datos se tipan al pedir: `useApi<RespuestaDisponibilidad>()`.
+- Los `ref` llevan su tipo: `ref<SalidaDisponible[]>([])`.
 - Los valores derivados se calculan en `computed`, no en la plantilla.
 
 ## Reglas
 
-1. El tipo vive donde lo usan más de dos archivos; si lo usa uno, se
-   declara ahí.
-2. Los tipos del dominio no se redeclaran en la interfaz: se importan.
-3. Un tipo que aparece en la base y en la aplicación tiene una sola
+1. El tipo vive donde lo usan más de dos archivos; si lo usa uno, se declara
+   ahí.
+2. Los tipos del dominio no se redeclaran: se importan.
+3. Un tipo presente en la base y en la aplicación tiene una sola
    definición, en `shared/types/domain.ts`.
-4. Cuando un tipo cambia, cambia el archivo de tipos y el que lo consume:
-   el compilador avisa.
+4. Cuando cambia un tipo, cambia también quien lo consume.

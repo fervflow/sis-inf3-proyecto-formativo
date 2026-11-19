@@ -1,9 +1,6 @@
 # Componentes
 
-## Cuándo extraer un componente
-
-Extrae cuando un patrón se repite, cuando un bloque de plantilla se
-complica, o cuando el mismo concepto aparece con nombres distintos.
+## Cuándo extraer
 
 | Situación | Qué hacer |
 |---|---|
@@ -12,14 +9,12 @@ complica, o cuando el mismo concepto aparece con nombres distintos.
 | Es lógica con estado | Composable en `app/composables/` |
 | Es un texto | Clave en `app/i18n/locales/es.ts` |
 
-## Anatomía de un componente
+## Anatomía
 
 ```vue
 <script setup lang="ts">
 /**
  * Qué hace y por qué existe.
- *
- * El comentario va arriba: es lo primero que se lee.
  */
 withDefaults(
   defineProps<{
@@ -53,15 +48,11 @@ const emit = defineEmits<{
 
 Reglas:
 
-- **Sin datos.** Un componente no llama a la API ni usa `useApi`. Recibe
-  props y emite eventos.
-- **Sin textos.** Los textos llegan como props ya traducidas, o el
-  componente usa `useTexto()` si son suyos.
-- **Sin estilos sueltos.** Se usan tokens; si hace falta una variación,
-  se declara en el tema (`app/design/tema.ts`), no en la plantilla.
-- **Tipos siempre.** Las props, los eventos y los slots se declaran.
-- **Accesible.** Etiquetas asociadas, foco visible, tablas con
-  `scope="col"`.
+- **Sin datos.** No llama a la API: recibe props y emite.
+- **Sin textos sueltos.** Llegan como props traducidas o usa `useTexto()`.
+- **Sin estilos sueltos.** Usa tokens; las variantes van en el tema.
+- **Tipos siempre.** Props, eventos y slots declarados.
+- **Accesible.** Etiquetas asociadas, foco visible y `scope="col"`.
 
 ## Componentes base
 
@@ -69,13 +60,13 @@ En `app/components/base/`, con prefijo `Base`:
 
 | Componente | Uso |
 |---|---|
-| `BaseEncabezadoPagina` | Primer bloque de una vista: título, descripción, acciones |
+| `BaseEncabezadoPagina` | Título, descripción y acciones de una vista |
 | `BaseTarjeta` | Contenedor con título, cuerpo y pie |
-| `BaseTablaDatos` | Tabla genérica con columnas declarativas y plantilla por celda |
+| `BaseTablaDatos` | Tabla con columnas declarativas y plantilla por celda |
 | `BaseEstadoVacio` | Lo que se ve cuando no hay nada |
 | `BaseDato` | Indicador con etiqueta |
 
-Ejemplo de tabla con plantilla por celda:
+Ejemplo de tabla:
 
 ```vue
 <BaseTablaDatos :columnas="columnas" :filas="reservas" :cargando="pendiente">
@@ -89,8 +80,7 @@ Ejemplo de tabla con plantilla por celda:
 </BaseTablaDatos>
 ```
 
-La tabla entrega a la plantilla `columna`, `fila` y `valor`, para que cada
-celda decida qué dibujar.
+La tabla entrega `columna`, `fila` y `valor` a la plantilla.
 
 ## Componentes por módulo
 
@@ -103,37 +93,36 @@ app/components/reservas/
 └── DetalleReserva.vue
 ```
 
-Se usan con el prefijo de la carpeta: `<ListaReservas />`. Cuando el
-componente se usa en un solo lugar, puede vivir junto a la vista.
+Se usan con el prefijo de la carpeta: `<ListaReservas />`. Si se usa en un
+solo lugar, puede vivir junto a la vista.
 
 ## Slots
 
 - El slot por omisión es el contenido principal.
-- Los slots con nombre son para las zonas: `#acciones`, `#pie`,
-  `#celda`, `#vacio`.
-- Un slot con valor por omisión recibe el contexto: en la tabla, la
-  plantilla recibe `{ columna, fila, valor }`.
+- Los slots con nombre cubren zonas: `#acciones`, `#pie`, `#celda`,
+  `#vacio`.
+- Un slot con valor por omisión recibe contexto; en la tabla,
+  `{ columna, fila, valor }`.
 
 ## Props y eventos
 
-- Las props que son un conjunto de valores usan un tipo, no `string[]`.
+- Las props de un conjunto de valores usan un tipo, no `string[]`.
 - Un evento con carga útil declara sus argumentos:
   `defineEmits<{ seleccionar: [id: number] }>()`.
 - El componente no muta las props: emite.
 
 ## Accesibilidad
 
-- Todo elemento interactivo tiene foco visible (los estilos globales se
-  encargan).
+- Todo elemento interactivo tiene foco visible.
 - Los iconos solos llevan `aria-label`.
 - Los estados vacíos y de error se anuncian con texto.
 - Las tablas llevan encabezados con `scope="col"`.
 
 ## Al agregar un componente
 
-1. Decide si es base o de módulo.
-2. Escribe el comentario que explica qué hace.
-3. Declara props, eventos y slots con tipos.
-4. Usa tokens, no colores.
-5. Usa textos de `useTexto()`.
-6. Agrégalo a la tabla de este documento si es un componente base.
+1. Decidir si es base o de módulo.
+2. Escribir el comentario que explica qué hace.
+3. Declarar props, eventos y slots con tipos.
+4. Usar tokens, no colores.
+5. Usar textos de `useTexto()`.
+6. Agregarlo a la tabla de este documento si es base.

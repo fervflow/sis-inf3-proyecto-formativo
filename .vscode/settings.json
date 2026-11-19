@@ -46,7 +46,8 @@
   "latex-workshop.latex.autoBuild.run": "onSave",
   "latex-workshop.view.pdf.viewer": "tab",
   "latex-workshop.latex.clean.subfolder.enabled": true,
-  "plantuml.jar": "C:/Users/Fer/scoop/apps/plantuml/current/plantuml.jar",
+  // La extensión PlantUML usa su propio JAR. No se fija una ruta local aquí:
+  // si hace falta otro JAR, se configura en los ajustes de usuario de VS Code.
   "plantuml.render": "Local",
   "plantuml.exportFormat": "pdf",
   "plantuml.exportOutDir": "entregables/diagramas/pdf",

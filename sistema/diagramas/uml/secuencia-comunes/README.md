@@ -1,8 +1,8 @@
 # Subflujos comunes
 
 Fragmentos reutilizables extraídos de los diagramas completos de
-`../secuencia/`. No repiten actor ni interfaz porque no son casos de uso
-completos: muestran solo la interacción entre control, entidad y tabla.
+`../secuencia/`. No repiten actor ni interfaz: muestran solo la interacción
+entre control, entidad y tabla.
 
 | Archivo | Contenido | Se usa en |
 |---|---|---|
@@ -12,14 +12,13 @@ completos: muestran solo la interacción entre control, entidad y tabla.
 | `comun-saldo.puml` | Anticipo, saldo y pendiente | HU-07, HU-14 |
 | `comun-cambio-estado.puml` | Bloqueo, cambio de estado y auditoría | HU-07, HU-13, HU-17 |
 
-Los fragmentos reflejan el modelo vigente: el cupo se calcula sobre las
-reservas pendientes y confirmadas, las solicitudes vencidas liberan el cupo
-y solo el personal confirma o cancela.
+Reflejan el modelo vigente: el cupo se calcula sobre reservas pendientes y
+confirmadas, las vencidas lo liberan y solo el personal confirma o cancela.
 
 ## Uso en el informe
 
-Los diagramas completos siguen siendo autocontenidos. Estos archivos quedan
-como anexo o material de apoyo y pueden referenciarse con un fragmento:
+Los diagramas completos son autocontenidos. Estos archivos quedan como
+material de apoyo y se referencian así:
 
 ```plantuml
 ref over CTRL, E_SALIDA, E_RESERVA, T_SALIDA, T_RESERVA
