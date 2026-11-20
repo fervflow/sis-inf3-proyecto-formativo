@@ -6,7 +6,7 @@ hide footbox
 autonumber
 skinparam maxMessageSize 175
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 actor "Personal" as PER
 boundary "IU-14 · Registrar pago" as UI <<interfaz>>
 control "ControlPagos" as CTRL <<control>>

@@ -58,7 +58,7 @@ media y 3 de prioridad baja.
 
 | Actor | Rol en el sistema | Historias |
 |---|---|---|
-| Cliente (turista) | Cuenta propia. Consulta, solicita reservas, registra pagos y solicita cancelaciones. Solo accede a su propia información. | HU-03, HU-06, HU-08, HU-12, HU-13, HU-14, HU-15, HU-16 |
+| Cliente | Cuenta propia. Consulta, solicita reservas, registra pagos y solicita cancelaciones. Solo accede a su propia información. | HU-03, HU-06, HU-08, HU-12, HU-13, HU-14, HU-15, HU-16 |
 | Personal de agencia | Agentes de atención y ventas, responsables de operaciones y personal de apoyo administrativo. Confirma reservas, valida pagos, ejecuta cancelaciones y responde consultas. | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-10, HU-11, HU-12, HU-13, HU-14, HU-17 |
 | Administrador | Gestiona usuarios, paquetes, salidas, proveedores y reportes. | HU-01, HU-02, HU-07, HU-09, HU-10, HU-11, HU-15, HU-17 |
 
@@ -565,6 +565,13 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
 15. El plazo de confirmación de una solicitud queda fijado en 48 horas, que es
     el valor por omisión del esquema, el que aplican los criterios de HU-06 y
     HU-17 y el que recoge el informe.
+16. El rol `TURISTA` se renombró a `CLIENTE` para alinear el catálogo de roles
+    con la entidad `cliente`. «Turista» queda como sinónimo comercial y
+    «pasajero» como la persona que viaja.
+17. HU-01 exige destino e itinerario. El destino se agregó al paquete y el
+    itinerario es obligatorio para publicar; el borrador puede quedar
+    incompleto. El itinerario se complementa con actividades comunes
+    marcadas en una lista.
 
 ## Pendientes para la próxima revisión
 

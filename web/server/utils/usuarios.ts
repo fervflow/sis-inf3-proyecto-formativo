@@ -42,7 +42,7 @@ export function aUsuarioAdmin(fila: FilaUsuario): UsuarioAdmin {
     usuario: usuarioDeCorreo(fila.email),
     nombres: fila.nombres,
     apellidos: fila.apellidos,
-    rol: (fila.rol ?? 'TURISTA') as Rol,
+    rol: (fila.rol ?? 'CLIENTE') as Rol,
     estado: fila.estado as EstadoUsuario,
     debeCambiarPassword: fila.debeCambiarPassword,
     creadoEn: fila.creadoEn.toISOString(),

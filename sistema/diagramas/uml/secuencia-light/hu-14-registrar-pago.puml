@@ -2,7 +2,7 @@
 title HU-14 · Registro de anticipos y saldos (versión ligera)
 hide footbox
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 boundary "IU-14" as UI <<interfaz>>
 control "ControlPagos" as CTRL <<control>>
 entity "Pago" as E_PAGO <<entidad>>

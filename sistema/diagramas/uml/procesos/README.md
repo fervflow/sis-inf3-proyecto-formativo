@@ -15,7 +15,7 @@ Agrupa las historias por rol y muestra el recorrido principal.
 
 | Carril | Actividades |
 |---|---|
-| Turista | Consulta, aceptación de la cotización, solicitud de reserva, registro del pago y solicitud de cancelación |
+| Cliente | Consulta, aceptación de la cotización, solicitud de reserva, registro del pago y solicitud de cancelación |
 | Personal | Cotización, registro de reserva, validación del pago, confirmación, seguimiento, cancelación y saldo |
 | Administrador | Supervisión, cambio de fechas o capacidad y aviso a los clientes |
 | Sistema | Cupos, saldos, historiales y vencimiento de solicitudes |

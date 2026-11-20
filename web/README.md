@@ -16,6 +16,7 @@ raíz.
 |---|---|
 | `AGENTS.md` | Reglas operativas y a qué documento leer según la tarea |
 | `docs/README.md` | Arquitectura, convenciones, diseño, datos, auth y pruebas |
+| `../sistema/reglas-negocio.md` | Catálogo canónico de reglas de negocio |
 
 ## Requisitos
 
@@ -54,7 +55,8 @@ raíz.
    ```
 
    Crea el esquema `turismo` completo: tablas, vistas, funciones y
-   disparadores.
+   disparadores. Si la base ya existe, aplicar las actualizaciones con
+   `make db-actualizar`.
 
 5. **Instalar y levantar:**
 
@@ -117,10 +119,12 @@ web/
 - [x] Cuentas internas, ingreso y administración de usuarios.
 - [x] Crear la primera cuenta de administrador y su rol.
 - [x] Paquetes turísticos y fichas de clientes.
+- [x] Reglas de paquetes y salidas, con actividades del itinerario.
+- [x] Salidas programadas: alta, edición, estados y control de duplicados.
 - [ ] Solicitud pública de acceso y bandeja de aprobación (post-MVP).
 - [ ] Correo: verificación y avisos de HU-16 (post-MVP).
 - [ ] Páginas y rutas de API del resto de las historias.
 - [ ] Semilla de datos de prueba.
 
-Las 39 historias del backlog son el plan de desarrollo; el tablero lleva el
-estado.
+Las 17 historias y sus 39 tareas son el plan de desarrollo; el tablero
+lleva el estado.

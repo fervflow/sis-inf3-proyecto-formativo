@@ -90,10 +90,28 @@
           </UFormField>
 
           <UFormField
+            :label="t('paquetes.form.destino')"
+            name="destino"
+            :required="formulario.estado === 'activo'"
+          >
+            <UInput
+              v-model="formulario.destino"
+              class="w-full"
+              :required="formulario.estado === 'activo'"
+            />
+          </UFormField>
+
+          <UFormField
             :label="t('paquetes.form.descripcion')"
             name="descripcion"
+            :required="formulario.estado === 'activo'"
           >
-            <UTextarea v-model="formulario.descripcion" :rows="2" class="w-full" />
+            <UTextarea
+              v-model="formulario.descripcion"
+              :rows="2"
+              class="w-full"
+              :required="formulario.estado === 'activo'"
+            />
           </UFormField>
 
           <div class="grid gap-4 sm:grid-cols-2">
@@ -116,7 +134,7 @@
               <UInput
                 v-model="formulario.precioBase"
                 type="number"
-                min="0"
+                min="0.01"
                 step="0.01"
                 class="w-full"
                 required
@@ -124,15 +142,50 @@
             </UFormField>
           </div>
 
-          <UFormField :label="t('paquetes.form.itinerario')" name="itinerario">
-            <UTextarea v-model="formulario.itinerario" :rows="3" class="w-full" />
+          <UFormField
+            :label="t('paquetes.form.itinerario')"
+            name="itinerario"
+            :help="t('paquetes.ayudaItinerario')"
+            :required="formulario.estado === 'activo'"
+          >
+            <UTextarea
+              v-model="formulario.itinerario"
+              :rows="3"
+              class="w-full"
+              :required="formulario.estado === 'activo'"
+            />
           </UFormField>
 
-          <UFormField :label="t('paquetes.form.servicios')" name="servicios">
+          <UFormField
+            :label="t('paquetes.form.actividades')"
+            name="actividades"
+            :help="t('paquetes.ayudaActividades')"
+          >
+            <div class="grid gap-2 sm:grid-cols-2">
+              <UCheckbox
+                v-for="actividad in actividadesDisponibles"
+                :key="actividad.idActividad"
+                :model-value="
+                  formulario.actividades.includes(actividad.idActividad)
+                "
+                :label="actividad.nombre"
+                @update:model-value="
+                  (valor) => alternarActividad(actividad.idActividad, valor)
+                "
+              />
+            </div>
+          </UFormField>
+
+          <UFormField
+            :label="t('paquetes.form.servicios')"
+            name="servicios"
+            :required="formulario.estado === 'activo'"
+          >
             <UTextarea
               v-model="formulario.serviciosIncluidos"
               :rows="2"
               class="w-full"
+              :required="formulario.estado === 'activo'"
             />
           </UFormField>
 
@@ -167,7 +220,12 @@
 </template>
 
 <script setup lang="ts">
-import type { PaqueteAdmin, RespuestaPaquetes } from '#shared/types/api'
+import type {
+  ActividadResumen,
+  PaqueteAdmin,
+  RespuestaActividades,
+  RespuestaPaquetes,
+} from '#shared/types/api'
 import type { EstadoPaquete } from '#shared/types/domain'
 import type { ColumnaTabla } from '#shared/types/ui'
 import type { ClaveMensaje } from '~/i18n'
@@ -190,6 +248,15 @@ const {
   $fetch<RespuestaPaquetes>(RUTA),
 )
 
+const { data: dataActividades } = await useAsyncData<RespuestaActividades>(
+  'actividades-admin',
+  () => $fetch<RespuestaActividades>('/api/admin/actividades'),
+)
+
+const actividadesDisponibles = computed<ActividadResumen[]>(
+  () => dataActividades.value?.actividades ?? [],
+)
+
 const filas = computed<FilaPaquete[]>(() => data.value?.paquetes ?? [])
 const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
@@ -201,6 +268,7 @@ const errorAccion = ref<string | null>(null)
 const columnas = computed<ColumnaTabla<FilaPaquete>[]>(() => [
   { clave: 'codigo', etiqueta: t('paquetes.columnas.codigo') },
   { clave: 'nombre', etiqueta: t('paquetes.columnas.nombre') },
+  { clave: 'destino', etiqueta: t('paquetes.columnas.destino') },
   {
     clave: 'duracionDias',
     etiqueta: t('paquetes.columnas.dias'),
@@ -241,13 +309,27 @@ const editando = ref<PaqueteAdmin | null>(null)
 const formulario = reactive({
   codigo: '',
   nombre: '',
+  destino: '',
   descripcion: '',
   duracionDias: '1',
-  precioBase: '0',
+  precioBase: '1',
   itinerario: '',
   serviciosIncluidos: '',
+  actividades: [] as number[],
   estado: 'borrador' as EstadoPaquete,
 })
+
+/** Marca o desmarca una actividad del itinerario. */
+function alternarActividad(idActividad: number, valor: boolean | 'indeterminate') {
+  const activa = valor === true
+  if (activa && !formulario.actividades.includes(idActividad)) {
+    formulario.actividades = [...formulario.actividades, idActividad]
+  } else if (!activa) {
+    formulario.actividades = formulario.actividades.filter(
+      (id) => id !== idActividad,
+    )
+  }
+}
 
 const estados = computed<{ label: string; value: EstadoPaquete }[]>(() => [
   { label: t('paquetes.estados.borrador'), value: 'borrador' },
@@ -263,11 +345,13 @@ function abrirAlta() {
   editando.value = null
   formulario.codigo = ''
   formulario.nombre = ''
+  formulario.destino = ''
   formulario.descripcion = ''
   formulario.duracionDias = '1'
-  formulario.precioBase = '0'
+  formulario.precioBase = '1'
   formulario.itinerario = ''
   formulario.serviciosIncluidos = ''
+  formulario.actividades = []
   formulario.estado = 'borrador'
   errorFormulario.value = null
   formularioAbierto.value = true
@@ -277,11 +361,15 @@ function abrirEdicion(paquete: PaqueteAdmin) {
   editando.value = paquete
   formulario.codigo = paquete.codigo
   formulario.nombre = paquete.nombre
+  formulario.destino = paquete.destino ?? ''
   formulario.descripcion = paquete.descripcion ?? ''
   formulario.duracionDias = String(paquete.duracionDias)
   formulario.precioBase = paquete.precioBase
   formulario.itinerario = paquete.itinerario ?? ''
   formulario.serviciosIncluidos = paquete.serviciosIncluidos ?? ''
+  formulario.actividades = paquete.actividades.map(
+    (actividad) => actividad.idActividad,
+  )
   formulario.estado = paquete.estado
   errorFormulario.value = null
   formularioAbierto.value = true
@@ -294,11 +382,13 @@ async function guardar() {
   const cuerpo = {
     codigo: formulario.codigo,
     nombre: formulario.nombre,
+    destino: formulario.destino,
     descripcion: formulario.descripcion,
     duracionDias: Number(formulario.duracionDias),
     precioBase: Number(formulario.precioBase),
     itinerario: formulario.itinerario,
     serviciosIncluidos: formulario.serviciosIncluidos,
+    actividades: formulario.actividades,
     estado: formulario.estado,
   }
 

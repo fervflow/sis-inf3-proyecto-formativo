@@ -31,7 +31,7 @@ export default defineEventHandler(async (event): Promise<RespuestaCuenta> => {
       usuario: usuarioDeCorreo(sesion.user.email),
       nombres: sesion.user.nombres,
       apellidos: sesion.user.apellidos,
-      rol: (fila?.codigo ?? 'TURISTA') as Rol,
+      rol: (fila?.codigo ?? 'CLIENTE') as Rol,
       estado: sesion.user.estado as EstadoUsuario,
       debeCambiarPassword: sesion.user.debeCambiarPassword,
     },

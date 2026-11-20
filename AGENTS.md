@@ -6,7 +6,7 @@ Guía operativa para agentes y modelos que trabajen en este repositorio.
 Este archivo es el punto de entrada. El detalle está en los documentos del
 índice final.
 
-Última actualización: 2026-11-19.
+Última actualización: 2026-11-20.
 
 ## Qué es este proyecto
 
@@ -48,6 +48,8 @@ de acción, objetivo general y objetivos específicos.
 | Traer las variables de Neon | `make neon-env` | `neon env pull` |
 | Compilar la hoja de estimación | `make estimacion` | `.\build.ps1 -Estimacion` |
 | Compilar la hoja con Scrum | `make estimacion-scrum` | `.\build.ps1 -EstimacionScrum` |
+| Actualizar una base existente | `make db-actualizar` | — |
+| Probar las reglas de paquetes y salidas | `make db-probar` | — |
 | Volver a publicar el PDF | `make publicar` | — |
 | Limpiar | `make clean` / `make distclean` | `.\build.ps1 -Limpiar` / `-LimpiarTodo` |
 
@@ -60,6 +62,8 @@ nunca `pdflatex`.
 - `tablero/tablero.md` es la fuente de ejecución: se edita desde la vista
   kanban. `make tablero-backlog` actualiza la tabla, el desglose y el resumen
   del backlog; `make tablero-validar` comprueba el formato.
+- `sistema/reglas-negocio.md` es la fuente canónica de las reglas de
+  negocio; el esquema las aplica y no las reemplaza.
 - `bd/esquema.sql` es la fuente canónica del esquema; `web/db/schema.ts` lo
   refleja y cambian juntos.
 - `node_modules/`, `_build/`, `entregables/` y las salidas de Nuxt no se
@@ -78,7 +82,8 @@ nunca `pdflatex`.
 | Editar el texto del informe | `informe/README.md` |
 | Escribir tablas, figuras o citas | `docs/GUIA-LATEX.md` |
 | Crear o corregir diagramas | `sistema/diagramas/README.md` |
-| Tocar el esquema o las reglas de la base | `bd/diccionario-datos.md` |
+| Consultar o cambiar una regla de negocio | `sistema/reglas-negocio.md` |
+| Tocar el esquema físico de la base | `bd/diccionario-datos.md` |
 | Tocar el backlog | `sistema/historias-usuario/historias-usuario.md` |
 | Ver o mover el tablero kanban | `tablero/README.md` |
 | Tocar la web del sistema | `web/README.md` |

@@ -14,7 +14,7 @@ import { leerCuerpo } from '../../../utils/validacion'
  */
 const cuerpo = z
   .object({
-    rol: z.enum(['ADMIN', 'PERSONAL', 'TURISTA']).optional(),
+    rol: z.enum(['ADMIN', 'PERSONAL', 'CLIENTE']).optional(),
     estado: z.enum(['activo', 'inactivo', 'bloqueado']).optional(),
   })
   .refine((datos) => datos.rol || datos.estado, {

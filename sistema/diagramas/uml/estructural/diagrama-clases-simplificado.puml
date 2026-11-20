@@ -45,8 +45,11 @@ package "Catalogo" {
     - idPaquete : Long
     - codigo : String
     - nombre : String
+    - destino : String
     - duracionDias : Integer
     - precioBase : Decimal
+    - itinerario : String
+    - serviciosIncluidos : String
     + activar() : void
   }
 

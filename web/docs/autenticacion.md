@@ -43,7 +43,7 @@ script lee las variables de entorno igual que la aplicación.
 |---|---|---|
 | `ADMIN` | Administrador | Usuarios, paquetes, salidas, proveedores y reportes |
 | `PERSONAL` | Personal | Atiende, cotiza, registra reservas, confirma y valida pagos |
-| `TURISTA` | Cliente | Consulta, solicita reservas, registra pagos y sigue sus reservas |
+| `CLIENTE` | Cliente | Consulta, solicita reservas, registra pagos y sigue sus reservas |
 
 El rol vive en `usuario.id_rol`, que apunta a `rol`. Es un campo adicional
 de Better Auth: lo controla la aplicación, no el formulario de registro.
@@ -120,6 +120,8 @@ Lo escribe el gancho `after` de Better Auth, en `server/utils/auth.ts`.
 - Una cuenta puede bloquearse (`usuario.estado`) sin borrar su historial.
 - El correo real del cliente, si lo da, va en `cliente.correo`; el de
   `usuario` es interno.
+- Mientras HU-15 no esté implementada, el panel de usuarios puede crear un
+  rol `CLIENTE` sin ficha. La vinculación automática es una tarea pendiente.
 
 ## Lo que no se automatiza
 

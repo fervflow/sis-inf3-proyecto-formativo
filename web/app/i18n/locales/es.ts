@@ -23,6 +23,7 @@ export const es = {
   'nav.disponibilidad': 'Disponibilidad',
   'nav.clientes': 'Clientes',
   'nav.paquetes': 'Paquetes',
+  'nav.salidas': 'Salidas',
   'nav.usuarios': 'Usuarios',
   'nav.gestion': 'Gestión',
   'nav.principal': 'Navegación principal',
@@ -52,7 +53,7 @@ export const es = {
     'El cupo se descuenta en la base: no se vende dos veces el mismo lugar.',
   'inicio.tarjetas.equipo.titulo': 'Para el equipo y para el cliente',
   'inicio.tarjetas.equipo.texto':
-    'El personal atiende y el turista consulta; el proceso es el mismo.',
+    'El personal atiende y el cliente consulta; el proceso es el mismo.',
   'inicio.capacidades.1':
     'Registrar y mantener los paquetes turísticos y sus proveedores.',
   'inicio.capacidades.2':
@@ -122,7 +123,7 @@ export const es = {
   'usuarios.columnas.acciones': 'Acciones',
   'usuarios.roles.ADMIN': 'Administrador',
   'usuarios.roles.PERSONAL': 'Personal',
-  'usuarios.roles.TURISTA': 'Turista',
+  'usuarios.roles.CLIENTE': 'Cliente',
   'usuarios.estados.activo': 'Activo',
   'usuarios.estados.inactivo': 'Inactivo',
   'usuarios.estados.bloqueado': 'Bloqueado',
@@ -153,6 +154,7 @@ export const es = {
   'paquetes.vacio': 'Todavía no hay paquetes.',
   'paquetes.columnas.codigo': 'Código',
   'paquetes.columnas.nombre': 'Paquete',
+  'paquetes.columnas.destino': 'Destino',
   'paquetes.columnas.dias': 'Días',
   'paquetes.columnas.precio': 'Precio base',
   'paquetes.columnas.estado': 'Estado',
@@ -163,17 +165,57 @@ export const es = {
   'paquetes.acciones.editar': 'Editar',
   'paquetes.form.codigo': 'Código',
   'paquetes.form.nombre': 'Nombre',
+  'paquetes.form.destino': 'Destino',
   'paquetes.form.descripcion': 'Descripción',
   'paquetes.form.duracion': 'Duración en días',
   'paquetes.form.precio': 'Precio base por persona',
   'paquetes.form.itinerario': 'Itinerario',
+  'paquetes.form.actividades': 'Actividades del itinerario',
   'paquetes.form.servicios': 'Servicios incluidos',
   'paquetes.form.estado': 'Estado',
   'paquetes.ayudaCodigo':
     'Entre 3 y 20 caracteres: letras, números y guion. Se guarda en mayúsculas.',
   'paquetes.ayudaPrecio': 'En bolivianos.',
+  'paquetes.ayudaItinerario':
+    'Para publicar el paquete, describe el recorrido día por día.',
+  'paquetes.ayudaActividades':
+    'Marca las acciones comunes que se incluyen en el itinerario.',
   'paquetes.creado': 'Paquete creado: {codigo}.',
   'paquetes.actualizado': 'Paquete actualizado: {codigo}.',
+
+  'salidas.titulo': 'Salidas programadas',
+  'salidas.introduccion':
+    'Fechas, cupos y precios de cada paquete. La duración de la salida debe coincidir con la del paquete.',
+  'salidas.crear': 'Nueva salida',
+  'salidas.editar': 'Editar salida',
+  'salidas.vacio': 'Todavía no hay salidas programadas.',
+  'salidas.columnas.paquete': 'Paquete',
+  'salidas.columnas.salida': 'Salida',
+  'salidas.columnas.retorno': 'Retorno',
+  'salidas.columnas.cupo': 'Cupo',
+  'salidas.columnas.precio': 'Precio',
+  'salidas.columnas.estado': 'Estado',
+  'salidas.columnas.acciones': 'Acciones',
+  'salidas.estados.programada': 'Programada',
+  'salidas.estados.confirmada': 'Confirmada',
+  'salidas.estados.realizada': 'Realizada',
+  'salidas.estados.cancelada': 'Cancelada',
+  'salidas.acciones.editar': 'Editar',
+  'salidas.form.paquete': 'Paquete',
+  'salidas.form.fechaSalida': 'Fecha de salida',
+  'salidas.form.fechaRetorno': 'Fecha de retorno',
+  'salidas.form.cupo': 'Capacidad',
+  'salidas.form.precio': 'Precio por persona',
+  'salidas.form.puntoEncuentro': 'Punto de encuentro',
+  'salidas.form.estado': 'Estado',
+  'salidas.form.observaciones': 'Observaciones',
+  'salidas.form.motivo': 'Motivo del cambio',
+  'salidas.ayudaDuracion':
+    'La diferencia entre salida y retorno, contada en días inclusivos, debe coincidir con la duración del paquete.',
+  'salidas.ayudaCupo': 'Capacidad máxima de pasajeros.',
+  'salidas.creado': 'Salida creada para {paquete}.',
+  'salidas.actualizado': 'Salida actualizada para {paquete}.',
+  'salidas.motivoCancelacion': 'La cancelación exige un motivo.',
 
   'clientes.titulo': 'Clientes',
   'clientes.introduccion':
@@ -245,6 +287,27 @@ export const es = {
   'errores.paqueteInexistente': 'El paquete no existe.',
   'errores.codigoInvalido':
     'El código solo admite letras, números y guion (entre 3 y 20).',
+  'errores.paqueteIncompleto':
+    'Para publicar el paquete completa destino, descripción, itinerario y servicios incluidos.',
+  'errores.paqueteInactivo':
+    'Solo un paquete activo admite salidas nuevas.',
+  'errores.actividadInvalida': 'La actividad elegida no está disponible.',
+  'errores.transicionInvalida': 'Ese cambio de estado no está permitido.',
+  'errores.salidaDuplicada': 'Ese paquete ya tiene una salida en esa fecha.',
+  'errores.salidaInexistente': 'La salida no existe.',
+  'errores.salidaNoEditable':
+    'Una salida realizada o cancelada no se puede modificar.',
+  'errores.paqueteNoEditable':
+    'El paquete de una salida no se puede cambiar; cree una salida nueva.',
+  'errores.capacidadMenor':
+    'La capacidad no puede ser menor que los pasajeros ya reservados.',
+  'errores.duracionIncoherente':
+    'La duración de la salida no coincide con la del paquete.',
+  'errores.fechaPasada': 'La fecha de salida no puede ser anterior a hoy.',
+  'errores.fechasInvalidas':
+    'La fecha de retorno no puede ser anterior a la de salida.',
+  'errores.precioInvalido': 'El precio debe ser mayor que cero.',
+  'errores.motivoRequerido': 'Escribe el motivo del cambio.',
   'errores.clienteDuplicado': 'Ya existe un cliente con ese documento.',
   'errores.clienteInexistente': 'El cliente no existe.',
   'errores.fechaFutura': 'La fecha de nacimiento no puede ser futura.',

@@ -6,7 +6,7 @@ hide footbox
 autonumber
 skinparam maxMessageSize 175
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 actor "Personal" as PER
 boundary "IU-13 · Cancelar reserva" as UI <<interfaz>>
 control "ControlReservas" as CTRL <<control>>

@@ -11,8 +11,8 @@ editarlos hay que respetar el modelo de este documento.
 
 | Carpeta | Contenido |
 |---|---|
-| `uml/secuencia/` | Los 7 flujos completos de HU-03, HU-05, HU-06, HU-07, HU-09, HU-13 y HU-14 |
-| `uml/secuencia-light/` | Versiones resumidas de esos 7 |
+| `uml/secuencia/` | Los 9 flujos completos de HU-01, HU-02, HU-03, HU-05, HU-06, HU-07, HU-09, HU-13 y HU-14 |
+| `uml/secuencia-light/` | Versiones resumidas de esos 9 |
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables, sin actor ni interfaz |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan historias |
 | `uml/estructural/` | Diagramas de clases y de objetos, completos y simplificados |
@@ -64,7 +64,7 @@ estructurales y el de casos de uso usan «Tipo · Descripción».
 
 `make verificar` ejecuta dos comprobaciones:
 
-- `sistema/verificar-uml.py` revisa los 29 `.puml` de `uml/` y detecta participantes
+- `sistema/verificar-uml.py` revisa los 33 `.puml` de `uml/` y detecta participantes
   usados sin declarar, declarados sin mensajes, entidades o tablas con una
   sola línea de vida, y clases u objetos fuera de toda relación.
 - `sistema/verificar-rutas.py` comprueba que las rutas citadas existan y que

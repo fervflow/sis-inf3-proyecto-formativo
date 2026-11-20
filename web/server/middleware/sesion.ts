@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // La ficha de clientes la maneja el personal; el turista no entra.
+  // La ficha de clientes la maneja el personal; el cliente no entra.
   if (ruta.startsWith('/clientes') || ruta.startsWith('/api/clientes')) {
     const esPersonal =
       sesion.user.idRol === ROL_ADMIN || sesion.user.idRol === ROL_PERSONAL

@@ -1,0 +1,19 @@
+@startuml
+title HU-02 · Programar salida (versión ligera)
+hide footbox
+
+actor "Administrador" as ADM
+boundary "IU-02" as UI <<interfaz>>
+control "ControlSalidas" as CTRL <<control>>
+entity "Salida" as E_SALIDA <<entidad>>
+database "salida" as T_SALIDA <<tabla>>
+
+ADM -> UI : paquete, fechas, cupo y precio
+UI -> CTRL : crearSalida(datos)
+CTRL -> E_SALIDA : validarFechasYDuracion()
+E_SALIDA -> T_SALIDA : SELECT e INSERT
+T_SALIDA --> E_SALIDA : salida creada
+E_SALIDA --> CTRL : salida programada
+CTRL --> UI : salida creada
+UI --> ADM : confirmación
+@enduml

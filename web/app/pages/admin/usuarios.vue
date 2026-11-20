@@ -231,11 +231,11 @@ const formulario = reactive({
   nombres: '',
   apellidos: '',
   telefono: '',
-  rol: 'TURISTA' as Rol,
+  rol: 'CLIENTE' as Rol,
 })
 
 const roles = computed<{ label: string; value: Rol }[]>(() => [
-  { label: t('usuarios.roles.TURISTA'), value: 'TURISTA' },
+  { label: t('usuarios.roles.CLIENTE'), value: 'CLIENTE' },
   { label: t('usuarios.roles.PERSONAL'), value: 'PERSONAL' },
   { label: t('usuarios.roles.ADMIN'), value: 'ADMIN' },
 ])
@@ -245,7 +245,7 @@ function abrirFormulario() {
   formulario.nombres = ''
   formulario.apellidos = ''
   formulario.telefono = ''
-  formulario.rol = 'TURISTA'
+  formulario.rol = 'CLIENTE'
   errorFormulario.value = null
   formularioAbierto.value = true
 }

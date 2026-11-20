@@ -201,10 +201,36 @@ web-check:
 # Crea el esquema en la base. Las migraciones van por la conexión directa
 # (DATABASE_URL_UNPOOLED): el pooler de Neon no admite operaciones de sesión.
 db-crear:
-	@url="$(DATABASE_URL_UNPOOLED)"; \
-	if [ -z "$$url" ]; then url="$(DATABASE_URL)"; fi; \
-	if [ -z "$$url" ]; then echo "Falta DATABASE_URL o DATABASE_URL_UNPOOLED."; exit 1; fi; \
+	@if [ -z "$$DATABASE_URL" ] && [ -z "$$DATABASE_URL_UNPOOLED" ] && [ -f .env.local ]; then \
+	  set -a; . ./.env.local; set +a; \
+	fi; \
+	url="$$DATABASE_URL_UNPOOLED"; \
+	if [ -z "$$url" ]; then url="$$DATABASE_URL"; fi; \
+	if [ -z "$$url" ]; then echo "Falta DATABASE_URL o DATABASE_URL_UNPOOLED. Revise .env.local o expórtelas."; exit 1; fi; \
 	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/esquema.sql
+
+# Aplica en orden las actualizaciones de una base que ya existe. Los
+# scripts son idempotentes, pero conviene revisar los avisos.
+db-actualizar:
+	@if [ -z "$$DATABASE_URL" ] && [ -z "$$DATABASE_URL_UNPOOLED" ] && [ -f .env.local ]; then \
+	  set -a; . ./.env.local; set +a; \
+	fi; \
+	url="$$DATABASE_URL_UNPOOLED"; \
+	if [ -z "$$url" ]; then url="$$DATABASE_URL"; fi; \
+	if [ -z "$$url" ]; then echo "Falta DATABASE_URL o DATABASE_URL_UNPOOLED. Revise .env.local o expórtelas."; exit 1; fi; \
+	for archivo in $(BD)/actualizaciones/*.sql; do \
+	  echo ">> $$archivo"; \
+	  psql "$$url" -v ON_ERROR_STOP=1 -f "$$archivo" || exit 1; \
+	done
+
+# Pruebas SQL de las reglas de paquetes y salidas. Terminan con ROLLBACK.
+db-probar:
+	@if [ -z "$$DATABASE_URL" ] && [ -f .env.local ]; then \
+	  set -a; . ./.env.local; set +a; \
+	fi; \
+	url="$$DATABASE_URL"; \
+	if [ -z "$$url" ]; then echo "Falta DATABASE_URL. Revise .env.local o expórtela."; exit 1; fi; \
+	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/pruebas/reglas-paquetes.sql
 
 # Trae de Neon las variables de la rama a .env.local (en la raíz).
 neon-env:

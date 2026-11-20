@@ -10,6 +10,7 @@ import type {
   EstadoCliente,
   EstadoPaquete,
   EstadoReserva,
+  EstadoSalida,
   EstadoUsuario,
   Rol,
   TipoDocumento,
@@ -31,12 +32,14 @@ export interface SalidaDisponible {
   id_salida: number
   codigo_paquete: string
   paquete: string
+  estado_paquete: string
   fecha_salida: string
   fecha_retorno: string
   cupo_maximo: number
   pasajeros_ocupados: number
   cupo_disponible: number
   precio: string
+  estado: string
 }
 
 /** Respuesta de la consulta de disponibilidad. */
@@ -103,16 +106,26 @@ export interface RespuestaOperacion {
   ok: true
 }
 
+/** Una acción común del itinerario. */
+export interface ActividadResumen {
+  idActividad: number
+  codigo: string
+  nombre: string
+  orden: number
+}
+
 /** Un paquete turístico tal como lo edita el administrador. */
 export interface PaqueteAdmin {
   idPaquete: number
   codigo: string
   nombre: string
+  destino: string | null
   descripcion: string | null
   duracionDias: number
   precioBase: string
   itinerario: string | null
   serviciosIncluidos: string | null
+  actividades: ActividadResumen[]
   estado: EstadoPaquete
   fechaActualizacion: string
 }
@@ -120,6 +133,32 @@ export interface PaqueteAdmin {
 /** Respuesta de la lista de paquetes. */
 export interface RespuestaPaquetes {
   paquetes: PaqueteAdmin[]
+}
+
+/** Respuesta del catálogo de actividades. */
+export interface RespuestaActividades {
+  actividades: ActividadResumen[]
+}
+
+/** Una salida programada tal como la edita el administrador. */
+export interface SalidaAdmin {
+  idSalida: number
+  idPaquete: number
+  codigoPaquete: string
+  paquete: string
+  fechaSalida: string
+  fechaRetorno: string
+  cupoMaximo: number
+  precio: string
+  puntoEncuentro: string | null
+  estado: EstadoSalida
+  observaciones: string | null
+  fechaActualizacion: string
+}
+
+/** Respuesta de la lista de salidas. */
+export interface RespuestaSalidas {
+  salidas: SalidaAdmin[]
 }
 
 /** La ficha de un cliente. */

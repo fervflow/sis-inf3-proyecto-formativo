@@ -6,7 +6,7 @@ hide footbox
 autonumber
 skinparam maxMessageSize 170
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 actor "Personal" as PER
 boundary "IU-03 · Consultar disponibilidad" as UI <<interfaz>>
 control "ControlDisponibilidad" as CTRL <<control>>
@@ -38,10 +38,10 @@ else Sesión iniciada
     else Hay coincidencias
         loop Por cada paquete encontrado
             CTRL -> E_SALIDA : listarSalidas(idPaquete, fecha)
-            E_SALIDA -> T_SALIDA : SELECT ... WHERE estado IN ('programada', 'confirmada')
+            E_SALIDA -> T_SALIDA : SELECT ... WHERE estado IN ('programada', 'confirmada')\nAND fecha_salida >= CURRENT_DATE
             T_SALIDA --> E_SALIDA : salidas programadas
             E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
-            E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
+            E_RESERVA -> T_RESERVA : SELECT desde vista_disponibilidad_salida
             T_RESERVA --> E_RESERVA : pasajeros ocupados
             E_RESERVA --> E_SALIDA : ocupados
             E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
@@ -55,10 +55,13 @@ else Sesión iniciada
 end
 
 note right of CTRL
+    Solo se muestran paquetes activos y salidas
+    programadas o confirmadas con fecha desde hoy.
     El cálculo no distingue el canal: una
-    solicitud pendiente del cliente ocupa
-    cupo igual que una reserva del personal.
-    Las reservas vencidas y canceladas no
-    se cuentan (vista_disponibilidad_salida).
+    solicitud pendiente del cliente ocupa cupo
+    igual que una reserva del personal. Las
+    reservas vencidas, canceladas y las
+    solicitudes fuera de plazo no se cuentan
+    (vista_disponibilidad_salida).
 end note
 @enduml

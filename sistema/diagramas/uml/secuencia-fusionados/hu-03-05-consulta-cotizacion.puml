@@ -6,7 +6,7 @@ hide footbox
 autonumber
 skinparam maxMessageSize 130
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 actor "Personal" as PER
 boundary "IU-03/05 · Consulta y cotización" as UI <<interfaz>>
 control "ControlDisponibilidad" as CDISP <<control>>

@@ -1,0 +1,73 @@
+@startuml
+title HU-02 · Registro de fechas de salida y cupos
+' Solo un paquete activo admite salidas. La fecha de retorno se deriva de
+' la duración del paquete y no se permiten dos salidas del mismo paquete
+' el mismo día.
+hide footbox
+autonumber
+skinparam maxMessageSize 175
+
+actor "Administrador" as ADM
+boundary "IU-02 · Programar salida" as UI <<interfaz>>
+control "ControlSalidas" as CTRL <<control>>
+entity "Paquete" as E_PAQUETE <<entidad>>
+entity "Salida" as E_SALIDA <<entidad>>
+database "paquete" as T_PAQUETE <<tabla>>
+database "salida" as T_SALIDA <<tabla>>
+
+ADM -> UI : selecciona paquete, fechas, cupo y precio
+UI -> CTRL : crearSalida(datos)
+
+CTRL -> E_PAQUETE : obtenerEstadoYDuracion(idPaquete)
+E_PAQUETE -> T_PAQUETE : SELECT estado, duracion_dias
+T_PAQUETE --> E_PAQUETE : estado y duración
+E_PAQUETE --> CTRL : estado y duración
+
+alt Paquete inactivo o en borrador
+    CTRL --> UI : error «Solo un paquete activo admite salidas»
+    UI --> ADM : activar el paquete o elegir otro
+else Paquete activo
+    CTRL -> E_SALIDA : validarFechasYDuracion()
+    E_SALIDA -> E_SALIDA : retorno >= salida
+    E_SALIDA -> E_SALIDA : días inclusivos = duración del paquete
+
+    alt Fecha pasada, retorno anterior o duración incoherente
+        E_SALIDA --> CTRL : datos inválidos
+        CTRL --> UI : error «Fecha o duración inválida»
+        UI --> ADM : corregir las fechas
+    else Fechas válidas
+        CTRL -> E_SALIDA : verificarDuplicado(idPaquete, fechaSalida)
+        E_SALIDA -> T_SALIDA : SELECT ... WHERE id_paquete = ? AND fecha_salida = ?
+        T_SALIDA --> E_SALIDA : salida existente
+
+        alt Ya existe una salida ese día
+            E_SALIDA --> CTRL : duplicada
+            CTRL --> UI : error «Ese paquete ya tiene una salida en esa fecha»
+            UI --> ADM : elegir otra fecha
+        else Sin duplicado
+            group Transacción de creación
+                CTRL -> E_SALIDA : crear(paquete, fechas, cupo, precio)
+                E_SALIDA -> T_SALIDA : INSERT ... estado 'programada'
+                T_SALIDA --> E_SALIDA : id_salida
+                CTRL -> E_SALIDA : auditarCreacion()
+                E_SALIDA -> T_SALIDA : INSERT historial_salida (estado)
+            end
+
+            CTRL --> UI : salida creada
+            UI --> ADM : confirmación y nuevo cupo
+        end
+    end
+end
+
+note right of CTRL
+    La salida nace en estado «programada». La capacidad y el
+    precio deben ser mayores que cero. La duración se cuenta
+    en días inclusivos: retorno − salida + 1.
+end note
+
+note right of E_SALIDA
+    Una salida cancelada o realizada no se modifica. Los cambios
+    de fecha, capacidad o precio se auditan y se comunican a los
+    clientes con reservas vigentes (HU-09 y HU-16).
+end note
+@enduml

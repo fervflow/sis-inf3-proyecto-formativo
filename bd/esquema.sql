@@ -46,7 +46,7 @@ CREATE TABLE rol (
     codigo              VARCHAR(20) NOT NULL UNIQUE,
     nombre              VARCHAR(60) NOT NULL,
     descripcion         VARCHAR(200),
-    CONSTRAINT ck_rol_codigo CHECK (codigo IN ('ADMIN', 'PERSONAL', 'TURISTA'))
+    CONSTRAINT ck_rol_codigo CHECK (codigo IN ('ADMIN', 'PERSONAL', 'CLIENTE'))
 );
 
 -- Tabla `usuario` de Better Auth, con los campos adicionales del dominio.
@@ -139,13 +139,13 @@ CREATE INDEX ix_acceso_usuario_fecha ON acceso (id_usuario, fecha_hora);
 -- ---------------------------------------------------------------------
 -- 2. Clientes y pasajeros
 -- ---------------------------------------------------------------------
---  La cuenta del turista es opcional: un cliente puede no registrarse y
---  ser atendido igualmente por el personal. Por eso la vínculo es
---  opcional y admits como máximo una cuenta por ficha.
+--  La cuenta del cliente es opcional: un cliente puede no registrarse y
+--  ser atendido igualmente por el personal. Por eso el vínculo es
+--  opcional y admite como máximo una cuenta por ficha.
 
 CREATE TABLE cliente (
     id_cliente          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    -- Cuenta de turista vinculada, opcional. Un cliente puede no tener cuenta.
+    -- Cuenta de cliente vinculada, opcional. Un cliente puede no tener cuenta.
     id_usuario          TEXT UNIQUE REFERENCES usuario(id) ON DELETE SET NULL,
     tipo_documento      VARCHAR(15) NOT NULL,
     numero_documento    VARCHAR(30) NOT NULL,
@@ -199,6 +199,9 @@ CREATE TABLE paquete (
     id_paquete          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     codigo              VARCHAR(20) NOT NULL UNIQUE,
     nombre              VARCHAR(150) NOT NULL,
+    -- Destino principal del paquete. Es opcional mientras el paquete está
+    -- en borrador y obligatorio cuando se publica.
+    destino             VARCHAR(150),
     descripcion         TEXT,
     duracion_dias       SMALLINT NOT NULL,
     precio_base         NUMERIC(12, 2) NOT NULL,
@@ -206,11 +209,43 @@ CREATE TABLE paquete (
     servicios_incluidos TEXT,
     estado              VARCHAR(15) NOT NULL DEFAULT 'borrador',
     id_usuario_creador  TEXT REFERENCES usuario(id) ON DELETE SET NULL,
+    id_usuario_actualizacion TEXT REFERENCES usuario(id) ON DELETE SET NULL,
     fecha_creacion      TIMESTAMPTZ NOT NULL DEFAULT now(),
     fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ck_paquete_codigo CHECK (codigo = upper(codigo)),
     CONSTRAINT ck_paquete_duracion CHECK (duracion_dias > 0),
-    CONSTRAINT ck_paquete_precio CHECK (precio_base >= 0),
-    CONSTRAINT ck_paquete_estado CHECK (estado IN ('borrador', 'activo', 'inactivo'))
+    CONSTRAINT ck_paquete_precio CHECK (precio_base > 0),
+    CONSTRAINT ck_paquete_estado CHECK (estado IN ('borrador', 'activo', 'inactivo')),
+    -- Un paquete publicado debe tener el contenido mínimo que el cliente
+    -- necesita para decidir la compra. El borrador puede quedar incompleto.
+    CONSTRAINT ck_paquete_publicado CHECK (
+        estado <> 'activo'
+        OR (
+            destino IS NOT NULL AND btrim(destino) <> ''
+            AND descripcion IS NOT NULL AND btrim(descripcion) <> ''
+            AND itinerario IS NOT NULL AND btrim(itinerario) <> ''
+            AND servicios_incluidos IS NOT NULL AND btrim(servicios_incluidos) <> ''
+        )
+    )
+);
+
+-- Catálogo de acciones comunes que se pueden marcar en el itinerario. Es un
+-- catálogo fijo para el MVP: se amplía con la semilla, no desde la interfaz.
+CREATE TABLE actividad (
+    id_actividad        SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    codigo              VARCHAR(30) NOT NULL UNIQUE,
+    nombre              VARCHAR(80) NOT NULL,
+    orden               SMALLINT NOT NULL DEFAULT 0,
+    activo              BOOLEAN NOT NULL DEFAULT true,
+    CONSTRAINT ck_actividad_codigo CHECK (codigo = lower(codigo))
+);
+
+-- Acciones marcadas en el itinerario de un paquete. Complementan el texto
+-- libre de `paquete.itinerario`; no lo sustituyen.
+CREATE TABLE paquete_actividad (
+    id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE CASCADE,
+    id_actividad        SMALLINT NOT NULL REFERENCES actividad(id_actividad) ON DELETE RESTRICT,
+    PRIMARY KEY (id_paquete, id_actividad)
 );
 
 CREATE TABLE paquete_proveedor (
@@ -241,10 +276,13 @@ CREATE TABLE salida (
     fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT ck_salida_fechas CHECK (fecha_retorno >= fecha_salida),
     CONSTRAINT ck_salida_cupo CHECK (cupo_maximo > 0),
-    CONSTRAINT ck_salida_precio CHECK (precio >= 0),
+    CONSTRAINT ck_salida_precio CHECK (precio > 0),
     CONSTRAINT ck_salida_estado CHECK (estado IN ('programada', 'confirmada', 'realizada', 'cancelada'))
 );
 
+-- Un paquete no puede tener dos salidas el mismo día: el esquema solo
+-- guarda la fecha y la operación necesita distinguir una salida de otra.
+CREATE UNIQUE INDEX ux_salida_paquete_fecha ON salida (id_paquete, fecha_salida);
 CREATE INDEX ix_salida_paquete_fecha ON salida (id_paquete, fecha_salida);
 CREATE INDEX ix_salida_fecha ON salida (fecha_salida);
 
@@ -648,25 +686,128 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Cambio de fecha o capacidad de una salida (HU-09).
--- Bloquea la salida, impide bajar la capacidad por debajo de los
--- pasajeros ya reservados y deja auditado el valor anterior y el nuevo.
+-- Creación de una salida (HU-02).
+-- Solo un paquete activo admite salidas. La fecha de retorno se deriva de
+-- la duración comercial del paquete y no se permiten dos salidas del mismo
+-- paquete el mismo día.
+CREATE OR REPLACE FUNCTION fn_crear_salida(
+    p_id_paquete       BIGINT,
+    p_fecha_salida     DATE,
+    p_fecha_retorno    DATE,
+    p_cupo_maximo      INTEGER,
+    p_precio           NUMERIC,
+    p_id_usuario       TEXT,
+    p_punto_encuentro  VARCHAR DEFAULT NULL,
+    p_observaciones    TEXT DEFAULT NULL
+) RETURNS BIGINT
+SET search_path = turismo, public
+AS $$
+DECLARE
+    v_estado_paquete VARCHAR(15);
+    v_duracion       SMALLINT;
+    v_id_salida      BIGINT;
+BEGIN
+    SELECT p.estado, p.duracion_dias
+    INTO v_estado_paquete, v_duracion
+    FROM paquete p
+    WHERE p.id_paquete = p_id_paquete;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El paquete % no existe', p_id_paquete
+            USING ERRCODE = 'no_data_found';
+    END IF;
+
+    IF v_estado_paquete <> 'activo' THEN
+        RAISE EXCEPTION 'Solo un paquete activo admite salidas; el estado actual es «%»',
+            v_estado_paquete USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_fecha_salida IS NULL OR p_fecha_retorno IS NULL THEN
+        RAISE EXCEPTION 'La salida y el retorno son obligatorios'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_fecha_salida < CURRENT_DATE THEN
+        RAISE EXCEPTION 'La fecha de salida no puede ser anterior a hoy'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_fecha_retorno < p_fecha_salida THEN
+        RAISE EXCEPTION 'La fecha de retorno no puede ser anterior a la de salida'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF (p_fecha_retorno - p_fecha_salida + 1) <> v_duracion THEN
+        RAISE EXCEPTION 'La salida dura % días, pero el paquete declara %',
+            (p_fecha_retorno - p_fecha_salida + 1), v_duracion
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_cupo_maximo IS NULL OR p_cupo_maximo <= 0 THEN
+        RAISE EXCEPTION 'La capacidad debe ser mayor que cero'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_precio IS NULL OR p_precio <= 0 THEN
+        RAISE EXCEPTION 'El precio debe ser mayor que cero'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM salida s
+        WHERE s.id_paquete = p_id_paquete
+          AND s.fecha_salida = p_fecha_salida
+    ) THEN
+        RAISE EXCEPTION 'El paquete ya tiene una salida el %', p_fecha_salida
+            USING ERRCODE = 'unique_violation';
+    END IF;
+
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio,
+        punto_encuentro, estado, observaciones, id_usuario
+    ) VALUES (
+        p_id_paquete, p_fecha_salida, p_fecha_retorno, p_cupo_maximo, p_precio,
+        NULLIF(btrim(p_punto_encuentro), ''), 'programada',
+        NULLIF(btrim(p_observaciones), ''), p_id_usuario
+    )
+    RETURNING id_salida INTO v_id_salida;
+
+    INSERT INTO historial_salida (
+        id_salida, campo_modificado, valor_anterior, valor_nuevo, motivo, id_usuario
+    ) VALUES (
+        v_id_salida, 'estado', NULL, 'programada', 'Salida creada.', p_id_usuario
+    );
+
+    RETURN v_id_salida;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Cambio de fecha, capacidad, precio, punto de encuentro o estado de una
+-- salida (HU-09). Bloquea la salida, impide bajar la capacidad por debajo
+-- de los pasajeros ya reservados y audita cada campo modificado.
 CREATE OR REPLACE FUNCTION fn_actualizar_salida(
-    p_id_salida      BIGINT,
-    p_id_usuario     TEXT,
-    p_fecha_salida   DATE DEFAULT NULL,
-    p_fecha_retorno  DATE DEFAULT NULL,
-    p_capacidad      INTEGER DEFAULT NULL,
-    p_precio         NUMERIC DEFAULT NULL,
-    p_motivo         VARCHAR DEFAULT NULL
+    p_id_salida       BIGINT,
+    p_id_usuario      TEXT,
+    p_fecha_salida    DATE DEFAULT NULL,
+    p_fecha_retorno   DATE DEFAULT NULL,
+    p_capacidad       INTEGER DEFAULT NULL,
+    p_precio          NUMERIC DEFAULT NULL,
+    p_motivo          VARCHAR DEFAULT NULL,
+    p_punto_encuentro VARCHAR DEFAULT NULL,
+    p_estado          VARCHAR DEFAULT NULL
 ) RETURNS BOOLEAN
 SET search_path = turismo, public
 AS $$
 DECLARE
-    v_ocupados INT;
-    v_anterior RECORD;
+    v_ocupados       INT;
+    v_duracion       SMALLINT;
+    v_anterior       RECORD;
+    v_fecha_salida   DATE;
+    v_fecha_retorno  DATE;
+    v_capacidad      INTEGER;
 BEGIN
-    SELECT s.fecha_salida, s.fecha_retorno, s.cupo_maximo, s.precio
+    SELECT s.fecha_salida, s.fecha_retorno, s.cupo_maximo, s.precio,
+           s.punto_encuentro, s.estado, s.id_paquete
     INTO v_anterior
     FROM salida s
     WHERE s.id_salida = p_id_salida
@@ -675,6 +816,57 @@ BEGIN
     IF NOT FOUND THEN
         RAISE EXCEPTION 'La salida % no existe', p_id_salida
             USING ERRCODE = 'no_data_found';
+    END IF;
+
+    IF v_anterior.estado IN ('realizada', 'cancelada') THEN
+        RAISE EXCEPTION 'Una salida en estado «%» no admite cambios',
+            v_anterior.estado USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_estado IS NOT NULL AND p_estado <> v_anterior.estado THEN
+        IF v_anterior.estado = 'programada'
+           AND p_estado NOT IN ('confirmada', 'cancelada') THEN
+            RAISE EXCEPTION 'La salida no puede pasar de «programada» a «%»',
+                p_estado USING ERRCODE = 'check_violation';
+        END IF;
+
+        IF v_anterior.estado = 'confirmada'
+           AND p_estado NOT IN ('realizada', 'cancelada') THEN
+            RAISE EXCEPTION 'La salida no puede pasar de «confirmada» a «%»',
+                p_estado USING ERRCODE = 'check_violation';
+        END IF;
+
+        IF p_estado = 'cancelada'
+           AND (p_motivo IS NULL OR btrim(p_motivo) = '') THEN
+            RAISE EXCEPTION 'La cancelación de una salida exige un motivo'
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    v_fecha_salida  := COALESCE(p_fecha_salida, v_anterior.fecha_salida);
+    v_fecha_retorno := COALESCE(p_fecha_retorno, v_anterior.fecha_retorno);
+    v_capacidad     := COALESCE(p_capacidad, v_anterior.cupo_maximo);
+
+    IF v_fecha_retorno < v_fecha_salida THEN
+        RAISE EXCEPTION 'La fecha de retorno no puede ser anterior a la de salida'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_fecha_salida IS NOT NULL OR p_fecha_retorno IS NOT NULL THEN
+        IF v_fecha_salida < CURRENT_DATE THEN
+            RAISE EXCEPTION 'La nueva fecha de salida no puede ser anterior a hoy'
+                USING ERRCODE = 'check_violation';
+        END IF;
+
+        SELECT p.duracion_dias INTO v_duracion
+        FROM paquete p
+        WHERE p.id_paquete = v_anterior.id_paquete;
+
+        IF (v_fecha_retorno - v_fecha_salida + 1) <> v_duracion THEN
+            RAISE EXCEPTION 'La salida dura % días, pero el paquete declara %',
+                (v_fecha_retorno - v_fecha_salida + 1), v_duracion
+                USING ERRCODE = 'check_violation';
+        END IF;
     END IF;
 
     IF p_capacidad IS NOT NULL THEN
@@ -686,50 +878,54 @@ BEGIN
                OR r.fecha_expiracion IS NULL
                OR r.fecha_expiracion > now());
 
-        IF p_capacidad < v_ocupados THEN
+        IF v_capacidad < v_ocupados THEN
             RAISE EXCEPTION 'La capacidad no puede ser menor que los % pasajeros ya reservados',
                 v_ocupados USING ERRCODE = 'check_violation';
         END IF;
     END IF;
 
-    IF p_fecha_salida IS NOT NULL
-       AND p_fecha_retorno IS NOT NULL
-       AND p_fecha_retorno < p_fecha_salida THEN
-        RAISE EXCEPTION 'La fecha de retorno no puede ser anterior a la de salida'
+    IF p_precio IS NOT NULL AND p_precio <= 0 THEN
+        RAISE EXCEPTION 'El precio debe ser mayor que cero'
             USING ERRCODE = 'check_violation';
     END IF;
 
     UPDATE salida s
-    SET fecha_salida   = COALESCE(p_fecha_salida, s.fecha_salida),
-        fecha_retorno  = COALESCE(p_fecha_retorno, s.fecha_retorno),
-        cupo_maximo    = COALESCE(p_capacidad, s.cupo_maximo),
-        precio         = COALESCE(p_precio, s.precio)
+    SET fecha_salida    = v_fecha_salida,
+        fecha_retorno   = v_fecha_retorno,
+        cupo_maximo     = v_capacidad,
+        precio          = COALESCE(p_precio, s.precio),
+        punto_encuentro = CASE
+            WHEN p_punto_encuentro IS NULL THEN s.punto_encuentro
+            WHEN btrim(p_punto_encuentro) = '' THEN NULL
+            ELSE btrim(p_punto_encuentro)
+        END,
+        estado          = COALESCE(p_estado, s.estado)
     WHERE s.id_salida = p_id_salida;
 
-    IF p_fecha_salida IS NOT NULL AND p_fecha_salida <> v_anterior.fecha_salida THEN
+    IF v_fecha_salida <> v_anterior.fecha_salida THEN
         INSERT INTO historial_salida (
             id_salida, campo_modificado, valor_anterior, valor_nuevo, motivo, id_usuario
         ) VALUES (
             p_id_salida, 'fecha_salida', v_anterior.fecha_salida::TEXT,
-            p_fecha_salida::TEXT, p_motivo, p_id_usuario
+            v_fecha_salida::TEXT, p_motivo, p_id_usuario
         );
     END IF;
 
-    IF p_fecha_retorno IS NOT NULL AND p_fecha_retorno <> v_anterior.fecha_retorno THEN
+    IF v_fecha_retorno <> v_anterior.fecha_retorno THEN
         INSERT INTO historial_salida (
             id_salida, campo_modificado, valor_anterior, valor_nuevo, motivo, id_usuario
         ) VALUES (
             p_id_salida, 'fecha_retorno', v_anterior.fecha_retorno::TEXT,
-            p_fecha_retorno::TEXT, p_motivo, p_id_usuario
+            v_fecha_retorno::TEXT, p_motivo, p_id_usuario
         );
     END IF;
 
-    IF p_capacidad IS NOT NULL AND p_capacidad <> v_anterior.cupo_maximo THEN
+    IF v_capacidad <> v_anterior.cupo_maximo THEN
         INSERT INTO historial_salida (
             id_salida, campo_modificado, valor_anterior, valor_nuevo, motivo, id_usuario
         ) VALUES (
             p_id_salida, 'cupo_maximo', v_anterior.cupo_maximo::TEXT,
-            p_capacidad::TEXT, p_motivo, p_id_usuario
+            v_capacidad::TEXT, p_motivo, p_id_usuario
         );
     END IF;
 
@@ -739,6 +935,26 @@ BEGIN
         ) VALUES (
             p_id_salida, 'precio', v_anterior.precio::TEXT,
             p_precio::TEXT, p_motivo, p_id_usuario
+        );
+    END IF;
+
+    IF p_punto_encuentro IS NOT NULL
+       AND NULLIF(btrim(p_punto_encuentro), '')
+           IS DISTINCT FROM v_anterior.punto_encuentro THEN
+        INSERT INTO historial_salida (
+            id_salida, campo_modificado, valor_anterior, valor_nuevo, motivo, id_usuario
+        ) VALUES (
+            p_id_salida, 'punto_encuentro', v_anterior.punto_encuentro,
+            NULLIF(btrim(p_punto_encuentro), ''), p_motivo, p_id_usuario
+        );
+    END IF;
+
+    IF p_estado IS NOT NULL AND p_estado <> v_anterior.estado THEN
+        INSERT INTO historial_salida (
+            id_salida, campo_modificado, valor_anterior, valor_nuevo, motivo, id_usuario
+        ) VALUES (
+            p_id_salida, 'estado', v_anterior.estado,
+            p_estado, p_motivo, p_id_usuario
         );
     END IF;
 
@@ -993,11 +1209,12 @@ SELECT
     (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
         FILTER (WHERE r.estado = 'confirmada'), 0))::INT AS cupo_disponible_sin_pendientes,
     s.precio,
-    s.estado
+    s.estado,
+    p.estado AS estado_paquete
 FROM salida s
 JOIN paquete p ON p.id_paquete = s.id_paquete
 LEFT JOIN reserva r ON r.id_salida = s.id_salida
-GROUP BY s.id_salida, s.id_paquete, p.codigo, p.nombre,
+GROUP BY s.id_salida, s.id_paquete, p.codigo, p.nombre, p.estado,
          s.fecha_salida, s.fecha_retorno, s.cupo_maximo, s.precio, s.estado;
 
 -- Saldo de cada reserva a partir del anticipo y del saldo registrados.
@@ -1073,5 +1290,21 @@ ORDER BY s.fecha_salida;
 INSERT INTO rol (codigo, nombre, descripcion) VALUES
     ('ADMIN',    'Administrador',      'Gestiona usuarios, paquetes, salidas y reportes.'),
     ('PERSONAL', 'Personal de agencia', 'Consulta, cotiza, registra reservas y confirma pagos.'),
-    ('TURISTA',  'Turista',             'Consulta la disponibilidad, solicita reservas, registra pagos y sigue sus reservas.')
+    ('CLIENTE',  'Cliente',             'Consulta la disponibilidad, solicita reservas, registra pagos y sigue sus reservas.')
+ON CONFLICT (codigo) DO NOTHING;
+
+-- Acciones comunes del itinerario. El catálogo es fijo en el MVP: se amplía
+-- con una nueva fila en la semilla, no desde la interfaz.
+INSERT INTO actividad (codigo, nombre, orden) VALUES
+    ('desayuno',              'Desayuno',                        10),
+    ('almuerzo',              'Almuerzo',                        20),
+    ('cena',                  'Cena',                            30),
+    ('transporte',            'Transporte',                      40),
+    ('alojamiento',           'Alojamiento',                     50),
+    ('guia',                  'Guía',                            60),
+    ('entradas',              'Entradas a sitios',               70),
+    ('traslado',              'Traslado a terminal o aeropuerto', 80),
+    ('seguro',                'Seguro de viaje',                 90),
+    ('bebidas',               'Bebidas',                        100),
+    ('actividades_recreativas', 'Actividades recreativas',       110)
 ON CONFLICT (codigo) DO NOTHING;

@@ -72,3 +72,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-19 16:05 | `2026-11-19T160504_portada-navegacion-y-estados-de-carga.md` | Convenciones de la interfaz, encabezado nuevo, portada sin prueba de conexión y aviso de carga. |
 | 2026-11-19 17:30 | `2026-11-19T173017_tablero-planificacion-prioridades-y-etiquetas.md` | Tablero con fechas, costos, prioridades reequilibradas y etiquetas de prioridad. |
 | 2026-11-19 19:38 | `2026-11-19T193822_tablero-como-fuente-y-exportador.md` | El tablero pasa a ser la fuente; validador, resumen y exportador al backlog. |
+| 2026-11-20 01:16 | `2026-11-20T011659_reglas-paquetes-y-salidas.md` | Catálogo de reglas, paquetes con destino e itinerario, actividades, salidas y rol `CLIENTE`. |

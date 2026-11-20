@@ -8,7 +8,7 @@ autonumber
 skinparam maxMessageSize 170
 
 actor "Personal" as PER
-actor "Turista" as TUR
+actor "Cliente" as TUR
 boundary "IU-05 · Elaborar cotización" as UI <<interfaz>>
 control "ControlCotizaciones" as CTRL <<control>>
 entity "Cliente" as E_CLIENTE <<entidad>>
@@ -37,7 +37,7 @@ alt Cliente no registrado
     end note
 else Cliente registrado
     CTRL -> E_SALIDA : verificarDisponibilidad(idSalida, cantidad)
-    E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio, estado
+    E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio, estado\nWHERE paquete.estado = 'activo'\nAND salida.estado IN ('programada', 'confirmada')
     T_SALIDA --> E_SALIDA : datos de la salida
     E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
     E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')

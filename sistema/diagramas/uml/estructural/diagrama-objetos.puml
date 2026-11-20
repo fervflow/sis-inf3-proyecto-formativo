@@ -8,10 +8,10 @@ hide circle
 skinparam linetype ortho
 left to right direction
 
-object "Rol · TURISTA" as ROL_TURISTA {
+object "Rol · CLIENTE" as ROL_CLIENTE {
   idRol = 3
-  codigo = "TURISTA"
-  nombre = "Turista"
+  codigo = "CLIENTE"
+  nombre = "Cliente"
 }
 
 object "Rol · PERSONAL" as ROL_PERSONAL {
@@ -62,9 +62,25 @@ object "Paquete · Uros del Titicaca" as PAQ_UROS {
   idPaquete = 1
   codigo = "PQT-URS"
   nombre = "Uros del Titicaca"
+  destino = "Lago Titicaca"
+  descripcion = "Tres días en las islas del Titicaca"
   duracionDias = 3
   precioBase = 850.00
+  itinerario = "Día 1: llegada y desayuno. Día 2: islas. Día 3: retorno."
+  serviciosIncluidos = "Transporte, alojamiento y guía"
   estado = "activo"
+}
+
+object "Actividad · Desayuno" as ACT_DESAYUNO {
+  idActividad = 1
+  codigo = "desayuno"
+  nombre = "Desayuno"
+  activo = true
+}
+
+object "PaqueteActividad · Uros" as PA_ACT_UROS {
+  idPaquete = 1
+  idActividad = 1
 }
 
 object "PaqueteProveedor · Traslado ida y vuelta" as PP_ANDES {
@@ -196,13 +212,15 @@ object "Saldo · Reserva 117" as SALDO_0117 {
 }
 
 ' --- Acceso ----------------------------------------------------------
-ROL_TURISTA -- USU_MAMANI
+ROL_CLIENTE -- USU_MAMANI
 ROL_PERSONAL -- USU_ROCA
 USU_MAMANI -- CLI_MAMANI : "> cuenta
 
 ' --- Catalogo --------------------------------------------------------
 PROV_ANDES -- PP_ANDES : "> aporta"
 PAQ_UROS -- PP_ANDES : incluye
+PAQ_UROS -- PA_ACT_UROS : marca
+ACT_DESAYUNO -- PA_ACT_UROS : se incluye en
 PAQ_UROS -- SAL_UROS_12 : "> programa"
 USU_ROCA -- PAQ_UROS : "> crea"
 USU_ROCA -- SAL_UROS_12 : "> gestiona"

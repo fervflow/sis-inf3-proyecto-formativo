@@ -9,7 +9,7 @@ skinparam maxMessageSize 160
 
 actor "Personal" as PER
 actor "Administrador" as ADM
-actor "Turista" as TUR
+actor "Cliente" as TUR
 boundary "IU-07/13 · Gestión del estado de la reserva" as UI <<interfaz>>
 control "ControlReservas" as CTRL <<control>>
 entity "Reserva" as E_RESERVA <<entidad>>

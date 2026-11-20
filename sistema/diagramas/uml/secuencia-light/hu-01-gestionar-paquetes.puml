@@ -1,0 +1,19 @@
+@startuml
+title HU-01 · Gestión de paquetes turísticos (versión ligera)
+hide footbox
+
+actor "Administrador" as ADM
+boundary "IU-01" as UI <<interfaz>>
+control "ControlPaquetes" as CTRL <<control>>
+entity "Paquete" as E_PAQUETE <<entidad>>
+database "paquete" as T_PAQUETE <<tabla>>
+
+ADM -> UI : datos del paquete y actividades
+UI -> CTRL : guardarPaquete(datos)
+CTRL -> E_PAQUETE : validarCodigoYPrecio()
+E_PAQUETE -> T_PAQUETE : SELECT e INSERT o UPDATE
+T_PAQUETE --> E_PAQUETE : paquete guardado
+E_PAQUETE --> CTRL : paquete guardado
+CTRL --> UI : paquete guardado
+UI --> ADM : confirmación
+@enduml

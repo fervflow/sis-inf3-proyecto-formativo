@@ -28,6 +28,12 @@ transacción que se revierte o borran lo que crearon.
 
 | Regla | Casos |
 |---|---|
+| Paquete publicado | Activar con destino, descripción, itinerario y servicios; rechazar si falta uno |
+| Paquete borrador | Guardar incompleto; no se ofrece al cliente |
+| Precio y código | Precio cero; código duplicado; código en minúsculas |
+| Actividades | Marcar y desmarcar; no repetir la misma actividad |
+| Salida | Paquete inactivo; fecha pasada; retorno anterior; duración incoherente; duplicado por fecha |
+| Estado de salida | Transiciones válidas; cancelar sin motivo; editar una salida realizada |
 | Cupo | Cabe, no cabe y dos reservas simultáneas |
 | Solicitud activa | Una por cliente y salida; la segunda se rechaza |
 | Confirmación | Dentro del plazo, fuera y sobre una ya confirmada |
@@ -60,16 +66,29 @@ describe('fn_crear_reserva', () => {
 - Los textos se comprueban contra las claves de `es.ts`, no contra cadenas
   escritas a mano.
 
+## Pruebas SQL de reglas
+
+Las reglas de paquetes y salidas tienen una prueba de integración que corre
+contra una base creada con `bd/esquema.sql`:
+
+```bash
+make db-probar
+```
+
+La prueba abre una transacción, comprueba los casos de éxito y de error y
+termina con `ROLLBACK`: no deja datos.
+
 ## Qué se ejecuta
 
 ```bash
 npm run typecheck --workspace web     # tipos
 npm run build --workspace web         # compila
-npm run test --workspace web          # pruebas
+make db-probar                          # reglas SQL
 ```
 
-La suite completa se ejecuta antes de cerrar un trabajo que tocó la base o
-la autenticación.
+La suite de Vitest todavía no está configurada; las pruebas de interfaz y de
+API se incorporarán en una tarea aparte. La validación de esta iteración se
+hizo con la prueba SQL anterior y con comprobaciones manuales.
 
 ## Antes de integrar
 

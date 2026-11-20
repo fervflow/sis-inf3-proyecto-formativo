@@ -9,13 +9,13 @@ skinparam ActivityBorderColor #333333
 skinparam ArrowColor #333333
 skinparam swimlaneWidth 230
 
-|Turista|
+|Cliente|
 start
 :Consulta paquetes, fechas y cupos\n(HU-03);
 if (¿Necesita cotización formal?) then (sí)
   |Personal|
   :Prepara la cotización\n(HU-05);
-  |Turista|
+  |Cliente|
   if (¿Acepta la cotización?) then (sí)
     :Solicita la reserva\n(HU-06);
   else (no)

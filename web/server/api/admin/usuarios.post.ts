@@ -24,7 +24,7 @@ const cuerpo = z.object({
   nombres: z.string().trim().min(1).max(100),
   apellidos: z.string().trim().min(1).max(100),
   telefono: z.string().trim().max(30).optional(),
-  rol: z.enum(['ADMIN', 'PERSONAL', 'TURISTA']),
+  rol: z.enum(['ADMIN', 'PERSONAL', 'CLIENTE']),
 })
 
 type DatosAlta = z.infer<typeof cuerpo>

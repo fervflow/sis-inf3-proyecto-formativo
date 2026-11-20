@@ -19,9 +19,10 @@ derecha. Las reglas editoriales completas están en `informe/README.md`.
 | `docs/GUIA-LATEX.md` | Sintaxis, tablas, figuras, citas y compilación |
 | `docs/INSTALACION-WINDOWS.md` | Instalación en Windows 11 |
 | `AGENTS.md` | Guía operativa para agentes y modelos |
+| `sistema/reglas-negocio.md` | Catálogo canónico de reglas de negocio |
 | `sistema/diagramas/README.md` | Reglas de los diagramas |
 | `tablero/README.md` | Uso del tablero kanban |
-| `bd/diccionario-datos.md` | Esquema y reglas de la base de datos |
+| `bd/diccionario-datos.md` | Esquema físico y su aplicación de las reglas |
 | `web/README.md` | Puesta en marcha de la web del sistema |
 | `sistema/estimacion/README.md` | Cálculo del esfuerzo y del costo |
 | `docs/changelog/` | Bitácora de los trabajos aceptados |
@@ -100,10 +101,11 @@ proyecto-formativo/
 │   ├── bibliografia/        Base BibLaTeX
 │   └── figuras/             Logos y capturas
 ├── sistema/                 Diseño del sistema
+│   ├── reglas-negocio.md    Catálogo canónico de reglas
 │   ├── diagramas/           Fuentes UML, TikZ y otros
 │   ├── historias-usuario/   Backlog (MD y CSV)
 │   └── estimacion/          Estimación de esfuerzo y costo
-├── bd/                      Esquema y diccionario de datos
+├── bd/                      Esquema, diccionario y pruebas SQL
 ├── tablero/                 Tablero kanban y planificación
 ├── web/                     Aplicación Nuxt, Drizzle y Better Auth
 ├── docs/                    Guías y bitácora
@@ -141,6 +143,8 @@ make web-install   # instala el espacio de trabajo
 make web-dev       # levanta la aplicación en http://localhost:3000
 make web-build     # compila para producción
 make db-crear      # crea el esquema con bd/esquema.sql
+make db-actualizar # aplica las actualizaciones sobre una base existente
+make db-probar     # prueba las reglas de paquetes y salidas
 ```
 
 La puesta en marcha completa, las variables de entorno y el despliegue en

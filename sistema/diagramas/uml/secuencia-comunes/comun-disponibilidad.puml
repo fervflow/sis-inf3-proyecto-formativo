@@ -11,10 +11,10 @@ database "salida" as T_SALIDA <<tabla>>
 database "reserva" as T_RESERVA <<tabla>>
 
 CTRL -> E_SALIDA : obtenerDatos(idSalida)
-E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio, estado
+E_SALIDA -> T_SALIDA : SELECT cupo_maximo, precio, estado\nWHERE paquete.estado = 'activo'\nAND salida.estado IN ('programada', 'confirmada')\nAND fecha_salida >= CURRENT_DATE
 T_SALIDA --> E_SALIDA : datos de la salida
 E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
-E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
+E_RESERVA -> T_RESERVA : SELECT desde vista_disponibilidad_salida
 T_RESERVA --> E_RESERVA : pasajeros ocupados
 E_RESERVA --> E_SALIDA : ocupados
 E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados

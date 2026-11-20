@@ -3,7 +3,7 @@ title Diagrama de casos de uso · Sistema de gestión de paquetes turísticos y 
 ' Los 17 casos de uso del backlog se agrupan en 14 casos de uso del
 ' sistema: lo que el actor quiere conseguir, no las tareas internas.
 left to right direction
-actor "Cliente (turista)" as CLI
+actor "Cliente" as CLI
 actor "Personal de agencia" as PER
 actor "Administrador" as ADM
 

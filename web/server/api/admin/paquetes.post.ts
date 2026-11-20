@@ -4,8 +4,12 @@ import type { PaqueteAdmin } from '#shared/types/api'
 import { exigirAdmin } from '../../utils/autorizacion'
 import {
   aPaqueteAdmin,
+  cargarActividades,
   esquemaPaquete,
   normalizarCodigo,
+  reemplazarActividades,
+  validarActividades,
+  validarPaquetePublicable,
 } from '../../utils/paquetes'
 import { leerCuerpo } from '../../utils/validacion'
 
@@ -15,6 +19,8 @@ import { leerCuerpo } from '../../utils/validacion'
 export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   const sesion = exigirAdmin(event)
   const datos = await leerCuerpo(event, esquemaPaquete)
+
+  validarPaquetePublicable(datos)
 
   const codigo = normalizarCodigo(datos.codigo)
   const db = useDb()
@@ -29,24 +35,33 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
     throw createError({ statusCode: 409, statusMessage: 'paquete_duplicado' })
   }
 
-  const [fila] = await db
-    .insert(schema.paquete)
-    .values({
-      codigo,
-      nombre: datos.nombre,
-      descripcion: datos.descripcion || null,
-      duracionDias: datos.duracionDias,
-      precioBase: datos.precioBase.toFixed(2),
-      itinerario: datos.itinerario || null,
-      serviciosIncluidos: datos.serviciosIncluidos || null,
-      estado: datos.estado,
-      idUsuarioCreador: sesion.user.id,
-    })
-    .returning()
+  await validarActividades(datos.actividades)
 
-  if (!fila) {
-    throw createError({ statusCode: 500, statusMessage: 'alta_incompleta' })
-  }
+  const fila = await db.transaction(async (tx) => {
+    const [creado] = await tx
+      .insert(schema.paquete)
+      .values({
+        codigo,
+        nombre: datos.nombre,
+        destino: datos.destino || null,
+        descripcion: datos.descripcion || null,
+        duracionDias: datos.duracionDias,
+        precioBase: datos.precioBase.toFixed(2),
+        itinerario: datos.itinerario || null,
+        serviciosIncluidos: datos.serviciosIncluidos || null,
+        estado: datos.estado,
+        idUsuarioCreador: sesion.user.id,
+      })
+      .returning()
 
-  return aPaqueteAdmin(fila)
+    if (!creado) {
+      throw createError({ statusCode: 500, statusMessage: 'alta_incompleta' })
+    }
+
+    await reemplazarActividades(tx, creado.idPaquete, datos.actividades)
+    return creado
+  })
+
+  const actividades = await cargarActividades([fila.idPaquete])
+  return aPaqueteAdmin(fila, actividades.get(fila.idPaquete) ?? [])
 })

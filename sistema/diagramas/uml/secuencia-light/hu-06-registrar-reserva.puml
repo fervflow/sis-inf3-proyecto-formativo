@@ -2,7 +2,7 @@
 title HU-06 · Registro de reservas (versión ligera)
 hide footbox
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 boundary "IU-06" as UI <<interfaz>>
 control "ControlReservas" as CTRL <<control>>
 entity "Reserva" as E_RESERVA <<entidad>>

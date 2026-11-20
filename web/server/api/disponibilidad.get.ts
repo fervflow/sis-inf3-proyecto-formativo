@@ -14,17 +14,22 @@ export default defineEventHandler(async () => {
     id_salida: number
     codigo_paquete: string
     paquete: string
+    estado_paquete: string
     fecha_salida: string
     fecha_retorno: string
     cupo_maximo: number
     pasajeros_ocupados: number
     cupo_disponible: number
     precio: string
+    estado: string
   }>(sql`
-    SELECT id_salida, codigo_paquete, paquete, fecha_salida, fecha_retorno,
-           cupo_maximo, pasajeros_ocupados, cupo_disponible, precio
+    SELECT id_salida, codigo_paquete, paquete, estado_paquete, fecha_salida,
+           fecha_retorno, cupo_maximo, pasajeros_ocupados, cupo_disponible,
+           precio, estado
     FROM turismo.vista_disponibilidad_salida
     WHERE fecha_salida >= CURRENT_DATE
+      AND estado_paquete = 'activo'
+      AND estado IN ('programada', 'confirmada')
     ORDER BY fecha_salida, codigo_paquete
   `)
 

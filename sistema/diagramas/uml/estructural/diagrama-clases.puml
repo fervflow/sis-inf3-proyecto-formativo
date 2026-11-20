@@ -80,12 +80,32 @@ package "Catalogo" {
     - idPaquete : BIGINT
     - codigo : String
     - nombre : String
+    - destino : String
+    - descripcion : String
     - duracionDias : Integer
     - precioBase : Decimal
+    - itinerario : String
+    - serviciosIncluidos : String
     - estado : EstadoPaquete
     + buscarPaquetes(filtro) : List<Paquete>
+    + validarContenidoPublicable() : Boolean
     + guardar() : void
     + activar() : void
+  }
+
+  class Actividad {
+    - idActividad : SMALLINT
+    - codigo : String
+    - nombre : String
+    - orden : SMALLINT
+    - activo : Boolean
+    + listar() : List<Actividad>
+  }
+
+  class PaqueteActividad {
+    - idPaquete : BIGINT
+    - idActividad : SMALLINT
+    + marcar(idPaquete, idActividad) : void
   }
 
   class PaqueteProveedor {
@@ -342,6 +362,8 @@ Cliente "1" <-- "0..*" Reserva : "> solicita
 ' --- Relaciones del catalogo -----------------------------------------
 Proveedor "1" <-- "0..*" PaqueteProveedor : "> aporta
 Paquete "1" *-- "0..*" PaqueteProveedor : incluye
+Paquete "1" *-- "0..*" PaqueteActividad : marca
+Actividad "1" <-- "0..*" PaqueteActividad : se incluye en
 Paquete "1" <-- "0..*" Salida : "> programa
 
 ' --- Relaciones de la operacion --------------------------------------

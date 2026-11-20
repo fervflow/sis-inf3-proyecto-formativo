@@ -3,9 +3,10 @@
 Esquema PostgreSQL del sistema web de gestión de paquetes turísticos y
 reservas. **No forma parte de `main.tex`** y no contiene datos reales.
 
-Este archivo es la **referencia canónica del esquema**: las reglas de
-negocio, los estados y las convenciones se describen aquí y no en otro
-lugar. El script que lo crea está en `esquema.sql`, en esta misma carpeta.
+Este archivo es la **referencia canónica del esquema físico**. Las reglas de
+negocio se describen en `sistema/reglas-negocio.md` y aquí solo se indica
+cómo las aplica la base. El script que crea el esquema está en `esquema.sql`,
+en esta misma carpeta.
 
 - **Motor:** PostgreSQL 14 o superior (probado en PostgreSQL 18)
 - **Esquema:** `turismo`
@@ -14,7 +15,7 @@ lugar. El script que lo crea está en `esquema.sql`, en esta misma carpeta.
   refleja este mismo esquema
 - **Identidad:** Better Auth, con las tablas adaptadas a la nomenclatura de
   este esquema
-- **Contenido:** 18 tablas, 3 vistas, 10 funciones (7 de negocio) y 5
+- **Contenido:** 20 tablas, 3 vistas, 12 funciones (9 de negocio) y 5
   disparadores
 
 ## Ejecución
@@ -34,8 +35,8 @@ CREATE SCHEMA turismo;
 
 | Tabla | Propósito | Claves y relaciones principales |
 |---|---|---|
-| `rol` | Catálogo de roles del sistema. | `codigo` único: `ADMIN`, `PERSONAL`, `TURISTA`. |
-| `usuario` | Cuentas de acceso del personal y de los turistas. | `id` de texto, generado por Better Auth; `id_rol` → `rol`. |
+| `rol` | Catálogo de roles del sistema. | `codigo` único: `ADMIN`, `PERSONAL`, `CLIENTE`. |
+| `usuario` | Cuentas de acceso del personal y de los clientes. | `id` de texto, generado por Better Auth; `id_rol` → `rol`. |
 | `session` | Sesiones abiertas de Better Auth. | `user_id` → `usuario`; `token` único. |
 | `account` | Métodos de autenticación de una cuenta, con la contraseña. | `user_id` → `usuario`. |
 | `verification` | Verificaciones de correo y tokens de un solo uso. | `identifier` indexado. |
@@ -43,9 +44,11 @@ CREATE SCHEMA turismo;
 | `cliente` | Ficha comercial del cliente. | `id_usuario` opcional → `usuario`; documento único. |
 | `pasajero` | Personas que viajan en una reserva. | `id_cliente` → `cliente`; documento único. |
 | `proveedor` | Transporte, hospedaje, guías y otros servicios. | `tipo` restringido por `CHECK`. |
-| `paquete` | Catálogo de paquetes turísticos. | `codigo` único; `id_usuario_creador` → `usuario`. |
+| `paquete` | Catálogo de paquetes turísticos. | `codigo` único y en mayúsculas; `id_usuario_creador` e `id_usuario_actualizacion` → `usuario`; el estado `activo` exige destino, descripción, itinerario y servicios incluidos. |
+| `actividad` | Catálogo fijo de acciones comunes del itinerario. | `codigo` único en minúsculas; se amplía con la semilla, no desde la interfaz. |
+| `paquete_actividad` | Acciones marcadas en el itinerario de un paquete. | PK compuesta (`id_paquete`, `id_actividad`). |
 | `paquete_proveedor` | Servicios de proveedores incluidos en un paquete. | PK compuesta (`id_paquete`, `id_proveedor`). |
-| `salida` | Fecha, cupo y precio de una salida concreta. | `id_paquete` → `paquete`; `cupo_maximo > 0`. |
+| `salida` | Fecha, cupo y precio de una salida concreta. | `id_paquete` → `paquete`; `cupo_maximo > 0`; `precio > 0`; única por paquete y fecha. |
 | `cotizacion` | Propuesta económica para un cliente y una salida. | `id_cliente`, `id_salida`, `id_usuario`; `numero` único. |
 | `reserva` | Reserva de cupos para una salida. | `id_cliente`, `id_salida`; `id_cotizacion` opcional y único. |
 | `reserva_pasajero` | Pasajeros incluidos en cada reserva. | PK compuesta (`id_reserva`, `id_pasajero`). |
@@ -117,7 +120,11 @@ ingreso, con usuario, fecha y hora, dirección IP y resultado.
 | `acceso.tipo` | `ingreso`, `salida`, `intento` |
 | `acceso.resultado` | `permitido`, `denegado` |
 
-## Reglas de negocio reflejadas en el esquema
+## Invariantes que el esquema garantiza
+
+El enunciado canónico de cada regla, su fuente y su trazabilidad están en
+`sistema/reglas-negocio.md`. Esta sección solo resume lo que la base aplica
+por sí misma.
 
 1. **El cupo no se almacena.** `vista_disponibilidad_salida` calcula:
    `cupo_maximo − pasajeros de reservas vigentes`.
@@ -163,6 +170,17 @@ ingreso, con usuario, fecha y hora, dirección IP y resultado.
     aplicación con el identificador de texto que genera la biblioteca. Las
     cuentas se pueden desactivar o bloquear (`usuario.estado`) sin borrar
     su historial, porque nada se borra.
+15. **Un paquete activo tiene contenido mínimo.** El `CHECK`
+    `ck_paquete_publicado` exige destino, descripción, itinerario y
+    servicios incluidos no vacíos. El borrador puede quedar incompleto.
+16. **El itinerario se complementa con actividades.** `paquete_actividad`
+    guarda las acciones comunes marcadas (desayuno, transporte, guía, etc.)
+    sin sustituir el texto libre de `paquete.itinerario`.
+17. **Una salida pertenece a un paquete activo y respeta su duración.** La
+    función `fn_crear_salida` valida el estado del paquete, que la fecha de
+    retorno no sea anterior a la de salida y que la duración coincida con
+    `paquete.duracion_dias`. El índice `ux_salida_paquete_fecha` impide dos
+    salidas del mismo paquete el mismo día.
 
 ## Las reglas críticas viven en funciones
 
@@ -177,7 +195,8 @@ Neon.
 |---|---|
 | `fn_crear_reserva(cliente, salida, cantidad, origen, usuario [, cotización])` | Bloquea la salida, valida el cupo, rechaza la segunda solicitud activa y crea la reserva `pendiente` con su vencimiento. |
 | `fn_confirmar_reserva(reserva, usuario)` | Confirma dentro del plazo, limpia el vencimiento y audita. Una solicitud vencida no se confirma: se marca `vencida` y se rechaza. |
-| `fn_actualizar_salida(salida, usuario [, fecha_salida, fecha_retorno, capacidad, precio, motivo])` | Bloquea la salida, impide bajar la capacidad por debajo de lo reservado y audita cada campo modificado con su valor anterior y el nuevo. |
+| `fn_crear_salida(paquete, salida, retorno, capacidad, precio, usuario [, punto_encuentro, observaciones])` | Exige un paquete activo, fechas coherentes con la duración del paquete, cupo y precio positivos, y una sola salida por paquete y fecha. Audita la creación. |
+| `fn_actualizar_salida(salida, usuario [, fecha_salida, fecha_retorno, capacidad, precio, motivo, punto_encuentro, estado])` | Bloquea la salida, impide bajar la capacidad por debajo de lo reservado, valida la transición de estado y audita cada campo modificado con su valor anterior y el nuevo. |
 | `fn_solicitar_cancelacion(reserva, usuario)` | Registra la petición del cliente sin cambiar el estado de la reserva. |
 | `fn_ejecutar_cancelacion(reserva, motivo, usuario)` | Ejecuta la cancelación del personal: estado `cancelada`, motivo y fecha, con auditoría. |
 | `fn_registrar_pago(reserva, tipo, monto, metodo, usuario [, referencia, observacion])` | Registra el pago en estado `registrado`. |
@@ -232,7 +251,7 @@ confirmar la reserva, porque el plazo deja de correr.
 
 | Vista | Uso |
 |---|---|
-| `vista_disponibilidad_salida` | Consulta de cupos para HU-03, HU-05 y HU-06. Separa pasajeros pendientes de confirmados y expone `cupo_disponible_sin_pendientes`. Excluye las solicitudes cuyo plazo venció, aunque su estado guardado siga siendo `pendiente`. |
+| `vista_disponibilidad_salida` | Consulta de cupos para HU-03, HU-05 y HU-06. Separa pasajeros pendientes de confirmados, expone `cupo_disponible_sin_pendientes` y el `estado_paquete`/`estado` de la salida para que la consulta pública filtre. Excluye las solicitudes cuyo plazo venció, aunque su estado guardado siga siendo `pendiente`. |
 | `vista_saldo_reserva` | Anticipo, saldo pagado, total validado y saldo pendiente para HU-07 y HU-14. El saldo pendiente se calcula sobre los pagos validados. |
 | `vista_reservas_por_fecha` | Reporte de ocupación y reservas por fecha para HU-11. Distingue pendientes, confirmadas y vencidas. |
 
@@ -256,3 +275,8 @@ confirmar la reserva, porque el plazo deja de correr.
   atendido por el personal, porque `cliente.id_usuario` admite valor nulo.
 - El identificador de las cuentas es de texto porque Better Auth lo genera.
   Las claves foráneas hacia `usuario` son de texto en consecuencia.
+- El catálogo `actividad` es fijo en el MVP. Se amplía con una fila en la
+  semilla; no se edita desde la interfaz.
+- La duración de una salida se cuenta en días inclusivos:
+  `fecha_retorno − fecha_salida + 1` debe coincidir con
+  `paquete.duracion_dias`.

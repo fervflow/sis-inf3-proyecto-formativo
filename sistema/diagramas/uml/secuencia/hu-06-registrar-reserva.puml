@@ -6,7 +6,7 @@ hide footbox
 autonumber
 skinparam maxMessageSize 175
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 actor "Personal" as PER
 boundary "IU-06 · Registrar reserva" as UI <<interfaz>>
 control "ControlReservas" as CTRL <<control>>
@@ -42,14 +42,18 @@ group Transacción de registro
     E_CLIENTE --> CTRL : cliente válido
 
     CTRL -> E_SALIDA : bloquearSalida(idSalida)
-    E_SALIDA -> T_SALIDA : SELECT ... FOR UPDATE
+    E_SALIDA -> T_SALIDA : SELECT ... FOR UPDATE\nWHERE paquete.estado = 'activo'\nAND salida.estado IN ('programada', 'confirmada')\nAND fecha_salida >= CURRENT_DATE
     T_SALIDA --> E_SALIDA : cupo_maximo
     E_SALIDA -> E_RESERVA : contarPasajerosActivos(idSalida)
-    E_RESERVA -> T_RESERVA : SELECT SUM(cantidad_pasajeros)\nWHERE estado IN ('pendiente', 'confirmada')
+    E_RESERVA -> T_RESERVA : SELECT desde vista_disponibilidad_salida
     T_RESERVA --> E_SALIDA : pasajeros ocupados
     E_SALIDA -> E_SALIDA : cupoDisponible = cupo_maximo - ocupados
 
-    alt Cupo insuficiente
+    alt Paquete inactivo, salida pasada o no reservable
+        E_SALIDA --> CTRL : no reservable
+        CTRL --> UI : error «La salida no admite reservas»
+        UI --> PER : informar al cliente
+    else Cupo insuficiente
         E_SALIDA --> CTRL : no disponible
         CTRL --> UI : error «Cupo insuficiente»
         UI --> PER : informar al cliente
@@ -89,9 +93,11 @@ end
 
 note right of CTRL
     La reserva nace pendiente en los dos
-    canales. La confirma el personal (HU-17).
-    Si no se confirma dentro del plazo, pasa
-    a vencida y libera el cupo.
+    canales. La confirma el personal (HU-17),
+    y solo si la cantidad de pasajeros coincide
+    con el manifiesto (HU-12). Si no se confirma
+    dentro del plazo, pasa a vencida y libera el
+    cupo.
 end note
 
 note right of E_RESERVA

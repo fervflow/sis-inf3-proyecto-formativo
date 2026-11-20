@@ -184,6 +184,7 @@ export const paquete = turismo.table('paquete', {
   idPaquete: bigint('id_paquete', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   codigo: varchar('codigo', { length: 20 }).notNull().unique(),
   nombre: varchar('nombre', { length: 150 }).notNull(),
+  destino: varchar('destino', { length: 150 }),
   descripcion: text('descripcion'),
   duracionDias: smallint('duracion_dias').notNull(),
   precioBase: numeric('precio_base', { precision: 12, scale: 2 }).notNull(),
@@ -193,11 +194,36 @@ export const paquete = turismo.table('paquete', {
   idUsuarioCreador: text('id_usuario_creador').references(() => usuario.id, {
     onDelete: 'set null',
   }),
+  idUsuarioActualizacion: text('id_usuario_actualizacion').references(
+    () => usuario.id,
+    { onDelete: 'set null' },
+  ),
   fechaCreacion: timestamp('fecha_creacion', { withTimezone: true }).notNull().defaultNow(),
   fechaActualizacion: timestamp('fecha_actualizacion', { withTimezone: true })
     .notNull()
     .defaultNow(),
 })
+
+export const actividad = turismo.table('actividad', {
+  idActividad: smallint('id_actividad').primaryKey().generatedAlwaysAsIdentity(),
+  codigo: varchar('codigo', { length: 30 }).notNull().unique(),
+  nombre: varchar('nombre', { length: 80 }).notNull(),
+  orden: smallint('orden').notNull().default(0),
+  activo: boolean('activo').notNull().default(true),
+})
+
+export const paqueteActividad = turismo.table(
+  'paquete_actividad',
+  {
+    idPaquete: bigint('id_paquete', { mode: 'number' })
+      .notNull()
+      .references(() => paquete.idPaquete, { onDelete: 'cascade' }),
+    idActividad: smallint('id_actividad')
+      .notNull()
+      .references(() => actividad.idActividad, { onDelete: 'restrict' }),
+  },
+  (tabla) => [uniqueIndex('pq_paquete_actividad').on(tabla.idPaquete, tabla.idActividad)],
+)
 
 export const paqueteProveedor = turismo.table(
   'paquete_proveedor',
@@ -237,6 +263,7 @@ export const salida = turismo.table(
       .defaultNow(),
   },
   (tabla) => [
+    uniqueIndex('ux_salida_paquete_fecha').on(tabla.idPaquete, tabla.fechaSalida),
     index('ix_salida_paquete_fecha').on(tabla.idPaquete, tabla.fechaSalida),
     index('ix_salida_fecha').on(tabla.fechaSalida),
   ],
@@ -442,9 +469,25 @@ export const pasajeroRelations = relations(pasajero, ({ one, many }) => ({
   reservas: many(reservaPasajero),
 }))
 
-export const paqueteRelations = relations(paquete, ({ one, many }) => ({
+export const paqueteRelations = relations(paquete, ({ many }) => ({
   salidas: many(salida),
   proveedores: many(paqueteProveedor),
+  actividades: many(paqueteActividad),
+}))
+
+export const actividadRelations = relations(actividad, ({ many }) => ({
+  paquetes: many(paqueteActividad),
+}))
+
+export const paqueteActividadRelations = relations(paqueteActividad, ({ one }) => ({
+  paquete: one(paquete, {
+    fields: [paqueteActividad.idPaquete],
+    references: [paquete.idPaquete],
+  }),
+  actividad: one(actividad, {
+    fields: [paqueteActividad.idActividad],
+    references: [actividad.idActividad],
+  }),
 }))
 
 export const proveedorRelations = relations(proveedor, ({ many }) => ({

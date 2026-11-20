@@ -8,8 +8,9 @@ los dos.**
 
 | Necesito… | Miro… |
 |---|---|
+| Qué debe cumplirse y por qué | `sistema/reglas-negocio.md` |
 | Tablas, columnas y restricciones | `bd/esquema.sql` |
-| Reglas de negocio explicadas | `bd/diccionario-datos.md` |
+| Cómo aplica el esquema cada regla | `bd/diccionario-datos.md` |
 | Tipos en TypeScript | `web/db/schema.ts` |
 
 ## La conexión
@@ -71,7 +72,8 @@ Las reglas que necesitan bloquear una fila son funciones PL/pgSQL:
 |---|---|
 | `fn_crear_reserva(...)` | Bloquea la salida, valida cupo y rechaza la segunda solicitud activa |
 | `fn_confirmar_reserva(...)` | Confirma dentro del plazo, limpia el vencimiento y audita |
-| `fn_actualizar_salida(...)` | Bloquea la salida, no baja la capacidad y audita |
+| `fn_crear_salida(...)` | Exige paquete activo, duración coherente y una sola salida por fecha |
+| `fn_actualizar_salida(...)` | Bloquea la salida, no baja la capacidad, valida el estado y audita |
 | `fn_solicitar_cancelacion(...)` | Registra la petición sin cambiar el estado |
 | `fn_ejecutar_cancelacion(...)` | Cancela con motivo y fecha |
 | `fn_registrar_pago(...)` | Registra el pago como `registrado` |
@@ -150,3 +152,21 @@ psql -h 127.0.0.1 -U postgres -f bd/esquema.sql
 
 El script es idempotente en las inserciones de roles y se puede volver a
 ejecutar sobre una base limpia.
+
+## Actualizar una base existente
+
+`bd/esquema.sql` crea una base nueva. Para una base que ya existe se aplican
+los scripts de `bd/actualizaciones/` en orden:
+
+```bash
+make db-actualizar
+```
+
+Ese script agrega destino y actividades, cambia el rol `TURISTA` a
+`CLIENTE`, crea las funciones de salidas y aplica las restricciones nuevas.
+Es idempotente. Los paquetes activos que no tengan destino, descripción,
+itinerario o servicios incluidos pasan a `borrador` para que se completen
+antes de volver a publicarse.
+
+Los objetivos `db-crear`, `db-actualizar` y `db-probar` cargan `.env.local`
+cuando no encuentran las variables exportadas en el entorno.

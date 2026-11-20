@@ -12,7 +12,7 @@ tareas internas.
 
 | Actor | Casos de uso |
 |---|---|
-| Cliente (turista) | Acceder, abrir cuenta, consultar disponibilidad, registrar reserva y pasajeros, cancelar, pagar, recibir avisos |
+| Cliente | Acceder, abrir cuenta, consultar disponibilidad, registrar reserva y pasajeros, cancelar, pagar, recibir avisos |
 | Personal de agencia | Acceder, consultar disponibilidad, cotizar, registrar reserva y pasajeros, gestionar reservas, confirmar, cancelar, validar pagos, reportes |
 | Administrador | Acceder, administrar la oferta, programar y modificar salidas, reportes |
 

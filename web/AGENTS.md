@@ -22,13 +22,16 @@ proceso validado: la atención del personal y el acceso del cliente.
    `docs/design-system.md`.
 3. **Los componentes propios son la puerta de entrada.** Un patrón repetido
    va en `app/components/base/`. Ver `docs/componentes.md`.
-4. **El SQL es la fuente canónica.** `bd/esquema.sql` manda; `web/db/schema.ts`
-   lo refleja. Cambian juntos. Ver `docs/base-de-datos.md`.
-5. **Las reglas críticas se validan en la base.** Cupos y bloqueos son
+4. **La regla de negocio manda.** `sistema/reglas-negocio.md` es la fuente
+   canónica; el esquema la aplica y la aplicación no la contradice.
+5. **El SQL es la fuente canónica del esquema.** `bd/esquema.sql` manda;
+   `web/db/schema.ts` lo refleja. Cambian juntos. Ver
+   `docs/base-de-datos.md`.
+6. **Las reglas críticas se validan en la base.** Cupos y bloqueos son
    funciones PL/pgSQL; la aplicación las llama, no las reimplementa.
-6. **Todo dato que cruza la red va validado.** Zod en el servidor y tipos
+7. **Todo dato que cruza la red va validado.** Zod en el servidor y tipos
    en `shared/types/`. Ver `docs/tipos-y-datos.md` y `docs/seguridad.md`.
-7. **Se escribe en español**: textos, comentarios y nombres de dominio. Las
+8. **Se escribe en español**: textos, comentarios y nombres de dominio. Las
    palabras del framework van en inglés.
 
 ## Comandos
@@ -42,6 +45,8 @@ proceso validado: la atención del personal y el acceso del cliente.
 | Compilar | `make web-build` |
 | Comprobar el esquema | `npm run db:check --workspace web` |
 | Crear el esquema | `make db-crear` (conexión directa) |
+| Actualizar una base existente | `make db-actualizar` |
+| Probar reglas de paquetes y salidas | `make db-probar` |
 
 ## Variables de entorno
 
@@ -76,6 +81,7 @@ no al compilar: las credenciales no quedan dentro del paquete.
 | Crear o modificar un componente | `docs/componentes.md` |
 | Agregar o cambiar un tipo | `docs/tipos-y-datos.md` |
 | Agregar o cambiar un texto | `docs/i18n.md` |
+| Consultar o cambiar una regla de negocio | `../sistema/reglas-negocio.md` |
 | Tocar tablas, columnas o funciones | `docs/base-de-datos.md` |
 | Tocar ingreso, roles o sesión | `docs/autenticacion.md` |
 | Escribir pruebas | `docs/pruebas.md` |

@@ -10,7 +10,7 @@
  */
 
 /** Roles del sistema. */
-export type Rol = 'ADMIN' | 'PERSONAL' | 'TURISTA'
+export type Rol = 'ADMIN' | 'PERSONAL' | 'CLIENTE'
 
 /** Estados de una cuenta. */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

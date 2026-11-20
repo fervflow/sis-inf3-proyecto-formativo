@@ -2,7 +2,7 @@
 title HU-03 · Consulta de disponibilidad (versión ligera)
 hide footbox
 
-actor "Turista" as TUR
+actor "Cliente" as TUR
 boundary "IU-03" as UI <<interfaz>>
 control "ControlDisponibilidad" as CTRL <<control>>
 entity "Salida" as E_SALIDA <<entidad>>

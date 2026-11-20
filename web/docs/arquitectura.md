@@ -60,6 +60,7 @@ Base de datos (Drizzle ORM → PostgreSQL)
 
 | Pregunta | Respuesta |
 |---|---|
+| ¿Una regla de negocio? | `sistema/reglas-negocio.md` |
 | ¿Una tabla, columna o función? | `bd/esquema.sql` y `web/db/schema.ts` |
 | ¿Un tipo del dominio? | `shared/types/domain.ts` |
 | ¿La forma de una respuesta? | `shared/types/api.ts` |
@@ -77,6 +78,8 @@ Base de datos (Drizzle ORM → PostgreSQL)
 | `POST /api/<recurso>` | `/api/vencer-solicitudes` | Acción |
 | `GET /api/cuenta` | — | Sesión en curso |
 | `GET /api/admin/<recurso>` | `/api/admin/usuarios` | Solo rol `ADMIN` |
+| `GET /api/admin/actividades` | — | Catálogo de actividades del itinerario |
+| `GET /api/admin/salidas` | — | Salidas programadas, solo `ADMIN` |
 | `GET /api/auth/*` | — | Better Auth |
 
 Los nombres son en español y en plural; las acciones usan verbo.

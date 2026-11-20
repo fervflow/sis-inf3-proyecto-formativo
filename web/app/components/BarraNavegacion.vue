@@ -82,6 +82,11 @@ const menuGestion = computed<DropdownMenuItem[][]>(() => {
         to: '/admin/paquetes',
       },
       {
+        label: t('nav.salidas'),
+        icon: 'i-lucide-calendar-plus',
+        to: '/admin/salidas',
+      },
+      {
         label: t('nav.usuarios'),
         icon: 'i-lucide-users',
         to: '/admin/usuarios',
@@ -133,6 +138,11 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         label: t('nav.paquetes'),
         icon: 'i-lucide-map',
         to: '/admin/paquetes',
+      },
+      {
+        label: t('nav.salidas'),
+        icon: 'i-lucide-calendar-plus',
+        to: '/admin/salidas',
       },
       {
         label: t('nav.usuarios'),

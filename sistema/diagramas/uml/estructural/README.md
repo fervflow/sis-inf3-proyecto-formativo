@@ -6,9 +6,9 @@ usuario.
 
 | Archivo | Contenido | Tamaño |
 |---|---|---|
-| `diagrama-clases.puml` | Modelo completo: 14 clases, 13 enumeraciones, 3 vistas y un servicio | 1549 × 2195 pt |
+| `diagrama-clases.puml` | Modelo completo: 17 clases, 13 enumeraciones, 3 vistas y un servicio | 1549 × 2195 pt |
 | `diagrama-clases-simplificado.puml` | Versión publicable: 11 clases, 2 estados y una vista | 1120 × 1136 pt |
-| `diagrama-objetos.puml` | Instantánea completa: 20 objetos con sus valores | 1871 × 1432 pt |
+| `diagrama-objetos.puml` | Instantánea completa: 22 objetos con sus valores | 1871 × 1432 pt |
 | `diagrama-objetos-simplificado.puml` | La misma instantánea con 15 objetos | 1064 × 944 pt |
 
 ## Cuál usar
@@ -32,7 +32,7 @@ negocio).
 
 | Grupo | Clases | Contenido |
 |---|---|---|
-| Acceso | `Rol`, `Usuario` | Administrador, personal y turista |
+| Acceso | `Rol`, `Usuario` | Administrador, personal y cliente |
 | Clientes | `Cliente`, `Pasajero` | Ficha comercial y viajeros |
 | Catálogo | `Proveedor`, `Paquete`, `PaqueteProveedor`, `Salida` | Oferta y salidas |
 | Operación | `Cotizacion`, `Reserva`, `ReservaPasajero`, `Pago` | Reserva y pagos |
@@ -57,6 +57,10 @@ fecha o la capacidad de su salida (HU-16).
 6. **El saldo se calcula sobre pagos validados.**
 7. **La cancelación es lógica:** cambia el estado y guarda motivo y fecha.
 8. **La auditoría es explícita:** se guardan el valor anterior y el nuevo.
+9. **El paquete publicado tiene contenido mínimo:** destino, descripción,
+   itinerario y servicios incluidos.
+10. **El itinerario se complementa con actividades comunes:** el texto libre
+    y las casillas se guardan por separado.
 
 ### Coherencia con los diagramas de secuencia
 
