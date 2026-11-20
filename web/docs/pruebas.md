@@ -28,10 +28,11 @@ transacción que se revierte o borran lo que crearon.
 
 | Regla | Casos |
 |---|---|
-| Paquete publicado | Activar con destino, descripción, itinerario y servicios; rechazar si falta uno |
+| Paquete publicado | Activar con destino, descripción, itinerario y al menos un servicio; rechazar si falta uno |
 | Paquete borrador | Guardar incompleto; no se ofrece al cliente |
 | Precio y código | Precio cero; código duplicado; código en minúsculas |
-| Actividades | Marcar y desmarcar; no repetir la misma actividad |
+| Recorrido | Un circuito sin origen se rechaza; una parada no se repite |
+| Servicios | Marcar y desmarcar; no repetir el mismo servicio |
 | Salida | Paquete inactivo; fecha pasada; retorno anterior; duración incoherente; duplicado por fecha |
 | Estado de salida | Transiciones válidas; cancelar sin motivo; editar una salida realizada |
 | Cupo | Cabe, no cabe y dos reservas simultáneas |

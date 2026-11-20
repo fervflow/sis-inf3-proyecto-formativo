@@ -58,9 +58,13 @@ fecha o la capacidad de su salida (HU-16).
 7. **La cancelación es lógica:** cambia el estado y guarda motivo y fecha.
 8. **La auditoría es explícita:** se guardan el valor anterior y el nuevo.
 9. **El paquete publicado tiene contenido mínimo:** destino, descripción,
-   itinerario y servicios incluidos.
-10. **El itinerario se complementa con actividades comunes:** el texto libre
-    y las casillas se guardan por separado.
+   itinerario y al menos un servicio.
+10. **El destino es un lugar y el recorrido son paradas ordenadas:** el
+    destino comercial y el origen son referencias a `Lugar`; `PaqueteParada`
+    guarda las paradas. `tipoRecorrido` distingue el viaje sencillo del
+    circular.
+11. **Los servicios son la lista de lo que cubre el precio:** `Servicio` y
+    `PaqueteServicio`; el itinerario es el relato día por día.
 
 ### Coherencia con los diagramas de secuencia
 

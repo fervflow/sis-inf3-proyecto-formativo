@@ -45,12 +45,24 @@ package "Catalogo" {
     - idPaquete : Long
     - codigo : String
     - nombre : String
-    - destino : String
+    - idLugarDestino : Long
+    - idLugarOrigen : Long
+    - tipoRecorrido : String
     - duracionDias : Integer
     - precioBase : Decimal
     - itinerario : String
-    - serviciosIncluidos : String
+    - serviciosDetalle : String
+    - serviciosExcluidos : String
     + activar() : void
+  }
+
+  class Lugar {
+    - idLugar : Long
+    - codigo : String
+    - nombre : String
+    - tipo : String
+    - latitud : Decimal
+    - longitud : Decimal
   }
 
   class Salida {
@@ -151,6 +163,7 @@ Cliente "1" <-- "0..*" Pasajero : "> agrupa
 Cliente "1" <-- "0..*" Cotizacion : "> recibe
 Cliente "1" <-- "0..*" Reserva : "> solicita
 
+Paquete "0..*" --> "1" Lugar : destino
 Paquete "1" <-- "0..*" Salida : "> programa
 
 Salida "1" <-- "0..*" Cotizacion : "> cotiza

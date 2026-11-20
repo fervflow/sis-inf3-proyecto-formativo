@@ -8,9 +8,9 @@ control "ControlPaquetes" as CTRL <<control>>
 entity "Paquete" as E_PAQUETE <<entidad>>
 database "paquete" as T_PAQUETE <<tabla>>
 
-ADM -> UI : datos del paquete y actividades
+ADM -> UI : datos del paquete, recorrido y servicios
 UI -> CTRL : guardarPaquete(datos)
-CTRL -> E_PAQUETE : validarCodigoYPrecio()
+CTRL -> E_PAQUETE : validarContenidoYPrecio()
 E_PAQUETE -> T_PAQUETE : SELECT e INSERT o UPDATE
 T_PAQUETE --> E_PAQUETE : paquete guardado
 E_PAQUETE --> CTRL : paquete guardado

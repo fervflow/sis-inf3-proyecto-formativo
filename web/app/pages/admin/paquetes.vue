@@ -15,10 +15,10 @@
 
     <UAlert v-if="aviso" color="success" variant="soft" :title="aviso" />
     <UAlert
-      v-if="error || errorAccion"
+      v-if="error"
       color="error"
       variant="soft"
-      :title="error ?? errorAccion ?? ''"
+      :title="error"
     />
 
     <BaseTarjeta>
@@ -58,180 +58,25 @@
       </BaseTablaDatos>
     </BaseTarjeta>
 
-    <UModal v-model:open="formularioAbierto" :title="tituloFormulario">
-      <template #body>
-        <form id="form-paquete" class="space-y-4" @submit.prevent="guardar">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField
-              :label="t('paquetes.form.codigo')"
-              name="codigo"
-              :help="t('paquetes.ayudaCodigo')"
-            >
-              <UInput
-                v-model="formulario.codigo"
-                autocapitalize="characters"
-                spellcheck="false"
-                class="w-full"
-                required
-              />
-            </UFormField>
-
-            <UFormField :label="t('paquetes.form.estado')" name="estado">
-              <USelect
-                v-model="formulario.estado"
-                :items="estados"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-
-          <UFormField :label="t('paquetes.form.nombre')" name="nombre">
-            <UInput v-model="formulario.nombre" class="w-full" required />
-          </UFormField>
-
-          <UFormField
-            :label="t('paquetes.form.destino')"
-            name="destino"
-            :required="formulario.estado === 'activo'"
-          >
-            <UInput
-              v-model="formulario.destino"
-              class="w-full"
-              :required="formulario.estado === 'activo'"
-            />
-          </UFormField>
-
-          <UFormField
-            :label="t('paquetes.form.descripcion')"
-            name="descripcion"
-            :required="formulario.estado === 'activo'"
-          >
-            <UTextarea
-              v-model="formulario.descripcion"
-              :rows="2"
-              class="w-full"
-              :required="formulario.estado === 'activo'"
-            />
-          </UFormField>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField :label="t('paquetes.form.duracion')" name="duracion">
-              <UInput
-                v-model="formulario.duracionDias"
-                type="number"
-                min="1"
-                max="365"
-                class="w-full"
-                required
-              />
-            </UFormField>
-
-            <UFormField
-              :label="t('paquetes.form.precio')"
-              name="precio"
-              :help="t('paquetes.ayudaPrecio')"
-            >
-              <UInput
-                v-model="formulario.precioBase"
-                type="number"
-                min="0.01"
-                step="0.01"
-                class="w-full"
-                required
-              />
-            </UFormField>
-          </div>
-
-          <UFormField
-            :label="t('paquetes.form.itinerario')"
-            name="itinerario"
-            :help="t('paquetes.ayudaItinerario')"
-            :required="formulario.estado === 'activo'"
-          >
-            <UTextarea
-              v-model="formulario.itinerario"
-              :rows="3"
-              class="w-full"
-              :required="formulario.estado === 'activo'"
-            />
-          </UFormField>
-
-          <UFormField
-            :label="t('paquetes.form.actividades')"
-            name="actividades"
-            :help="t('paquetes.ayudaActividades')"
-          >
-            <div class="grid gap-2 sm:grid-cols-2">
-              <UCheckbox
-                v-for="actividad in actividadesDisponibles"
-                :key="actividad.idActividad"
-                :model-value="
-                  formulario.actividades.includes(actividad.idActividad)
-                "
-                :label="actividad.nombre"
-                @update:model-value="
-                  (valor) => alternarActividad(actividad.idActividad, valor)
-                "
-              />
-            </div>
-          </UFormField>
-
-          <UFormField
-            :label="t('paquetes.form.servicios')"
-            name="servicios"
-            :required="formulario.estado === 'activo'"
-          >
-            <UTextarea
-              v-model="formulario.serviciosIncluidos"
-              :rows="2"
-              class="w-full"
-              :required="formulario.estado === 'activo'"
-            />
-          </UFormField>
-
-          <UAlert
-            v-if="errorFormulario"
-            color="error"
-            variant="soft"
-            :title="errorFormulario"
-          />
-        </form>
-      </template>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton
-            variant="ghost"
-            color="neutral"
-            :label="t('comun.cancelar')"
-            @click="formularioAbierto = false"
-          />
-          <UButton
-            type="submit"
-            form="form-paquete"
-            color="primary"
-            :loading="guardando"
-            :label="t('comun.guardar')"
-          />
-        </div>
-      </template>
-    </UModal>
+    <PaquetesFormularioPaquete
+      v-model:abierto="formularioAbierto"
+      :paquete="editando"
+      @guardado="alGuardar"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import type {
-  ActividadResumen,
-  PaqueteAdmin,
-  RespuestaActividades,
-  RespuestaPaquetes,
-} from '#shared/types/api'
+import type { PaqueteAdmin, RespuestaPaquetes } from '#shared/types/api'
 import type { EstadoPaquete } from '#shared/types/domain'
 import type { ColumnaTabla } from '#shared/types/ui'
 import type { ClaveMensaje } from '~/i18n'
 
-/** La tabla necesita una clave para la columna de acciones. */
-type FilaPaquete = PaqueteAdmin & { acciones?: string }
+/** La tabla necesita una clave para la columna de acciones y el recorrido. */
+type FilaPaquete = PaqueteAdmin & {
+  acciones?: string
+  recorrido?: string
+}
 
 const RUTA: string = '/api/admin/paquetes'
 
@@ -239,36 +84,52 @@ const { t } = useTexto()
 const mensajeDeError = useMensajeError()
 const { moneda } = useFormato()
 
+const peticion = useRequestFetch()
+
 const {
   data,
   pending: pendiente,
   error: errorConsulta,
   refresh,
 } = await useAsyncData<RespuestaPaquetes>('paquetes-admin', () =>
-  $fetch<RespuestaPaquetes>(RUTA),
+  peticion<RespuestaPaquetes>(RUTA),
 )
 
-const { data: dataActividades } = await useAsyncData<RespuestaActividades>(
-  'actividades-admin',
-  () => $fetch<RespuestaActividades>('/api/admin/actividades'),
-)
-
-const actividadesDisponibles = computed<ActividadResumen[]>(
-  () => dataActividades.value?.actividades ?? [],
-)
-
-const filas = computed<FilaPaquete[]>(() => data.value?.paquetes ?? [])
 const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
 )
 
 const aviso = ref<string | null>(null)
-const errorAccion = ref<string | null>(null)
+const formularioAbierto = ref(false)
+const editando = ref<PaqueteAdmin | null>(null)
+
+/** Resume el recorrido: origen, paradas, destino y regreso. */
+function recorridoDe(paquete: PaqueteAdmin): string {
+  const origen = paquete.origen?.nombre
+  const destino = paquete.destino?.nombre
+  const partes: string[] = []
+
+  if (origen) partes.push(origen)
+  for (const parada of paquete.paradas) {
+    if (!partes.includes(parada.nombre)) partes.push(parada.nombre)
+  }
+  if (destino && !partes.includes(destino)) partes.push(destino)
+  if (paquete.tipoRecorrido === 'circuito' && origen) partes.push(origen)
+
+  return partes.length > 0 ? partes.join(' → ') : '—'
+}
+
+const filas = computed<FilaPaquete[]>(() =>
+  (data.value?.paquetes ?? []).map((paquete) => ({
+    ...paquete,
+    recorrido: recorridoDe(paquete),
+  })),
+)
 
 const columnas = computed<ColumnaTabla<FilaPaquete>[]>(() => [
   { clave: 'codigo', etiqueta: t('paquetes.columnas.codigo') },
   { clave: 'nombre', etiqueta: t('paquetes.columnas.nombre') },
-  { clave: 'destino', etiqueta: t('paquetes.columnas.destino') },
+  { clave: 'recorrido', etiqueta: t('paquetes.columnas.recorrido') },
   {
     clave: 'duracionDias',
     etiqueta: t('paquetes.columnas.dias'),
@@ -301,121 +162,25 @@ function colorEstado(
 
 // --- Alta y edición -----------------------------------------------------
 
-const formularioAbierto = ref(false)
-const guardando = ref(false)
-const errorFormulario = ref<string | null>(null)
-const editando = ref<PaqueteAdmin | null>(null)
-
-const formulario = reactive({
-  codigo: '',
-  nombre: '',
-  destino: '',
-  descripcion: '',
-  duracionDias: '1',
-  precioBase: '1',
-  itinerario: '',
-  serviciosIncluidos: '',
-  actividades: [] as number[],
-  estado: 'borrador' as EstadoPaquete,
-})
-
-/** Marca o desmarca una actividad del itinerario. */
-function alternarActividad(idActividad: number, valor: boolean | 'indeterminate') {
-  const activa = valor === true
-  if (activa && !formulario.actividades.includes(idActividad)) {
-    formulario.actividades = [...formulario.actividades, idActividad]
-  } else if (!activa) {
-    formulario.actividades = formulario.actividades.filter(
-      (id) => id !== idActividad,
-    )
-  }
-}
-
-const estados = computed<{ label: string; value: EstadoPaquete }[]>(() => [
-  { label: t('paquetes.estados.borrador'), value: 'borrador' },
-  { label: t('paquetes.estados.activo'), value: 'activo' },
-  { label: t('paquetes.estados.inactivo'), value: 'inactivo' },
-])
-
-const tituloFormulario = computed(() =>
-  editando.value ? t('paquetes.editar') : t('paquetes.crear'),
-)
-
 function abrirAlta() {
+  aviso.value = null
   editando.value = null
-  formulario.codigo = ''
-  formulario.nombre = ''
-  formulario.destino = ''
-  formulario.descripcion = ''
-  formulario.duracionDias = '1'
-  formulario.precioBase = '1'
-  formulario.itinerario = ''
-  formulario.serviciosIncluidos = ''
-  formulario.actividades = []
-  formulario.estado = 'borrador'
-  errorFormulario.value = null
   formularioAbierto.value = true
 }
 
 function abrirEdicion(paquete: PaqueteAdmin) {
+  aviso.value = null
   editando.value = paquete
-  formulario.codigo = paquete.codigo
-  formulario.nombre = paquete.nombre
-  formulario.destino = paquete.destino ?? ''
-  formulario.descripcion = paquete.descripcion ?? ''
-  formulario.duracionDias = String(paquete.duracionDias)
-  formulario.precioBase = paquete.precioBase
-  formulario.itinerario = paquete.itinerario ?? ''
-  formulario.serviciosIncluidos = paquete.serviciosIncluidos ?? ''
-  formulario.actividades = paquete.actividades.map(
-    (actividad) => actividad.idActividad,
-  )
-  formulario.estado = paquete.estado
-  errorFormulario.value = null
   formularioAbierto.value = true
 }
 
-async function guardar() {
-  errorFormulario.value = null
-  guardando.value = true
-
-  const cuerpo = {
-    codigo: formulario.codigo,
-    nombre: formulario.nombre,
-    destino: formulario.destino,
-    descripcion: formulario.descripcion,
-    duracionDias: Number(formulario.duracionDias),
-    precioBase: Number(formulario.precioBase),
-    itinerario: formulario.itinerario,
-    serviciosIncluidos: formulario.serviciosIncluidos,
-    actividades: formulario.actividades,
-    estado: formulario.estado,
-  }
-
-  try {
-    const guardado = await $fetch<PaqueteAdmin>(
-      editando.value ? rutaPaquete(editando.value.idPaquete) : RUTA,
-      {
-        method: editando.value ? 'PATCH' : 'POST',
-        body: cuerpo,
-      },
-    )
-
-    formularioAbierto.value = false
-    aviso.value = t(
-      editando.value ? 'paquetes.actualizado' : 'paquetes.creado',
-      { codigo: guardado.codigo },
-    )
-    await refresh()
-  } catch (fallo) {
-    errorFormulario.value = mensajeDeError(fallo)
-  } finally {
-    guardando.value = false
-  }
-}
-
-/** Ruta de un paquete. Devuelve `string` para no expandir los tipos de ruta. */
-function rutaPaquete(id: number): string {
-  return `/api/admin/paquetes/${id}`
+async function alGuardar(guardado: PaqueteAdmin) {
+  const eraEdicion = editando.value !== null
+  aviso.value = t(
+    eraEdicion ? 'paquetes.actualizado' : 'paquetes.creado',
+    { codigo: guardado.codigo },
+  )
+  editando.value = null
+  await refresh()
 }
 </script>

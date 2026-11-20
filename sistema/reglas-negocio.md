@@ -25,7 +25,8 @@ qué**, **dónde** se aplica y **cómo** se comprueba.
 | **Pasajero** | Persona que ocupa un cupo en una salida. Puede ser el cliente u otra persona. | Entidad `pasajero` y `reserva_pasajero`. |
 | **Turista** | Persona que viaja por recreación. En este sistema es un sinónimo comercial de cliente cuando el cliente viaja; no es una entidad técnica. | Solo textos públicos o glosario. |
 | **Usuario** | Cuenta de acceso. No es una persona del negocio. | Entidad `usuario`. |
-| **Actividad** | Acción común del itinerario: desayuno, almuerzo, transporte, guía, etc. | Catálogo `actividad` y vínculo `paquete_actividad`. |
+| **Servicio** | Prestación que cubre el precio del paquete: desayuno, transporte, guía, etc. | Catálogo `servicio` y vínculo `paquete_servicio`. |
+| **Lugar** | Ubicación reutilizable del catálogo: destino principal, origen o parada. | Entidad `lugar`, `paquete.id_lugar_destino`, `paquete.id_lugar_origen` y `paquete_parada`. |
 
 El rol de acceso del cliente se llama `CLIENTE`. El código `TURISTA` queda
 obsoleto y no debe volver a introducirse.
@@ -58,59 +59,74 @@ obsoleto y no debe volver a introducirse.
 
 ## 5. Paquetes turísticos
 
-### 5.1 Identidad y contenido
+### 5.1 Lugares y recorrido
 
 | ID | Regla | Fuente | Aplicación | Estado |
 |---|---|---|---|---|
-| RN-PAQ-01 | El código identifica al paquete, es único, tiene entre 3 y 20 caracteres, solo admite letras, números y guion, y se guarda en mayúsculas. | HU-01 | `ck_paquete_codigo`, Zod y normalización en la API | Vigente |
+| RN-LUG-01 | El catálogo de lugares es único por nombre normalizado. Cada lugar tiene un código corto en mayúsculas que sirve de prefijo al código del paquete. | Decisión del proyecto | `lugar`, `ux_lugar_nombre` y `ck_lugar_codigo` | Vigente |
+| RN-LUG-02 | Un lugar puede no tener coordenadas; si las tiene, la latitud y la longitud son válidas. | Decisión del proyecto | `ck_lugar_coordenadas` | Vigente |
+| RN-LUG-03 | Un lugar usado por un paquete no se elimina. | Decisión del proyecto | Clave foránea con `ON DELETE RESTRICT` | Vigente |
+| RN-PAQ-16 | El origen es opcional. El recorrido es `sencillo` o `circuito`; un circuito exige origen y vuelve a él. | Decisión del proyecto | `ck_paquete_circuito` y Zod | Vigente |
+| RN-PAQ-17 | Las paradas del recorrido se ordenan y no se repiten en el mismo paquete. | Decisión del proyecto | `paquete_parada` y `ux_paquete_parada_lugar` | Vigente |
+
+### 5.2 Identidad y contenido
+
+| ID | Regla | Fuente | Aplicación | Estado |
+|---|---|---|---|---|
+| RN-PAQ-01 | El código identifica al paquete, es único, tiene entre 3 y 20 caracteres y se guarda en mayúsculas. Se genera al crear con el formato `PREFIJO-AAAA-NNN`: el prefijo es el código del destino principal o, si falta, el del nombre; la secuencia es global. No se edita después. | HU-01 | `fn_generar_codigo_paquete`, `ck_paquete_codigo` y API | Vigente |
 | RN-PAQ-02 | El nombre es obligatorio y tiene entre 3 y 150 caracteres. | HU-01 | Zod y base | Vigente |
-| RN-PAQ-03 | El destino principal es opcional en borrador y obligatorio para publicar. | HU-01, T-HU-01.1 | `ck_paquete_publicado` y Zod | Vigente |
-| RN-PAQ-04 | La descripción es opcional en borrador y obligatoria para publicar. | HU-01 | `ck_paquete_publicado` | Vigente |
+| RN-PAQ-03 | El destino principal es una referencia a un lugar, opcional en borrador y obligatoria para publicar. | HU-01, T-HU-01.1 | Disparador de publicación y Zod | Vigente |
+| RN-PAQ-04 | La descripción es opcional en borrador y obligatoria para publicar. | HU-01 | Disparador de publicación | Vigente |
 | RN-PAQ-05 | La duración es un entero mayor que cero y menor o igual a 365 días. | HU-01, HU-02 | `ck_paquete_duracion` y Zod | Vigente |
 | RN-PAQ-06 | El precio base es mayor que cero. | HU-01 | `ck_paquete_precio` y Zod | Vigente |
-| RN-PAQ-07 | El itinerario es opcional en borrador y obligatorio para publicar. | HU-01, T-HU-01.1 | `ck_paquete_publicado` y Zod | Vigente |
-| RN-PAQ-08 | Los servicios incluidos son opcionales en borrador y obligatorios para publicar. | HU-01 | `ck_paquete_publicado` | Vigente |
-| RN-PAQ-09 | El itinerario se complementa con una lista de actividades comunes marcadas por el administrador. | Decisión del proyecto | `actividad`, `paquete_actividad` y casillas de la interfaz | Vigente |
+| RN-PAQ-07 | El itinerario es opcional en borrador y obligatorio para publicar. | HU-01, T-HU-01.1 | Disparador de publicación y Zod | Vigente |
+| RN-PAQ-08 | Los servicios incluidos son opcionales en borrador y, para publicar, se exige al menos uno marcado. | HU-01 | Disparador de publicación y Zod | Vigente |
+| RN-PAQ-09 | Los servicios marcados son la lista canónica de lo que cubre el precio. Los detalles y las exclusiones son textos opcionales. | Decisión del proyecto | `servicio`, `paquete_servicio`, `servicios_detalle` y `servicios_excluidos` | Vigente |
 | RN-PAQ-10 | Un paquete con salidas o reservas no se elimina: pasa a inactivo y conserva su historial. | HU-01 | Diseño de la API; no hay ruta de borrado | Vigente |
 
-### 5.2 Publicación
+### 5.3 Publicación
 
 | ID | Regla | Fuente | Aplicación | Estado |
 |---|---|---|---|---|
-| RN-PAQ-11 | Solo el paquete `activo` se ofrece al cliente y admite nuevas salidas. | HU-01, HU-02, HU-03 | `ck_paquete_publicado`, `fn_crear_salida` y consulta de disponibilidad | Vigente |
+| RN-PAQ-11 | Solo el paquete `activo` se ofrece al cliente y admite nuevas salidas. | HU-01, HU-02, HU-03 | Disparador de publicación, `fn_crear_salida` y consulta de disponibilidad | Vigente |
 | RN-PAQ-12 | Un paquete `activo` no puede volver a `borrador`; para retirarlo se pasa a `inactivo`. | Decisión del proyecto | API de paquetes | Vigente |
 | RN-PAQ-13 | Un paquete `inactivo` conserva sus salidas y reservas existentes, pero no admite salidas nuevas. | HU-01 | `fn_crear_salida` | Vigente |
-| RN-PAQ-14 | Al aplicar la regla de publicación, un paquete activo que no cumple el contenido mínimo pasa a `borrador`; no se ofrecen paquetes incompletos. | Decisión del proyecto | Migración `2026-11-20-reglas-paquetes.sql` | Vigente |
+| RN-PAQ-14 | Al aplicar la regla de publicación, un paquete activo que no cumple el contenido mínimo pasa a `borrador`; no se ofrecen paquetes incompletos. | Decisión del proyecto | Migración `2026-11-20-lugares-servicios.sql` | Vigente |
 | RN-PAQ-15 | Cada edición del paquete registra el usuario que la hizo y la fecha de actualización. | Decisión del proyecto | `id_usuario_actualizacion` y `fecha_actualizacion` | Vigente |
 
-### 5.3 Matriz de campos del paquete
+### 5.4 Matriz de campos del paquete
 
 | Campo | Borrador | Activo | Inactivo |
 |---|---|---|---|
-| `codigo` | Obligatorio | Obligatorio | Obligatorio |
+| `codigo` | Generado | Generado | Generado |
 | `nombre` | Obligatorio | Obligatorio | Obligatorio |
-| `destino` | Opcional | **Obligatorio** | Opcional |
+| `id_lugar_destino` | Opcional | **Obligatorio** | Opcional |
+| `id_lugar_origen` | Opcional | Opcional | Opcional |
+| `tipo_recorrido` | Obligatorio | Obligatorio | Obligatorio |
 | `descripcion` | Opcional | **Obligatorio** | Opcional |
 | `duracion_dias` | Obligatorio (> 0) | Obligatorio (> 0) | Obligatorio (> 0) |
 | `precio_base` | Obligatorio (> 0) | Obligatorio (> 0) | Obligatorio (> 0) |
 | `itinerario` | Opcional | **Obligatorio** | Opcional |
-| `servicios_incluidos` | Opcional | **Obligatorio** | Opcional |
-| `actividades` | Opcional | Opcional | Opcional |
+| `servicios` | Opcional | **Al menos uno** | Opcional |
+| `servicios_detalle` | Opcional | Opcional | Opcional |
+| `servicios_excluidos` | Opcional | Opcional | Opcional |
+| `paradas` | Opcional | Opcional | Opcional |
 
 La regla es deliberada: un borrador puede estar incompleto; un paquete
 publicado, no. Así se evita bloquear el trabajo diario y se protege al
 cliente.
 
-## 6. Actividades del itinerario
+## 6. Servicios incluidos
 
 | ID | Regla | Fuente | Aplicación | Estado |
 |---|---|---|---|---|
-| RN-ACT-01 | El catálogo de actividades es fijo en el MVP y se amplía con la semilla. | Decisión del proyecto | Tabla `actividad` | Vigente |
-| RN-ACT-02 | Un paquete puede tener cero o más actividades marcadas. | Decisión del proyecto | `paquete_actividad` | Vigente |
-| RN-ACT-03 | Una actividad no se repite en el mismo paquete. | Decisión del proyecto | PK (`id_paquete`, `id_actividad`) | Vigente |
-| RN-ACT-04 | Las actividades complementan el texto del itinerario; no lo sustituyen. | Decisión del proyecto | Interfaz y API | Vigente |
+| RN-SER-01 | El catálogo de servicios es fijo en el MVP y se amplía con la semilla. | Decisión del proyecto | Tabla `servicio` | Vigente |
+| RN-SER-02 | Un paquete puede tener cero o más servicios marcados. | Decisión del proyecto | `paquete_servicio` | Vigente |
+| RN-SER-03 | Un servicio no se repite en el mismo paquete. | Decisión del proyecto | PK (`id_paquete`, `id_servicio`) | Vigente |
+| RN-SER-04 | Los servicios describen lo que cubre el precio; el itinerario describe qué ocurre cada día. No se sustituyen entre sí. | Decisión del proyecto | Interfaz, API y reglas de publicación | Vigente |
+| RN-SER-05 | Para publicar, el paquete debe tener al menos un servicio marcado. | Decisión del proyecto | Disparador de publicación | Vigente |
 
-Actividades iniciales: desayuno, almuerzo, cena, transporte, alojamiento,
+Servicios iniciales: desayuno, almuerzo, cena, transporte, alojamiento,
 guía, entradas a sitios, traslado a terminal o aeropuerto, seguro de viaje,
 bebidas y actividades recreativas.
 
@@ -185,7 +201,7 @@ programada ──▶ confirmada ──▶ realizada
 
 | Historia | Reglas |
 |---|---|
-| HU-01 · Gestión de paquetes | RN-PAQ-01 a RN-PAQ-15, RN-ACT-01 a RN-ACT-04 |
+| HU-01 · Gestión de paquetes | RN-LUG-01 a RN-LUG-03, RN-PAQ-01 a RN-PAQ-17, RN-SER-01 a RN-SER-05 |
 | HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08 |
 | HU-03 · Consulta de disponibilidad | RN-SAL-17 a RN-SAL-19 |
 | HU-09 · Modificar fechas o capacidad | RN-SAL-09 a RN-SAL-16 |
@@ -234,8 +250,8 @@ iteración:
 
 ## 13. Decisiones abiertas
 
-- ¿El catálogo de actividades se podrá editar desde la administración o
-  seguirá siendo una semilla fija?
+- ¿El catálogo de servicios y el de lugares se podrán editar desde la
+  administración o seguirán siendo una semilla fija?
 - ¿La duración se expresa solo en días o también en noches?
 - ¿Se agregará hora de salida y hora de encuentro a la salida?
 - ¿La cancelación de una salida con reservas vigentes las cancela o las

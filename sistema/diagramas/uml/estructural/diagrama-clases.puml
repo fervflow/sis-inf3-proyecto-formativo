@@ -80,12 +80,15 @@ package "Catalogo" {
     - idPaquete : BIGINT
     - codigo : String
     - nombre : String
-    - destino : String
+    - idLugarDestino : BIGINT
+    - idLugarOrigen : BIGINT
+    - tipoRecorrido : TipoRecorrido
     - descripcion : String
     - duracionDias : Integer
     - precioBase : Decimal
     - itinerario : String
-    - serviciosIncluidos : String
+    - serviciosDetalle : String
+    - serviciosExcluidos : String
     - estado : EstadoPaquete
     + buscarPaquetes(filtro) : List<Paquete>
     + validarContenidoPublicable() : Boolean
@@ -93,19 +96,38 @@ package "Catalogo" {
     + activar() : void
   }
 
-  class Actividad {
-    - idActividad : SMALLINT
+  class Lugar {
+    - idLugar : BIGINT
+    - codigo : String
+    - nombre : String
+    - tipo : TipoLugar
+    - direccion : String
+    - latitud : Decimal
+    - longitud : Decimal
+    + buscar(filtro) : List<Lugar>
+    + guardar() : void
+  }
+
+  class PaqueteParada {
+    - idPaquete : BIGINT
+    - idLugar : BIGINT
+    - orden : SMALLINT
+    + ordenar(paradas) : void
+  }
+
+  class Servicio {
+    - idServicio : SMALLINT
     - codigo : String
     - nombre : String
     - orden : SMALLINT
     - activo : Boolean
-    + listar() : List<Actividad>
+    + listar() : List<Servicio>
   }
 
-  class PaqueteActividad {
+  class PaqueteServicio {
     - idPaquete : BIGINT
-    - idActividad : SMALLINT
-    + marcar(idPaquete, idActividad) : void
+    - idServicio : SMALLINT
+    + marcar(idPaquete, idServicio) : void
   }
 
   class PaqueteProveedor {
@@ -270,6 +292,17 @@ package "Enumeraciones" {
     activo
     inactivo
   }
+  enum TipoRecorrido {
+    sencillo
+    circuito
+  }
+  enum TipoLugar {
+    ciudad
+    atractivo
+    terminal
+    hospedaje
+    otro
+  }
   enum EstadoSalida {
     programada
     confirmada
@@ -329,6 +362,9 @@ Rol -[hidden]-> Usuario
 Usuario -[hidden]-> Cliente
 Cliente -[hidden]-> Pasajero
 Proveedor -[hidden]-> PaqueteProveedor
+Lugar -[hidden]-> PaqueteParada
+PaqueteParada -[hidden]-> Servicio
+Servicio -[hidden]-> PaqueteServicio
 Paquete -[hidden]-> Salida
 Salida -[hidden]-> Cotizacion
 Cotizacion -[hidden]-> Reserva
@@ -362,8 +398,12 @@ Cliente "1" <-- "0..*" Reserva : "> solicita
 ' --- Relaciones del catalogo -----------------------------------------
 Proveedor "1" <-- "0..*" PaqueteProveedor : "> aporta
 Paquete "1" *-- "0..*" PaqueteProveedor : incluye
-Paquete "1" *-- "0..*" PaqueteActividad : marca
-Actividad "1" <-- "0..*" PaqueteActividad : se incluye en
+Paquete "0..*" --> "1" Lugar : destino
+Paquete "0..*" --> "0..1" Lugar : origen
+Paquete "1" *-- "0..*" PaqueteParada : recorre
+Lugar "1" <-- "0..*" PaqueteParada : se visita en
+Paquete "1" *-- "0..*" PaqueteServicio : incluye
+Servicio "1" <-- "0..*" PaqueteServicio : se incluye en
 Paquete "1" <-- "0..*" Salida : "> programa
 
 ' --- Relaciones de la operacion --------------------------------------
@@ -387,6 +427,8 @@ Usuario --> EstadoUsuario
 Cliente --> EstadoCliente
 Proveedor --> EstadoProveedor
 Paquete --> EstadoPaquete
+Paquete --> TipoRecorrido
+Lugar --> TipoLugar
 Salida --> EstadoSalida
 Cotizacion --> EstadoCotizacion
 Reserva --> EstadoReserva

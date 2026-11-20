@@ -18,6 +18,10 @@
 --  nuevas sobre datos existentes se agregan como NOT VALID para no romper
 --  una base con filas antiguas; las filas nuevas y las modificadas sí se
 --  validan. Revisar los avisos al final.
+--
+--  Si el modelo de lugares (`2026-11-20-lugares-servicios.sql`) ya está
+--  aplicado, las secciones 1 a 3 se omiten: el destino es una referencia
+--  y los servicios reemplazaron a las actividades.
 -- =====================================================================
 
 SET search_path TO turismo, public;
@@ -26,8 +30,21 @@ SET search_path TO turismo, public;
 -- 1. Destino del paquete
 -- ---------------------------------------------------------------------
 
-ALTER TABLE turismo.paquete
-    ADD COLUMN IF NOT EXISTS destino VARCHAR(150);
+-- Si el modelo de lugares ya está aplicado, el destino es una referencia
+-- y esta columna no debe volver a crearse.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'turismo'
+          AND table_name = 'paquete'
+          AND column_name = 'id_lugar_destino'
+    ) THEN
+        ALTER TABLE turismo.paquete
+            ADD COLUMN IF NOT EXISTS destino VARCHAR(150);
+    END IF;
+END $$;
 
 ALTER TABLE turismo.paquete
     ADD COLUMN IF NOT EXISTS id_usuario_actualizacion TEXT
@@ -37,36 +54,41 @@ ALTER TABLE turismo.paquete
 -- 2. Catálogo de actividades del itinerario
 -- ---------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS turismo.actividad (
-    id_actividad        SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    codigo              VARCHAR(30) NOT NULL UNIQUE,
-    nombre              VARCHAR(80) NOT NULL,
-    orden               SMALLINT NOT NULL DEFAULT 0,
-    activo              BOOLEAN NOT NULL DEFAULT true,
-    CONSTRAINT ck_actividad_codigo CHECK (codigo = lower(codigo))
-);
+DO $$
+BEGIN
+    IF to_regclass('turismo.servicio') IS NULL THEN
+        CREATE TABLE IF NOT EXISTS turismo.actividad (
+            id_actividad        SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            codigo              VARCHAR(30) NOT NULL UNIQUE,
+            nombre              VARCHAR(80) NOT NULL,
+            orden               SMALLINT NOT NULL DEFAULT 0,
+            activo              BOOLEAN NOT NULL DEFAULT true,
+            CONSTRAINT ck_actividad_codigo CHECK (codigo = lower(codigo))
+        );
 
-CREATE TABLE IF NOT EXISTS turismo.paquete_actividad (
-    id_paquete          BIGINT NOT NULL
-        REFERENCES turismo.paquete(id_paquete) ON DELETE CASCADE,
-    id_actividad        SMALLINT NOT NULL
-        REFERENCES turismo.actividad(id_actividad) ON DELETE RESTRICT,
-    PRIMARY KEY (id_paquete, id_actividad)
-);
+        CREATE TABLE IF NOT EXISTS turismo.paquete_actividad (
+            id_paquete          BIGINT NOT NULL
+                REFERENCES turismo.paquete(id_paquete) ON DELETE CASCADE,
+            id_actividad        SMALLINT NOT NULL
+                REFERENCES turismo.actividad(id_actividad) ON DELETE RESTRICT,
+            PRIMARY KEY (id_paquete, id_actividad)
+        );
 
-INSERT INTO turismo.actividad (codigo, nombre, orden) VALUES
-    ('desayuno',                'Desayuno',                          10),
-    ('almuerzo',                'Almuerzo',                          20),
-    ('cena',                    'Cena',                              30),
-    ('transporte',              'Transporte',                        40),
-    ('alojamiento',             'Alojamiento',                       50),
-    ('guia',                    'Guía',                              60),
-    ('entradas',                'Entradas a sitios',                 70),
-    ('traslado',                'Traslado a terminal o aeropuerto',  80),
-    ('seguro',                  'Seguro de viaje',                   90),
-    ('bebidas',                 'Bebidas',                          100),
-    ('actividades_recreativas', 'Actividades recreativas',          110)
-ON CONFLICT (codigo) DO NOTHING;
+        INSERT INTO turismo.actividad (codigo, nombre, orden) VALUES
+            ('desayuno',                'Desayuno',                          10),
+            ('almuerzo',                'Almuerzo',                          20),
+            ('cena',                    'Cena',                              30),
+            ('transporte',              'Transporte',                        40),
+            ('alojamiento',             'Alojamiento',                       50),
+            ('guia',                    'Guía',                              60),
+            ('entradas',                'Entradas a sitios',                 70),
+            ('traslado',                'Traslado a terminal o aeropuerto',  80),
+            ('seguro',                  'Seguro de viaje',                   90),
+            ('bebidas',                 'Bebidas',                          100),
+            ('actividades_recreativas', 'Actividades recreativas',          110)
+        ON CONFLICT (codigo) DO NOTHING;
+    END IF;
+END $$;
 
 -- ---------------------------------------------------------------------
 -- 3. Restricciones del paquete
@@ -84,31 +106,43 @@ ALTER TABLE turismo.paquete
     ADD CONSTRAINT ck_paquete_precio
     CHECK (precio_base > 0) NOT VALID;
 
-ALTER TABLE turismo.paquete
-    DROP CONSTRAINT IF EXISTS ck_paquete_publicado;
-ALTER TABLE turismo.paquete
-    ADD CONSTRAINT ck_paquete_publicado CHECK (
-        estado <> 'activo'
-        OR (
-            destino IS NOT NULL AND btrim(destino) <> ''
-            AND descripcion IS NOT NULL AND btrim(descripcion) <> ''
-            AND itinerario IS NOT NULL AND btrim(itinerario) <> ''
-            AND servicios_incluidos IS NOT NULL AND btrim(servicios_incluidos) <> ''
-        )
-    ) NOT VALID;
+-- El modelo de lugares reemplaza esta restricción por el disparador
+-- diferido `tr_paquete_publicado`. Solo se aplica sobre el modelo viejo.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'turismo'
+          AND table_name = 'paquete'
+          AND column_name = 'servicios_incluidos'
+    ) THEN
+        ALTER TABLE turismo.paquete
+            DROP CONSTRAINT IF EXISTS ck_paquete_publicado;
+        ALTER TABLE turismo.paquete
+            ADD CONSTRAINT ck_paquete_publicado CHECK (
+                estado <> 'activo'
+                OR (
+                    destino IS NOT NULL AND btrim(destino) <> ''
+                    AND descripcion IS NOT NULL AND btrim(descripcion) <> ''
+                    AND itinerario IS NOT NULL AND btrim(itinerario) <> ''
+                    AND servicios_incluidos IS NOT NULL AND btrim(servicios_incluidos) <> ''
+                )
+            ) NOT VALID;
 
--- Un paquete activo que no cumple el contenido mínimo deja de ofrecerse:
--- pasa a borrador para que el administrador lo complete y lo vuelva a
--- publicar. No se inventan datos ni se borra nada.
-UPDATE turismo.paquete
-SET estado = 'borrador'
-WHERE estado = 'activo'
-  AND (
-      destino IS NULL OR btrim(destino) = ''
-      OR descripcion IS NULL OR btrim(descripcion) = ''
-      OR itinerario IS NULL OR btrim(itinerario) = ''
-      OR servicios_incluidos IS NULL OR btrim(servicios_incluidos) = ''
-  );
+        -- Un paquete activo que no cumple el contenido mínimo deja de
+        -- ofrecerse: pasa a borrador para que se complete.
+        UPDATE turismo.paquete
+        SET estado = 'borrador'
+        WHERE estado = 'activo'
+          AND (
+              destino IS NULL OR btrim(destino) = ''
+              OR descripcion IS NULL OR btrim(descripcion) = ''
+              OR itinerario IS NULL OR btrim(itinerario) = ''
+              OR servicios_incluidos IS NULL OR btrim(servicios_incluidos) = ''
+          );
+    END IF;
+END $$;
 
 -- ---------------------------------------------------------------------
 -- 4. Restricciones de la salida
@@ -181,15 +215,25 @@ DECLARE
     v_precios INT;
     v_codigos INT;
 BEGIN
-    SELECT count(*) INTO v_paquetes
-    FROM turismo.paquete
-    WHERE estado = 'activo'
-      AND (
-          destino IS NULL OR btrim(destino) = ''
-          OR descripcion IS NULL OR btrim(descripcion) = ''
-          OR itinerario IS NULL OR btrim(itinerario) = ''
-          OR servicios_incluidos IS NULL OR btrim(servicios_incluidos) = ''
-      );
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'turismo'
+          AND table_name = 'paquete'
+          AND column_name = 'servicios_incluidos'
+    ) THEN
+        SELECT count(*) INTO v_paquetes
+        FROM turismo.paquete
+        WHERE estado = 'activo'
+          AND (
+              destino IS NULL OR btrim(destino) = ''
+              OR descripcion IS NULL OR btrim(descripcion) = ''
+              OR itinerario IS NULL OR btrim(itinerario) = ''
+              OR servicios_incluidos IS NULL OR btrim(servicios_incluidos) = ''
+          );
+    ELSE
+        v_paquetes := 0;
+    END IF;
 
     SELECT count(*) INTO v_precios
     FROM turismo.paquete

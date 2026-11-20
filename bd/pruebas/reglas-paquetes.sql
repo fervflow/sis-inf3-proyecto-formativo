@@ -9,13 +9,17 @@
 -- =====================================================================
 
 BEGIN;
+SET search_path TO turismo, public;
 
 INSERT INTO turismo.usuario (id, name, email, id_rol, nombres, apellidos)
 VALUES ('u-prueba', 'Prueba', 'prueba@vizcacha.tours', 1, 'Prueba', 'Prueba')
 ON CONFLICT (id) DO NOTHING;
 
 -- 1. Un paquete activo sin destino, descripción, itinerario o servicios
---    no se puede guardar.
+--    no se puede guardar. El disparador de publicación es diferido: para
+--    probarlo en la transacción se vuelve inmediato.
+SET CONSTRAINTS tr_paquete_publicado IMMEDIATE;
+
 DO $$
 BEGIN
     BEGIN
@@ -60,14 +64,66 @@ BEGIN
 END;
 $$;
 
--- 4. Un paquete completo sí se guarda.
+-- 4. Un paquete completo sí se guarda: destino, contenido y servicios.
+INSERT INTO turismo.lugar (codigo, nombre, tipo)
+VALUES ('POT', 'Potosí', 'ciudad')
+ON CONFLICT (codigo) DO NOTHING;
+
 INSERT INTO turismo.paquete (
-    codigo, nombre, destino, descripcion, duracion_dias, precio_base,
-    itinerario, servicios_incluidos, estado
-) VALUES (
-    'PRB-04', 'Completo', 'Potosí', 'Descripción', 3, 100,
-    'Día 1, día 2 y día 3', 'Transporte y guía', 'activo'
-);
+    codigo, nombre, id_lugar_destino, descripcion, duracion_dias, precio_base,
+    itinerario, estado
+)
+SELECT 'PRB-04', 'Completo', id_lugar, 'Descripción', 3, 100,
+       'Día 1, día 2 y día 3', 'borrador'
+FROM turismo.lugar
+WHERE codigo = 'POT';
+
+INSERT INTO turismo.paquete_servicio (id_paquete, id_servicio)
+SELECT p.id_paquete, s.id_servicio
+FROM turismo.paquete p, turismo.servicio s
+WHERE p.codigo = 'PRB-04'
+  AND s.codigo IN ('transporte', 'guia');
+
+UPDATE turismo.paquete
+SET estado = 'activo'
+WHERE codigo = 'PRB-04';
+
+-- 4b. Un circuito necesita un origen.
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO turismo.paquete (
+            codigo, nombre, tipo_recorrido, duracion_dias, precio_base, estado
+        ) VALUES ('PRB-06', 'Circuito sin origen', 'circuito', 3, 100, 'borrador');
+        RAISE EXCEPTION 'FALLO: se guardó un circuito sin origen';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: circuito sin origen rechazado';
+    END;
+END;
+$$;
+
+-- 4c. Una parada no se repite en el mismo paquete.
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO turismo.paquete_parada (id_paquete, id_lugar, orden)
+        SELECT p.id_paquete, l.id_lugar, 1
+        FROM turismo.paquete p, turismo.lugar l
+        WHERE p.codigo = 'PRB-04' AND l.codigo = 'POT';
+
+        INSERT INTO turismo.paquete_parada (id_paquete, id_lugar, orden)
+        SELECT p.id_paquete, l.id_lugar, 2
+        FROM turismo.paquete p, turismo.lugar l
+        WHERE p.codigo = 'PRB-04' AND l.codigo = 'POT';
+
+        RAISE EXCEPTION 'FALLO: se repitió una parada';
+    EXCEPTION
+        WHEN unique_violation THEN
+            RAISE NOTICE 'OK: parada repetida rechazada';
+    END;
+END;
+$$;
 
 -- 5. Una salida válida se crea.
 SELECT turismo.fn_crear_salida(
@@ -140,7 +196,11 @@ DO $$
 BEGIN
     BEGIN
         PERFORM turismo.fn_actualizar_salida(
-            (SELECT id_salida FROM turismo.salida WHERE fecha_salida = CURRENT_DATE + 10),
+            (SELECT s.id_salida
+         FROM turismo.salida s
+         JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+        WHERE s.fecha_salida = CURRENT_DATE + 10
+          AND p.codigo = 'PRB-04'),
             'u-prueba', NULL, NULL, NULL, NULL, NULL, NULL, 'cancelada'
         );
         RAISE EXCEPTION 'FALLO: se canceló sin motivo';
@@ -153,13 +213,21 @@ $$;
 
 -- 10. La transición programada → confirmada es válida.
 SELECT turismo.fn_actualizar_salida(
-    (SELECT id_salida FROM turismo.salida WHERE fecha_salida = CURRENT_DATE + 10),
+    (SELECT s.id_salida
+         FROM turismo.salida s
+         JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+        WHERE s.fecha_salida = CURRENT_DATE + 10
+          AND p.codigo = 'PRB-04'),
     'u-prueba', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmada'
 );
 
 -- 11. Una salida realizada no se modifica.
 SELECT turismo.fn_actualizar_salida(
-    (SELECT id_salida FROM turismo.salida WHERE fecha_salida = CURRENT_DATE + 10),
+    (SELECT s.id_salida
+         FROM turismo.salida s
+         JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+        WHERE s.fecha_salida = CURRENT_DATE + 10
+          AND p.codigo = 'PRB-04'),
     'u-prueba', NULL, NULL, NULL, NULL, NULL, NULL, 'realizada'
 );
 
@@ -167,7 +235,11 @@ DO $$
 BEGIN
     BEGIN
         PERFORM turismo.fn_actualizar_salida(
-            (SELECT id_salida FROM turismo.salida WHERE fecha_salida = CURRENT_DATE + 10),
+            (SELECT s.id_salida
+         FROM turismo.salida s
+         JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+        WHERE s.fecha_salida = CURRENT_DATE + 10
+          AND p.codigo = 'PRB-04'),
             'u-prueba', NULL, NULL, 20, NULL, 'Cambio tardío', NULL, NULL
         );
         RAISE EXCEPTION 'FALLO: se modificó una salida realizada';

@@ -179,8 +179,33 @@ CREATE TABLE pasajero (
 CREATE INDEX ix_pasajero_cliente ON pasajero (id_cliente);
 
 -- ---------------------------------------------------------------------
--- 3. Proveedores y paquetes
+-- 3. Lugares, proveedores y paquetes
 -- ---------------------------------------------------------------------
+
+-- Catálogo de lugares reutilizables: destino principal, origen y paradas de
+-- un paquete. Las coordenadas son opcionales; si existen, se validan. El
+-- código corto alimenta el código del paquete.
+CREATE TABLE lugar (
+    id_lugar            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    codigo              VARCHAR(6) NOT NULL UNIQUE,
+    nombre              VARCHAR(150) NOT NULL,
+    tipo                VARCHAR(20) NOT NULL DEFAULT 'otro',
+    direccion           VARCHAR(200),
+    latitud             NUMERIC(9, 6),
+    longitud            NUMERIC(9, 6),
+    osm_tipo            VARCHAR(2),
+    osm_id              BIGINT,
+    activo              BOOLEAN NOT NULL DEFAULT true,
+    CONSTRAINT ck_lugar_codigo CHECK (codigo = upper(codigo)),
+    CONSTRAINT ck_lugar_tipo CHECK (tipo IN ('ciudad', 'atractivo', 'terminal', 'hospedaje', 'otro')),
+    CONSTRAINT ck_lugar_coordenadas CHECK (
+        (latitud IS NULL AND longitud IS NULL)
+        OR (latitud BETWEEN -90 AND 90 AND longitud BETWEEN -180 AND 180)
+    )
+);
+
+CREATE UNIQUE INDEX ux_lugar_nombre ON lugar (lower(btrim(nombre)));
+CREATE UNIQUE INDEX ux_lugar_osm ON lugar (osm_tipo, osm_id) WHERE osm_id IS NOT NULL;
 
 CREATE TABLE proveedor (
     id_proveedor        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -199,53 +224,64 @@ CREATE TABLE paquete (
     id_paquete          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     codigo              VARCHAR(20) NOT NULL UNIQUE,
     nombre              VARCHAR(150) NOT NULL,
-    -- Destino principal del paquete. Es opcional mientras el paquete está
-    -- en borrador y obligatorio cuando se publica.
-    destino             VARCHAR(150),
+    -- Destino principal comercial. Es opcional en borrador y obligatorio
+    -- al publicar. El origen solo es obligatorio en un circuito.
+    id_lugar_destino    BIGINT REFERENCES lugar(id_lugar) ON DELETE RESTRICT,
+    id_lugar_origen     BIGINT REFERENCES lugar(id_lugar) ON DELETE RESTRICT,
+    tipo_recorrido      VARCHAR(15) NOT NULL DEFAULT 'sencillo',
     descripcion         TEXT,
     duracion_dias       SMALLINT NOT NULL,
     precio_base         NUMERIC(12, 2) NOT NULL,
     itinerario          TEXT,
-    servicios_incluidos TEXT,
+    -- Detalles y exclusiones de los servicios. La lista canónica de lo que
+    -- incluye el precio está en `paquete_servicio`.
+    servicios_detalle   TEXT,
+    servicios_excluidos TEXT,
     estado              VARCHAR(15) NOT NULL DEFAULT 'borrador',
     id_usuario_creador  TEXT REFERENCES usuario(id) ON DELETE SET NULL,
     id_usuario_actualizacion TEXT REFERENCES usuario(id) ON DELETE SET NULL,
     fecha_creacion      TIMESTAMPTZ NOT NULL DEFAULT now(),
     fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT ck_paquete_codigo CHECK (codigo = upper(codigo)),
-    CONSTRAINT ck_paquete_duracion CHECK (duracion_dias > 0),
+    CONSTRAINT ck_paquete_duracion CHECK (duracion_dias > 0 AND duracion_dias <= 365),
     CONSTRAINT ck_paquete_precio CHECK (precio_base > 0),
     CONSTRAINT ck_paquete_estado CHECK (estado IN ('borrador', 'activo', 'inactivo')),
-    -- Un paquete publicado debe tener el contenido mínimo que el cliente
-    -- necesita para decidir la compra. El borrador puede quedar incompleto.
-    CONSTRAINT ck_paquete_publicado CHECK (
-        estado <> 'activo'
-        OR (
-            destino IS NOT NULL AND btrim(destino) <> ''
-            AND descripcion IS NOT NULL AND btrim(descripcion) <> ''
-            AND itinerario IS NOT NULL AND btrim(itinerario) <> ''
-            AND servicios_incluidos IS NOT NULL AND btrim(servicios_incluidos) <> ''
-        )
+    CONSTRAINT ck_paquete_tipo_recorrido CHECK (tipo_recorrido IN ('sencillo', 'circuito')),
+    CONSTRAINT ck_paquete_circuito CHECK (
+        tipo_recorrido <> 'circuito' OR id_lugar_origen IS NOT NULL
     )
 );
 
--- Catálogo de acciones comunes que se pueden marcar en el itinerario. Es un
+-- Paradas del recorrido, en orden. El origen y el destino principal no se
+-- repiten aquí: el origen es `paquete.id_lugar_origen` y el circuito se
+-- indica con `tipo_recorrido`.
+CREATE TABLE paquete_parada (
+    id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE CASCADE,
+    id_lugar            BIGINT NOT NULL REFERENCES lugar(id_lugar) ON DELETE RESTRICT,
+    orden               SMALLINT NOT NULL,
+    PRIMARY KEY (id_paquete, orden),
+    CONSTRAINT ck_paquete_parada_orden CHECK (orden > 0)
+);
+
+CREATE UNIQUE INDEX ux_paquete_parada_lugar ON paquete_parada (id_paquete, id_lugar);
+
+-- Catálogo de servicios que un paquete puede incluir en su precio. Es un
 -- catálogo fijo para el MVP: se amplía con la semilla, no desde la interfaz.
-CREATE TABLE actividad (
-    id_actividad        SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+CREATE TABLE servicio (
+    id_servicio         SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     codigo              VARCHAR(30) NOT NULL UNIQUE,
     nombre              VARCHAR(80) NOT NULL,
     orden               SMALLINT NOT NULL DEFAULT 0,
     activo              BOOLEAN NOT NULL DEFAULT true,
-    CONSTRAINT ck_actividad_codigo CHECK (codigo = lower(codigo))
+    CONSTRAINT ck_servicio_codigo CHECK (codigo = lower(codigo))
 );
 
--- Acciones marcadas en el itinerario de un paquete. Complementan el texto
--- libre de `paquete.itinerario`; no lo sustituyen.
-CREATE TABLE paquete_actividad (
+-- Servicios marcados en un paquete. Son la lista canónica de lo que cubre
+-- el precio; el texto del itinerario describe qué ocurre cada día.
+CREATE TABLE paquete_servicio (
     id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE CASCADE,
-    id_actividad        SMALLINT NOT NULL REFERENCES actividad(id_actividad) ON DELETE RESTRICT,
-    PRIMARY KEY (id_paquete, id_actividad)
+    id_servicio         SMALLINT NOT NULL REFERENCES servicio(id_servicio) ON DELETE RESTRICT,
+    PRIMARY KEY (id_paquete, id_servicio)
 );
 
 CREATE TABLE paquete_proveedor (
@@ -526,6 +562,95 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_reserva_codigo
     BEFORE INSERT ON reserva
     FOR EACH ROW EXECUTE FUNCTION fn_asignar_codigo_reserva();
+
+-- El código del paquete se genera al crear: prefijo del lugar, año y una
+-- secuencia global. Es inmutable y único.
+CREATE SEQUENCE seq_paquete_codigo;
+
+CREATE OR REPLACE FUNCTION fn_generar_codigo_paquete(p_prefijo TEXT)
+RETURNS TEXT
+SET search_path = turismo, public
+AS $$
+    SELECT upper(coalesce(nullif(btrim(p_prefijo), ''), 'PKG'))
+        || '-' || to_char(current_date, 'YYYY')
+        || '-' || lpad(nextval('seq_paquete_codigo')::TEXT, 3, '0');
+$$ LANGUAGE sql;
+
+-- Un paquete publicado necesita destino, descripción, itinerario y al
+-- menos un servicio. El disparador es diferido: la API inserta el paquete
+-- y sus servicios en la misma transacción.
+CREATE OR REPLACE FUNCTION fn_validar_paquete_publicado()
+RETURNS TRIGGER
+SET search_path = turismo, public
+AS $$
+DECLARE
+    v_servicios INTEGER;
+BEGIN
+    IF NEW.estado <> 'activo' THEN
+        RETURN NEW;
+    END IF;
+
+    IF NEW.id_lugar_destino IS NULL
+       OR NEW.descripcion IS NULL OR btrim(NEW.descripcion) = ''
+       OR NEW.itinerario IS NULL OR btrim(NEW.itinerario) = '' THEN
+        RAISE EXCEPTION 'paquete_incompleto'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    SELECT count(*) INTO v_servicios
+    FROM paquete_servicio
+    WHERE id_paquete = NEW.id_paquete;
+
+    IF v_servicios = 0 THEN
+        RAISE EXCEPTION 'paquete_incompleto'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER tr_paquete_publicado
+    AFTER INSERT OR UPDATE ON paquete
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_validar_paquete_publicado();
+
+-- Si se quita el último servicio de un paquete activo, la regla también
+-- se aplica, aunque no se toque la fila del paquete.
+CREATE OR REPLACE FUNCTION fn_validar_servicios_paquete()
+RETURNS TRIGGER
+SET search_path = turismo, public
+AS $$
+DECLARE
+    v_id_paquete BIGINT;
+    v_estado     VARCHAR(15);
+    v_servicios  INTEGER;
+BEGIN
+    v_id_paquete := COALESCE(NEW.id_paquete, OLD.id_paquete);
+
+    SELECT estado INTO v_estado
+    FROM paquete
+    WHERE id_paquete = v_id_paquete;
+
+    IF v_estado = 'activo' THEN
+        SELECT count(*) INTO v_servicios
+        FROM paquete_servicio
+        WHERE id_paquete = v_id_paquete;
+
+        IF v_servicios = 0 THEN
+            RAISE EXCEPTION 'paquete_incompleto'
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER tr_paquete_servicio_publicado
+    AFTER INSERT OR DELETE OR UPDATE ON paquete_servicio
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_validar_servicios_paquete();
 
 -- ---------------------------------------------------------------------
 -- 10. Reglas de negocio en funciones
@@ -1293,9 +1418,9 @@ INSERT INTO rol (codigo, nombre, descripcion) VALUES
     ('CLIENTE',  'Cliente',             'Consulta la disponibilidad, solicita reservas, registra pagos y sigue sus reservas.')
 ON CONFLICT (codigo) DO NOTHING;
 
--- Acciones comunes del itinerario. El catálogo es fijo en el MVP: se amplía
--- con una nueva fila en la semilla, no desde la interfaz.
-INSERT INTO actividad (codigo, nombre, orden) VALUES
+-- Servicios que un paquete puede incluir. El catálogo es fijo en el MVP:
+-- se amplía con una nueva fila en la semilla, no desde la interfaz.
+INSERT INTO servicio (codigo, nombre, orden) VALUES
     ('desayuno',              'Desayuno',                        10),
     ('almuerzo',              'Almuerzo',                        20),
     ('cena',                  'Cena',                            30),
@@ -1308,3 +1433,18 @@ INSERT INTO actividad (codigo, nombre, orden) VALUES
     ('bebidas',               'Bebidas',                        100),
     ('actividades_recreativas', 'Actividades recreativas',       110)
 ON CONFLICT (codigo) DO NOTHING;
+
+-- Lugares conocidos de la operación. La semilla permite demostrar el mapa
+-- y el autocompletado sin depender de la red; el administrador puede crear
+-- otros lugares desde la interfaz.
+INSERT INTO lugar (codigo, nombre, tipo, direccion, latitud, longitud) VALUES
+    ('POT', 'Potosí',          'ciudad',    'Potosí, Bolivia',      -19.583611, -65.753056),
+    ('CER', 'Cerro Rico',      'atractivo', 'Potosí, Bolivia',      -19.618000, -65.749000),
+    ('UYU', 'Uyuni',           'ciudad',    'Uyuni, Bolivia',       -20.462000, -66.825000),
+    ('SAL', 'Salar de Uyuni',  'atractivo', 'Potosí, Bolivia',      -20.133000, -67.489000),
+    ('INC', 'Isla Incahuasi',  'atractivo', 'Salar de Uyuni, Bolivia', -20.242000, -67.625000),
+    ('LCO', 'Laguna Colorada', 'atractivo', 'Potosí, Bolivia',      -22.198000, -67.780000),
+    ('TUP', 'Tupiza',          'ciudad',    'Tupiza, Bolivia',      -21.443000, -65.718000),
+    ('SUC', 'Sucre',           'ciudad',    'Sucre, Bolivia',       -19.033000, -65.263000),
+    ('LPZ', 'La Paz',          'ciudad',    'La Paz, Bolivia',      -16.500000, -68.150000)
+ON CONFLICT DO NOTHING;

@@ -119,7 +119,7 @@ web/
 - [x] Cuentas internas, ingreso y administración de usuarios.
 - [x] Crear la primera cuenta de administrador y su rol.
 - [x] Paquetes turísticos y fichas de clientes.
-- [x] Reglas de paquetes y salidas, con actividades del itinerario.
+- [x] Reglas de paquetes y salidas, con lugares, servicios incluidos e itinerario.
 - [x] Salidas programadas: alta, edición, estados y control de duplicados.
 - [ ] Solicitud pública de acceso y bandeja de aprobación (post-MVP).
 - [ ] Correo: verificación y avisos de HU-16 (post-MVP).

@@ -1,22 +1,25 @@
-import { and, eq, ne } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import * as schema from '../../../../db/schema'
 import type { PaqueteAdmin } from '#shared/types/api'
 import type { EstadoPaquete } from '#shared/types/domain'
 import { exigirAdmin } from '../../../utils/autorizacion'
 import {
   aPaqueteAdmin,
-  cargarActividades,
+  cargarLugares,
+  cargarParadas,
+  cargarServicios,
   esquemaPaquete,
-  normalizarCodigo,
-  reemplazarActividades,
-  validarActividades,
+  reemplazarParadas,
+  reemplazarServicios,
+  validarLugares,
   validarPaquetePublicable,
+  validarServicios,
   validarTransicionPaquete,
 } from '../../../utils/paquetes'
 import { leerCuerpo } from '../../../utils/validacion'
 
 /**
- * Edición de un paquete turístico.
+ * Edición de un paquete turístico. El código no cambia.
  */
 export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   const sesion = exigirAdmin(event)
@@ -29,7 +32,6 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   const datos = await leerCuerpo(event, esquemaPaquete)
   validarPaquetePublicable(datos)
 
-  const codigo = normalizarCodigo(datos.codigo)
   const db = useDb()
 
   const [actual] = await db
@@ -44,35 +46,29 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
 
   validarTransicionPaquete(actual.estado as EstadoPaquete, datos.estado)
 
-  const [existente] = await db
-    .select({ idPaquete: schema.paquete.idPaquete })
-    .from(schema.paquete)
-    .where(
-      and(
-        eq(schema.paquete.codigo, codigo),
-        ne(schema.paquete.idPaquete, id),
-      ),
-    )
-    .limit(1)
+  const idsLugares = [
+    datos.idLugarDestino,
+    datos.idLugarOrigen,
+    ...datos.paradas,
+  ].filter((valor): valor is number => typeof valor === 'number')
 
-  if (existente) {
-    throw createError({ statusCode: 409, statusMessage: 'paquete_duplicado' })
-  }
-
-  await validarActividades(datos.actividades)
+  await validarLugares(idsLugares)
+  await validarServicios(datos.servicios)
 
   const fila = await db.transaction(async (tx) => {
     const [actualizado] = await tx
       .update(schema.paquete)
       .set({
-        codigo,
         nombre: datos.nombre,
-        destino: datos.destino || null,
+        idLugarDestino: datos.idLugarDestino ?? null,
+        idLugarOrigen: datos.idLugarOrigen ?? null,
+        tipoRecorrido: datos.tipoRecorrido,
         descripcion: datos.descripcion || null,
         duracionDias: datos.duracionDias,
         precioBase: datos.precioBase.toFixed(2),
         itinerario: datos.itinerario || null,
-        serviciosIncluidos: datos.serviciosIncluidos || null,
+        serviciosDetalle: datos.serviciosDetalle || null,
+        serviciosExcluidos: datos.serviciosExcluidos || null,
         estado: datos.estado,
         idUsuarioActualizacion: sesion.user.id,
         fechaActualizacion: new Date(),
@@ -87,10 +83,24 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
       })
     }
 
-    await reemplazarActividades(tx, id, datos.actividades)
+    await reemplazarParadas(tx, id, datos.paradas)
+    await reemplazarServicios(tx, id, datos.servicios)
     return actualizado
   })
 
-  const actividades = await cargarActividades([id])
-  return aPaqueteAdmin(fila, actividades.get(id) ?? [])
+  const lugares = await cargarLugares(
+    [fila.idLugarDestino, fila.idLugarOrigen].filter(
+      (valor): valor is number => typeof valor === 'number',
+    ),
+  )
+  const paradas = await cargarParadas([id])
+  const servicios = await cargarServicios([id])
+
+  return aPaqueteAdmin(
+    fila,
+    fila.idLugarDestino ? (lugares.get(fila.idLugarDestino) ?? null) : null,
+    fila.idLugarOrigen ? (lugares.get(fila.idLugarOrigen) ?? null) : null,
+    paradas.get(id) ?? [],
+    servicios.get(id) ?? [],
+  )
 })

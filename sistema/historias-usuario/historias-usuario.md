@@ -22,7 +22,7 @@ revisión.
 |---|---|---|---|---|---|---|---|
 | HU-08 | Iniciar sesión y acceder según el rol | Personal, Cliente | Web | Alta | Alto | 3 pts | 3 tareas |
 | HU-15 | Abrir una cuenta de cliente y acceder a su información | Cliente | Web | Media | Alto | 3 pts | 3 tareas |
-| HU-01 | Gestión de paquetes turísticos | Administrador | Web | Alta | Medio | 3 pts | 2 tareas |
+| HU-01 | Gestión de paquetes turísticos | Administrador | Web | Alta | Medio | 3 pts | 3 tareas |
 | HU-02 | Registro de fechas de salida y cupos | Administrador | Web | Alta | Alto | 2 pts | 2 tareas |
 | HU-03 | Consulta de disponibilidad | Cliente, Personal | Web, Oficina | Alta | Medio | 2 pts | 2 tareas |
 | HU-04 | Registro y actualización de la ficha del cliente | Personal | Web, Oficina | Media | Medio | 2 pts | 2 tareas |
@@ -37,7 +37,7 @@ revisión.
 | HU-13 | Solicitud y ejecución de la cancelación de una reserva | Cliente, Personal | Web, Oficina | Media | Alto | 3 pts | 2 tareas |
 | HU-14 | Registro y validación de anticipos y saldos de una reserva | Cliente, Personal | Web, Oficina | Alta | Medio | 3 pts | 2 tareas |
 | HU-16 | Avisos de cambios de fecha y capacidad de una salida | Cliente | Web | Baja | Medio | 2 pts | 2 tareas |
-| **TOTAL** | **17 historias de usuario** | | | | | **47 pts** | **39 tareas** |
+| **TOTAL** | **17 historias de usuario** | | | | | **47 pts** | **40 tareas** |
 
 ## Criterio de prioridades
 
@@ -117,10 +117,16 @@ sistema no pueda cumplir.
 
 - El paquete se registra con código único, nombre, destino, descripción,
   duración e itinerario.
-- El precio es un número mayor que cero y el código del paquete no se repite.
+- El código se genera solo con el destino, el año y una secuencia; no se
+  edita después de crear el paquete.
+- El destino es un lugar del catálogo, con coordenadas opcionales. El
+  recorrido puede tener origen y paradas ordenadas, y puede ser sencillo o
+  circular.
+- El precio es un número mayor que cero.
 - El paquete tiene estados borrador, activo e inactivo; solo el activo se
   ofrece en la consulta del cliente y admite salidas.
-- Los servicios del paquete son los proveedores que se vinculan a él.
+- Los servicios incluidos son la lista de lo que cubre el precio; el
+  itinerario es el relato día por día y no se sustituyen entre sí.
 - Un paquete con salidas o reservas asociadas no se elimina: pasa a inactivo
   y conserva su historial.
 - El mantenimiento corresponde al administrador; el personal y el cliente solo
@@ -318,10 +324,10 @@ sistema no pueda cumplir.
 
 ## Desglose de tareas
 
-Las 39 tareas se detallan por historia, en el orden del backlog. Cada tarea
+Las 40 tareas se detallan por historia, en el orden del backlog. Cada tarea
 hereda los criterios de aceptación de su historia y la prioridad y el riesgo
 de esa historia. El responsable indicado corresponde al reparto de trabajo
-entre los dos programadores: 20 tareas para el programador A y 19 para el
+entre los dos programadores: 21 tareas para el programador A y 19 para el
 programador B.
 
 En el tablero, el programador A aparece como **EV** y el programador B como
@@ -349,11 +355,13 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 ### HU-01 · Gestión de paquetes turísticos
 
-**Responsable:** Programador A · **2 tareas** · **Criterios:** los de HU-01
+**Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-01
 
 - **T-HU-01.1** Registrar y editar paquetes con destino, itinerario, servicios
   y precio.
 - **T-HU-01.2** Mostrar el listado y validar campos obligatorios y precios.
+- **T-HU-01.3** Reformular la ficha del paquete con lugares, servicios
+  incluidos, código automático y mapa del recorrido.
 
 ### HU-02 · Registro de fechas de salida y cupos
 
@@ -508,8 +516,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 | Historias de usuario | 17 |
 | Historias con criterios de aceptación | 17 |
 | Estimación total | 47 pts |
-| Tareas totales | 39 |
-| Tareas desglosadas | 39 |
+| Tareas totales | 40 |
+| Tareas desglosadas | 40 |
 | Prioridad alta | 7 |
 | Prioridad media | 7 |
 | Prioridad baja | 3 |
@@ -568,10 +576,14 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
 16. El rol `TURISTA` se renombró a `CLIENTE` para alinear el catálogo de roles
     con la entidad `cliente`. «Turista» queda como sinónimo comercial y
     «pasajero» como la persona que viaja.
-17. HU-01 exige destino e itinerario. El destino se agregó al paquete y el
-    itinerario es obligatorio para publicar; el borrador puede quedar
-    incompleto. El itinerario se complementa con actividades comunes
-    marcadas en una lista.
+17. HU-01 exige destino e itinerario. El destino es un lugar del catálogo;
+    el itinerario es obligatorio para publicar y el borrador puede quedar
+    incompleto.
+18. El catálogo de lugares reemplazó al destino de texto y agregó origen,
+    paradas y tipo de recorrido. Los antiguos «actividades del itinerario»
+    pasaron a ser servicios incluidos: las casillas son la lista de lo que
+    cubre el precio y el itinerario es el relato día por día. El código del
+    paquete se genera solo y no se edita.
 
 ## Pendientes para la próxima revisión
 

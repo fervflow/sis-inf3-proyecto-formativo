@@ -1,5 +1,5 @@
 <template>
-  <UApp>
+  <UApp :locale="localeUi">
     <NuxtLoadingIndicator
       color="var(--vt-color-marca-600)"
       :height="3"
@@ -25,9 +25,13 @@
 </template>
 
 <script setup lang="ts">
+import { en as localeEn, es as localeEs } from '@nuxt/ui/locale'
 import type { RespuestaCuenta } from '#shared/types/api'
 
-const { t } = useTexto()
+const { t, idioma } = useTexto()
+
+/** Los textos internos de Nuxt UI siguen el idioma de la aplicación. */
+const localeUi = computed(() => (idioma.value === 'en' ? localeEn : localeEs))
 
 const { data: cuenta } = await useFetch<RespuestaCuenta>('/api/cuenta', {
   key: 'cuenta',

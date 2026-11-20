@@ -78,7 +78,9 @@ Base de datos (Drizzle ORM → PostgreSQL)
 | `POST /api/<recurso>` | `/api/vencer-solicitudes` | Acción |
 | `GET /api/cuenta` | — | Sesión en curso |
 | `GET /api/admin/<recurso>` | `/api/admin/usuarios` | Solo rol `ADMIN` |
-| `GET /api/admin/actividades` | — | Catálogo de actividades del itinerario |
+| `GET /api/admin/servicios` | — | Catálogo de servicios que un paquete puede incluir |
+| `GET/POST /api/admin/lugares` | — | Catálogo de lugares y alta desde la búsqueda |
+| `GET /api/geocodificar` | — | Proxy de Photon para autocompletar lugares |
 | `GET /api/admin/salidas` | — | Salidas programadas, solo `ADMIN` |
 | `GET /api/auth/*` | — | Better Auth |
 
@@ -88,7 +90,8 @@ Los nombres son en español y en plural; las acciones usan verbo.
 
 Nuxt renderiza en el servidor y envía la página lista.
 
-- Los datos se piden con `await useFetch(...)` en el servidor o con
-  `useApi()` en el cliente.
+- Los datos se piden con `useAsyncData` sobre `useRequestFetch()`: así el
+  servidor reenvía la cookie de la sesión a la API interna. En el cliente
+  se usa `useApi()`.
 - La base se toca solo en `server/`.
 - El estado compartido entre vistas vive en `useState`.

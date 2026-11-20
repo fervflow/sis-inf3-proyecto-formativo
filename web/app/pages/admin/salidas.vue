@@ -216,6 +216,8 @@ type FilaSalida = SalidaAdmin & { acciones?: string }
 
 const RUTA: string = '/api/admin/salidas'
 
+const peticion = useRequestFetch()
+
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
 const { moneda } = useFormato()
@@ -226,12 +228,12 @@ const {
   error: errorConsulta,
   refresh,
 } = await useAsyncData<RespuestaSalidas>('salidas-admin', () =>
-  $fetch<RespuestaSalidas>(RUTA),
+  peticion<RespuestaSalidas>(RUTA),
 )
 
 const { data: dataPaquetes } = await useAsyncData<RespuestaPaquetes>(
   'paquetes-admin-salidas',
-  () => $fetch<RespuestaPaquetes>('/api/admin/paquetes'),
+  () => peticion<RespuestaPaquetes>('/api/admin/paquetes'),
 )
 
 const filas = computed<FilaSalida[]>(() => data.value?.salidas ?? [])

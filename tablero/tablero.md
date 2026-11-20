@@ -127,6 +127,9 @@ kanban-plugin: basic
 - [ ] **T-HU-01.2** · EV · HU-01 \
   Mostrar el listado y validar campos obligatorios y precios.
   [Inicio:: 12/11/2026] [Fin:: 18/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-01.3** · EV · HU-01 \
+  Reformular la ficha del paquete con lugares, servicios incluidos, código automático y mapa del recorrido.
+  [Inicio:: 20/11/2026] [Fin:: 20/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
 - [ ] **T-HU-04.1** · RE · HU-04 \
   Registrar clientes con documento y datos de contacto, evitando duplicados.
   [Inicio:: 12/11/2026] [Fin:: 18/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media

@@ -14,6 +14,8 @@ import type {
   EstadoUsuario,
   Rol,
   TipoDocumento,
+  TipoLugar,
+  TipoRecorrido,
 } from './domain'
 
 /** Respuesta de la comprobación de estado. */
@@ -106,9 +108,20 @@ export interface RespuestaOperacion {
   ok: true
 }
 
-/** Una acción común del itinerario. */
-export interface ActividadResumen {
-  idActividad: number
+/** Un lugar del catálogo geográfico. */
+export interface LugarResumen {
+  idLugar: number
+  codigo: string
+  nombre: string
+  tipo: TipoLugar
+  direccion: string | null
+  latitud: number | null
+  longitud: number | null
+}
+
+/** Un servicio que un paquete puede incluir. */
+export interface ServicioResumen {
+  idServicio: number
   codigo: string
   nombre: string
   orden: number
@@ -119,13 +132,17 @@ export interface PaqueteAdmin {
   idPaquete: number
   codigo: string
   nombre: string
-  destino: string | null
+  destino: LugarResumen | null
+  origen: LugarResumen | null
+  paradas: LugarResumen[]
+  tipoRecorrido: TipoRecorrido
   descripcion: string | null
   duracionDias: number
   precioBase: string
   itinerario: string | null
-  serviciosIncluidos: string | null
-  actividades: ActividadResumen[]
+  serviciosDetalle: string | null
+  serviciosExcluidos: string | null
+  servicios: ServicioResumen[]
   estado: EstadoPaquete
   fechaActualizacion: string
 }
@@ -135,9 +152,30 @@ export interface RespuestaPaquetes {
   paquetes: PaqueteAdmin[]
 }
 
-/** Respuesta del catálogo de actividades. */
-export interface RespuestaActividades {
-  actividades: ActividadResumen[]
+/** Respuesta del catálogo de servicios. */
+export interface RespuestaServicios {
+  servicios: ServicioResumen[]
+}
+
+/** Respuesta del catálogo de lugares. */
+export interface RespuestaLugares {
+  lugares: LugarResumen[]
+}
+
+/** Un resultado de la búsqueda geográfica externa. */
+export interface ResultadoGeocodificacion {
+  nombre: string
+  direccion: string | null
+  latitud: number
+  longitud: number
+  osmTipo: string | null
+  osmId: number | null
+  tipo: TipoLugar
+}
+
+/** Respuesta de la búsqueda geográfica. */
+export interface RespuestaGeocodificacion {
+  resultados: ResultadoGeocodificacion[]
 }
 
 /** Una salida programada tal como la edita el administrador. */

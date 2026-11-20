@@ -162,11 +162,17 @@ los scripts de `bd/actualizaciones/` en orden:
 make db-actualizar
 ```
 
-Ese script agrega destino y actividades, cambia el rol `TURISTA` a
-`CLIENTE`, crea las funciones de salidas y aplica las restricciones nuevas.
-Es idempotente. Los paquetes activos que no tengan destino, descripción,
-itinerario o servicios incluidos pasan a `borrador` para que se completen
+Los scripts agregan los lugares y su catálogo, convierten el destino de
+texto en una referencia, separan los servicios incluidos del itinerario,
+cambian el rol `TURISTA` a `CLIENTE` y crean las funciones de salidas. Son
+idempotentes. Los paquetes activos que no tengan destino, descripción,
+itinerario o al menos un servicio pasan a `borrador` para que se completen
 antes de volver a publicarse.
+
+La migración `2026-11-20-lugares-servicios.sql` conserva los datos: crea un
+lugar por cada destino de texto, mantiene los servicios marcados, mueve el
+texto de `servicios_incluidos` a `servicios_detalle` y conserva los códigos
+existentes.
 
 Los objetivos `db-crear`, `db-actualizar` y `db-probar` cargan `.env.local`
 cuando no encuentran las variables exportadas en el entorno.

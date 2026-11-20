@@ -21,6 +21,17 @@ export type EstadoCliente = 'activo' | 'inactivo'
 /** Estados del catálogo de paquetes. */
 export type EstadoPaquete = 'borrador' | 'activo' | 'inactivo'
 
+/** Forma del recorrido de un paquete. */
+export type TipoRecorrido = 'sencillo' | 'circuito'
+
+/** Tipos de lugar del catálogo geográfico. */
+export type TipoLugar =
+  | 'ciudad'
+  | 'atractivo'
+  | 'terminal'
+  | 'hospedaje'
+  | 'otro'
+
 /** Estados de una salida programada. */
 export type EstadoSalida = 'programada' | 'confirmada' | 'realizada' | 'cancelada'
 

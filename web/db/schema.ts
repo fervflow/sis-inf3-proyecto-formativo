@@ -167,7 +167,29 @@ export const pasajero = turismo.table('pasajero', {
   index('ix_pasajero_cliente').on(tabla.idCliente),
 ])
 
-// --- Paquetes y proveedores ---------------------------------------------
+// --- Lugares, paquetes y proveedores ------------------------------------
+
+export const lugar = turismo.table(
+  'lugar',
+  {
+    idLugar: bigint('id_lugar', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+    codigo: varchar('codigo', { length: 6 }).notNull().unique(),
+    nombre: varchar('nombre', { length: 150 }).notNull(),
+    tipo: varchar('tipo', { length: 20 }).notNull().default('otro'),
+    direccion: varchar('direccion', { length: 200 }),
+    latitud: numeric('latitud', { precision: 9, scale: 6 }),
+    longitud: numeric('longitud', { precision: 9, scale: 6 }),
+    osmTipo: varchar('osm_tipo', { length: 2 }),
+    osmId: bigint('osm_id', { mode: 'number' }),
+    activo: boolean('activo').notNull().default(true),
+  },
+  (tabla) => [
+    uniqueIndex('ux_lugar_nombre').on(sql`lower(btrim(${tabla.nombre}))`),
+    uniqueIndex('ux_lugar_osm')
+      .on(tabla.osmTipo, tabla.osmId)
+      .where(sql`${tabla.osmId} is not null`),
+  ],
+)
 
 export const proveedor = turismo.table('proveedor', {
   idProveedor: bigint('id_proveedor', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -184,12 +206,23 @@ export const paquete = turismo.table('paquete', {
   idPaquete: bigint('id_paquete', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   codigo: varchar('codigo', { length: 20 }).notNull().unique(),
   nombre: varchar('nombre', { length: 150 }).notNull(),
-  destino: varchar('destino', { length: 150 }),
+  idLugarDestino: bigint('id_lugar_destino', { mode: 'number' }).references(
+    () => lugar.idLugar,
+    { onDelete: 'restrict' },
+  ),
+  idLugarOrigen: bigint('id_lugar_origen', { mode: 'number' }).references(
+    () => lugar.idLugar,
+    { onDelete: 'restrict' },
+  ),
+  tipoRecorrido: varchar('tipo_recorrido', { length: 15 })
+    .notNull()
+    .default('sencillo'),
   descripcion: text('descripcion'),
   duracionDias: smallint('duracion_dias').notNull(),
   precioBase: numeric('precio_base', { precision: 12, scale: 2 }).notNull(),
   itinerario: text('itinerario'),
-  serviciosIncluidos: text('servicios_incluidos'),
+  serviciosDetalle: text('servicios_detalle'),
+  serviciosExcluidos: text('servicios_excluidos'),
   estado: varchar('estado', { length: 15 }).notNull().default('borrador'),
   idUsuarioCreador: text('id_usuario_creador').references(() => usuario.id, {
     onDelete: 'set null',
@@ -204,25 +237,42 @@ export const paquete = turismo.table('paquete', {
     .defaultNow(),
 })
 
-export const actividad = turismo.table('actividad', {
-  idActividad: smallint('id_actividad').primaryKey().generatedAlwaysAsIdentity(),
+export const paqueteParada = turismo.table(
+  'paquete_parada',
+  {
+    idPaquete: bigint('id_paquete', { mode: 'number' })
+      .notNull()
+      .references(() => paquete.idPaquete, { onDelete: 'cascade' }),
+    idLugar: bigint('id_lugar', { mode: 'number' })
+      .notNull()
+      .references(() => lugar.idLugar, { onDelete: 'restrict' }),
+    orden: smallint('orden').notNull(),
+  },
+  (tabla) => [
+    uniqueIndex('paquete_parada_pkey').on(tabla.idPaquete, tabla.orden),
+    uniqueIndex('ux_paquete_parada_lugar').on(tabla.idPaquete, tabla.idLugar),
+  ],
+)
+
+export const servicio = turismo.table('servicio', {
+  idServicio: smallint('id_servicio').primaryKey().generatedAlwaysAsIdentity(),
   codigo: varchar('codigo', { length: 30 }).notNull().unique(),
   nombre: varchar('nombre', { length: 80 }).notNull(),
   orden: smallint('orden').notNull().default(0),
   activo: boolean('activo').notNull().default(true),
 })
 
-export const paqueteActividad = turismo.table(
-  'paquete_actividad',
+export const paqueteServicio = turismo.table(
+  'paquete_servicio',
   {
     idPaquete: bigint('id_paquete', { mode: 'number' })
       .notNull()
       .references(() => paquete.idPaquete, { onDelete: 'cascade' }),
-    idActividad: smallint('id_actividad')
+    idServicio: smallint('id_servicio')
       .notNull()
-      .references(() => actividad.idActividad, { onDelete: 'restrict' }),
+      .references(() => servicio.idServicio, { onDelete: 'restrict' }),
   },
-  (tabla) => [uniqueIndex('pq_paquete_actividad').on(tabla.idPaquete, tabla.idActividad)],
+  (tabla) => [uniqueIndex('paquete_servicio_pkey').on(tabla.idPaquete, tabla.idServicio)],
 )
 
 export const paqueteProveedor = turismo.table(
@@ -469,24 +519,52 @@ export const pasajeroRelations = relations(pasajero, ({ one, many }) => ({
   reservas: many(reservaPasajero),
 }))
 
-export const paqueteRelations = relations(paquete, ({ many }) => ({
+export const paqueteRelations = relations(paquete, ({ one, many }) => ({
+  destino: one(lugar, {
+    fields: [paquete.idLugarDestino],
+    references: [lugar.idLugar],
+    relationName: 'paquete_destino',
+  }),
+  origen: one(lugar, {
+    fields: [paquete.idLugarOrigen],
+    references: [lugar.idLugar],
+    relationName: 'paquete_origen',
+  }),
+  paradas: many(paqueteParada),
   salidas: many(salida),
   proveedores: many(paqueteProveedor),
-  actividades: many(paqueteActividad),
+  servicios: many(paqueteServicio),
 }))
 
-export const actividadRelations = relations(actividad, ({ many }) => ({
-  paquetes: many(paqueteActividad),
+export const lugarRelations = relations(lugar, ({ many }) => ({
+  paquetesDestino: many(paquete, { relationName: 'paquete_destino' }),
+  paquetesOrigen: many(paquete, { relationName: 'paquete_origen' }),
+  paradas: many(paqueteParada),
 }))
 
-export const paqueteActividadRelations = relations(paqueteActividad, ({ one }) => ({
+export const paqueteParadaRelations = relations(paqueteParada, ({ one }) => ({
   paquete: one(paquete, {
-    fields: [paqueteActividad.idPaquete],
+    fields: [paqueteParada.idPaquete],
     references: [paquete.idPaquete],
   }),
-  actividad: one(actividad, {
-    fields: [paqueteActividad.idActividad],
-    references: [actividad.idActividad],
+  lugar: one(lugar, {
+    fields: [paqueteParada.idLugar],
+    references: [lugar.idLugar],
+  }),
+}))
+
+export const servicioRelations = relations(servicio, ({ many }) => ({
+  paquetes: many(paqueteServicio),
+}))
+
+export const paqueteServicioRelations = relations(paqueteServicio, ({ one }) => ({
+  paquete: one(paquete, {
+    fields: [paqueteServicio.idPaquete],
+    references: [paquete.idPaquete],
+  }),
+  servicio: one(servicio, {
+    fields: [paqueteServicio.idServicio],
+    references: [servicio.idServicio],
   }),
 }))
 

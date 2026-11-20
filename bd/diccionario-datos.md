@@ -15,7 +15,7 @@ en esta misma carpeta.
   refleja este mismo esquema
 - **Identidad:** Better Auth, con las tablas adaptadas a la nomenclatura de
   este esquema
-- **Contenido:** 20 tablas, 3 vistas, 12 funciones (9 de negocio) y 5
+- **Contenido:** 22 tablas, 3 vistas, 15 funciones (12 de negocio) y 7
   disparadores
 
 ## Ejecución
@@ -44,9 +44,11 @@ CREATE SCHEMA turismo;
 | `cliente` | Ficha comercial del cliente. | `id_usuario` opcional → `usuario`; documento único. |
 | `pasajero` | Personas que viajan en una reserva. | `id_cliente` → `cliente`; documento único. |
 | `proveedor` | Transporte, hospedaje, guías y otros servicios. | `tipo` restringido por `CHECK`. |
-| `paquete` | Catálogo de paquetes turísticos. | `codigo` único y en mayúsculas; `id_usuario_creador` e `id_usuario_actualizacion` → `usuario`; el estado `activo` exige destino, descripción, itinerario y servicios incluidos. |
-| `actividad` | Catálogo fijo de acciones comunes del itinerario. | `codigo` único en minúsculas; se amplía con la semilla, no desde la interfaz. |
-| `paquete_actividad` | Acciones marcadas en el itinerario de un paquete. | PK compuesta (`id_paquete`, `id_actividad`). |
+| `lugar` | Catálogo reutilizable de lugares, con coordenadas opcionales. | `codigo` único en mayúsculas; nombre normalizado único; `latitud` y `longitud` válidas o ambas nulas. |
+| `paquete` | Catálogo de paquetes turísticos. | `codigo` único y en mayúsculas; `id_lugar_destino` e `id_lugar_origen` → `lugar`; `id_usuario_creador` e `id_usuario_actualizacion` → `usuario`; el estado `activo` exige destino, descripción, itinerario y al menos un servicio. |
+| `paquete_parada` | Paradas del recorrido, en orden. | PK compuesta (`id_paquete`, `orden`); un lugar no se repite en el mismo paquete. |
+| `servicio` | Catálogo fijo de servicios que un paquete puede incluir. | `codigo` único en minúsculas; se amplía con la semilla, no desde la interfaz. |
+| `paquete_servicio` | Servicios incluidos en el precio de un paquete. | PK compuesta (`id_paquete`, `id_servicio`). |
 | `paquete_proveedor` | Servicios de proveedores incluidos en un paquete. | PK compuesta (`id_paquete`, `id_proveedor`). |
 | `salida` | Fecha, cupo y precio de una salida concreta. | `id_paquete` → `paquete`; `cupo_maximo > 0`; `precio > 0`; única por paquete y fecha. |
 | `cotizacion` | Propuesta económica para un cliente y una salida. | `id_cliente`, `id_salida`, `id_usuario`; `numero` único. |
@@ -170,13 +172,20 @@ por sí misma.
     aplicación con el identificador de texto que genera la biblioteca. Las
     cuentas se pueden desactivar o bloquear (`usuario.estado`) sin borrar
     su historial, porque nada se borra.
-15. **Un paquete activo tiene contenido mínimo.** El `CHECK`
-    `ck_paquete_publicado` exige destino, descripción, itinerario y
-    servicios incluidos no vacíos. El borrador puede quedar incompleto.
-16. **El itinerario se complementa con actividades.** `paquete_actividad`
-    guarda las acciones comunes marcadas (desayuno, transporte, guía, etc.)
-    sin sustituir el texto libre de `paquete.itinerario`.
-17. **Una salida pertenece a un paquete activo y respeta su duración.** La
+15. **Un paquete activo tiene contenido mínimo.** El disparador diferido
+    `tr_paquete_publicado` exige destino principal, descripción, itinerario
+    y al menos un servicio en `paquete_servicio`. El borrador puede quedar
+    incompleto.
+16. **El destino es un lugar y el recorrido es una lista de paradas.**
+    `paquete.id_lugar_destino` es el destino comercial; `id_lugar_origen`
+    es el punto de partida y `paquete_parada` guarda las paradas en orden.
+    `tipo_recorrido = 'circuito'` indica que el viaje vuelve al origen, sin
+    repetir el lugar.
+17. **Los servicios son la lista de lo que cubre el precio.**
+    `paquete_servicio` guarda las prestaciones marcadas; `servicios_detalle`
+    y `servicios_excluidos` son textos opcionales. El itinerario es el
+    relato día por día y no se sustituye con las casillas.
+18. **Una salida pertenece a un paquete activo y respeta su duración.** La
     función `fn_crear_salida` valida el estado del paquete, que la fecha de
     retorno no sea anterior a la de salida y que la duración coincida con
     `paquete.duracion_dias`. El índice `ux_salida_paquete_fecha` impide dos
@@ -275,8 +284,11 @@ confirmar la reserva, porque el plazo deja de correr.
   atendido por el personal, porque `cliente.id_usuario` admite valor nulo.
 - El identificador de las cuentas es de texto porque Better Auth lo genera.
   Las claves foráneas hacia `usuario` son de texto en consecuencia.
-- El catálogo `actividad` es fijo en el MVP. Se amplía con una fila en la
+- El catálogo `servicio` es fijo en el MVP. Se amplía con una fila en la
   semilla; no se edita desde la interfaz.
+- El catálogo `lugar` se amplía desde la interfaz: la búsqueda en Photon
+  crea el lugar la primera vez y luego se reutiliza. El código corto se
+  deriva del nombre y no se repite.
 - La duración de una salida se cuenta en días inclusivos:
   `fecha_retorno − fecha_salida + 1` debe coincidir con
   `paquete.duracion_dias`.

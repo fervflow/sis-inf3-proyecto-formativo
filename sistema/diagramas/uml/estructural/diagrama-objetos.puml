@@ -60,27 +60,37 @@ object "Proveedor · Transporte Andes S.R.L." as PROV_ANDES {
 
 object "Paquete · Uros del Titicaca" as PAQ_UROS {
   idPaquete = 1
-  codigo = "PQT-URS"
+  codigo = "TIT-2026-001"
   nombre = "Uros del Titicaca"
-  destino = "Lago Titicaca"
+  idLugarDestino = 1
+  tipoRecorrido = "sencillo"
   descripcion = "Tres días en las islas del Titicaca"
   duracionDias = 3
   precioBase = 850.00
   itinerario = "Día 1: llegada y desayuno. Día 2: islas. Día 3: retorno."
-  serviciosIncluidos = "Transporte, alojamiento y guía"
+  serviciosDetalle = "Transporte, alojamiento y guía"
   estado = "activo"
 }
 
-object "Actividad · Desayuno" as ACT_DESAYUNO {
-  idActividad = 1
+object "Lugar · Lago Titicaca" as LUGAR_TITICACA {
+  idLugar = 1
+  codigo = "TIT"
+  nombre = "Lago Titicaca"
+  tipo = "atractivo"
+  latitud = -15.800000
+  longitud = -69.400000
+}
+
+object "Servicio · Desayuno" as SERV_DESAYUNO {
+  idServicio = 1
   codigo = "desayuno"
   nombre = "Desayuno"
   activo = true
 }
 
-object "PaqueteActividad · Uros" as PA_ACT_UROS {
+object "PaqueteServicio · Uros" as PAQ_SERV_UROS {
   idPaquete = 1
-  idActividad = 1
+  idServicio = 1
 }
 
 object "PaqueteProveedor · Traslado ida y vuelta" as PP_ANDES {
@@ -219,8 +229,9 @@ USU_MAMANI -- CLI_MAMANI : "> cuenta
 ' --- Catalogo --------------------------------------------------------
 PROV_ANDES -- PP_ANDES : "> aporta"
 PAQ_UROS -- PP_ANDES : incluye
-PAQ_UROS -- PA_ACT_UROS : marca
-ACT_DESAYUNO -- PA_ACT_UROS : se incluye en
+PAQ_UROS -- LUGAR_TITICACA : destino
+PAQ_UROS -- PAQ_SERV_UROS : marca
+SERV_DESAYUNO -- PAQ_SERV_UROS : se incluye en
 PAQ_UROS -- SAL_UROS_12 : "> programa"
 USU_ROCA -- PAQ_UROS : "> crea"
 USU_ROCA -- SAL_UROS_12 : "> gestiona"

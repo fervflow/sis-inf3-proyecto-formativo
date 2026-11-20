@@ -15,11 +15,10 @@
       no se versiona).
 - [x] **Variables descargadas** en `.env.local`: `DATABASE_URL` (pooled),
       `DATABASE_URL_UNPOOLED` (directa) y los identificadores de la rama.
-- [x] **Esquema creado**: 20 tablas, 3 vistas, 12 funciones y 5
+- [x] **Esquema creado**: 22 tablas, 3 vistas, 15 funciones y 7
       disparadores, con los tres roles sembrados.
-- [ ] **Actualización 2026-11-20**: ejecutar `make db-actualizar` sobre la
-      base existente (destino, actividades, rol `CLIENTE` y reglas de
-      salidas).
+- [x] **Actualización 2026-11-20**: aplicada sobre la base existente
+      (lugares, recorrido, servicios, rol `CLIENTE` y reglas de salidas).
 
 **Falta:**
 

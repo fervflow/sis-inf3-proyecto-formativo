@@ -29,6 +29,14 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  vite: {
+    optimizeDeps: {
+      // Leaflet es un paquete CommonJS: se preempaqueta para que el mapa
+      // no provoque una recarga en desarrollo.
+      include: ['leaflet'],
+    },
+  },
+
   typescript: {
     strict: true,
     typeCheck: false,

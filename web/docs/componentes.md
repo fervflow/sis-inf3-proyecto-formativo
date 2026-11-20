@@ -65,6 +65,8 @@ En `app/components/base/`, con prefijo `Base`:
 | `BaseTablaDatos` | Tabla con columnas declarativas y plantilla por celda |
 | `BaseEstadoVacio` | Lo que se ve cuando no hay nada |
 | `BaseDato` | Indicador con etiqueta |
+| `BaseCampoMoneda` | Importe en bolivianos con formato y dos decimales |
+| `BaseMapa` | Mapa de OpenStreetMap con marcadores; solo se carga en el cliente |
 
 Ejemplo de tabla:
 
@@ -100,8 +102,10 @@ app/components/reservas/
 └── DetalleReserva.vue
 ```
 
-Se usan con el prefijo de la carpeta: `<ListaReservas />`. Si se usa en un
-solo lugar, puede vivir junto a la vista.
+Se usan con el prefijo de la carpeta en PascalCase: `reservas/ListaReservas.vue`
+se usa como `<ReservasListaReservas />`. Si se usa en un solo lugar, puede
+vivir junto a la vista. En `paquetes/` viven `FormularioPaquete` y
+`SelectorLugar`, que sí consultan la API y por eso no son componentes base.
 
 ## Slots
 

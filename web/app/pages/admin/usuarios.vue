@@ -176,13 +176,15 @@ const idPropio = computed(() => cuenta.value?.usuario?.id ?? '')
 
 const RUTA_USUARIOS: string = '/api/admin/usuarios'
 
+const peticion = useRequestFetch()
+
 const {
   data,
   pending: pendiente,
   error: errorConsulta,
   refresh,
 } = await useAsyncData<RespuestaUsuarios>('usuarios-admin', () =>
-  $fetch<RespuestaUsuarios>(RUTA_USUARIOS),
+  peticion<RespuestaUsuarios>(RUTA_USUARIOS),
 )
 
 const filas = computed<FilaUsuario[]>(() => data.value?.usuarios ?? [])

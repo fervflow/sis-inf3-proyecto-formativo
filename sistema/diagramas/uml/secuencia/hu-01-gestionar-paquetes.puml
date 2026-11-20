@@ -1,8 +1,8 @@
 @startuml
 title HU-01 · Gestión de paquetes turísticos
 ' El borrador puede estar incompleto. Para publicar se exige destino,
-' descripción, itinerario y servicios incluidos. El itinerario se
-' complementa con actividades comunes marcadas por el administrador.
+' descripción, itinerario y al menos un servicio. El código lo genera la
+' base; el recorrido se arma con lugares y paradas.
 hide footbox
 autonumber
 skinparam maxMessageSize 175
@@ -11,68 +11,74 @@ actor "Administrador" as ADM
 boundary "IU-01 · Gestionar paquete" as UI <<interfaz>>
 control "ControlPaquetes" as CTRL <<control>>
 entity "Paquete" as E_PAQUETE <<entidad>>
-entity "Actividad" as E_ACTIVIDAD <<entidad>>
-entity "PaqueteActividad" as E_PAQUETE_ACTIVIDAD <<entidad>>
+entity "Lugar" as E_LUGAR <<entidad>>
+entity "Servicio" as E_SERVICIO <<entidad>>
+entity "PaqueteServicio" as E_PAQUETE_SERVICIO <<entidad>>
 database "paquete" as T_PAQUETE <<tabla>>
-database "actividad" as T_ACTIVIDAD <<tabla>>
-database "paquete_actividad" as T_PAQUETE_ACTIVIDAD <<tabla>>
+database "paquete_parada" as T_PARADA <<tabla>>
+database "lugar" as T_LUGAR <<tabla>>
+database "servicio" as T_SERVICIO <<tabla>>
+database "paquete_servicio" as T_PAQUETE_SERVICIO <<tabla>>
 
 ADM -> UI : abre el alta o la edición
-UI -> CTRL : guardarPaquete(datos, actividades)
+UI -> CTRL : guardarPaquete(datos, destinos, servicios)
 
-CTRL -> E_PAQUETE : validarCodigo(codigo)
-E_PAQUETE -> T_PAQUETE : SELECT ... WHERE codigo = upper(codigo)
-T_PAQUETE --> E_PAQUETE : código existente
+CTRL -> E_LUGAR : validarLugares(ids)
+E_LUGAR -> T_LUGAR : SELECT ... WHERE activo = true
+T_LUGAR --> E_LUGAR : lugares válidos
+E_LUGAR --> CTRL : lugares válidos
 
-alt Código duplicado
-    E_PAQUETE --> CTRL : duplicado
-    CTRL --> UI : error «Ya existe un paquete con ese código»
-    UI --> ADM : corregir el código
-else Código disponible
-    CTRL -> E_PAQUETE : validarPrecioYDuracion()
-    E_PAQUETE --> CTRL : precio > 0 y duración válida
+CTRL -> E_PAQUETE : validarPrecioYDuracion()
+E_PAQUETE --> CTRL : precio > 0 y duración válida
 
-    alt Estado activo
-        CTRL -> E_PAQUETE : validarContenidoPublicable()
-        E_PAQUETE --> CTRL : destino, descripción, itinerario y servicios
+alt Estado activo
+    CTRL -> E_PAQUETE : validarContenidoPublicable()
+    E_PAQUETE --> CTRL : destino, descripción, itinerario y servicios
 
-        alt Falta contenido obligatorio
-            CTRL --> UI : error «Paquete incompleto»
-            UI --> ADM : completar destino, itinerario o servicios
-        else Contenido completo
-            CTRL -> E_ACTIVIDAD : validarActividades(ids)
-            E_ACTIVIDAD -> T_ACTIVIDAD : SELECT ... WHERE activo = true
-            T_ACTIVIDAD --> E_ACTIVIDAD : actividades válidas
-            E_ACTIVIDAD --> CTRL : actividades válidas
-        end
-    else Borrador o inactivo
-        CTRL -> E_ACTIVIDAD : validarActividades(ids)
-        E_ACTIVIDAD -> T_ACTIVIDAD : SELECT ... WHERE activo = true
-        T_ACTIVIDAD --> E_ACTIVIDAD : actividades válidas
-        E_ACTIVIDAD --> CTRL : actividades válidas
+    alt Falta contenido obligatorio
+        CTRL --> UI : error «Paquete incompleto»
+        UI --> ADM : completar destino, itinerario o servicios
+    else Contenido completo
+        CTRL -> E_SERVICIO : validarServicios(ids)
+        E_SERVICIO -> T_SERVICIO : SELECT ... WHERE activo = true
+        T_SERVICIO --> E_SERVICIO : servicios válidos
+        E_SERVICIO --> CTRL : servicios válidos
     end
-
-    group Transacción de guardado
-        CTRL -> E_PAQUETE : guardar()
-        E_PAQUETE -> T_PAQUETE : INSERT o UPDATE
-        T_PAQUETE --> E_PAQUETE : id_paquete
-        CTRL -> E_PAQUETE_ACTIVIDAD : reemplazar(ids)
-        E_PAQUETE_ACTIVIDAD -> T_PAQUETE_ACTIVIDAD : DELETE e INSERT
-        T_PAQUETE_ACTIVIDAD --> E_PAQUETE_ACTIVIDAD : vínculos guardados
-    end
-
-    CTRL --> UI : paquete guardado
-    UI --> ADM : confirmación
+else Borrador o inactivo
+    CTRL -> E_SERVICIO : validarServicios(ids)
+    E_SERVICIO -> T_SERVICIO : SELECT ... WHERE activo = true
+    T_SERVICIO --> E_SERVICIO : servicios válidos
+    E_SERVICIO --> CTRL : servicios válidos
 end
+
+group Transacción de guardado
+    CTRL -> T_PAQUETE : fn_generar_codigo_paquete(prefijo)
+    T_PAQUETE --> CTRL : código único
+
+    CTRL -> E_PAQUETE : guardar()
+    E_PAQUETE -> T_PAQUETE : INSERT o UPDATE
+    T_PAQUETE --> E_PAQUETE : id_paquete
+
+    CTRL -> T_PARADA : DELETE e INSERT ordenado
+    T_PARADA --> CTRL : paradas guardadas
+
+    CTRL -> E_PAQUETE_SERVICIO : reemplazar(ids)
+    E_PAQUETE_SERVICIO -> T_PAQUETE_SERVICIO : DELETE e INSERT
+    T_PAQUETE_SERVICIO --> E_PAQUETE_SERVICIO : vínculos guardados
+end
+
+CTRL --> UI : paquete guardado
+UI --> ADM : confirmación
 
 note right of CTRL
     El borrador se puede guardar incompleto. Un paquete activo
-    siempre tiene destino, descripción, itinerario y servicios
-    incluidos; si falta uno, la operación se rechaza.
+    siempre tiene destino, descripción, itinerario y al menos un
+    servicio; si falta uno, el disparador de publicación lo rechaza.
 end note
 
-note right of E_PAQUETE_ACTIVIDAD
-    Las actividades complementan el texto del itinerario:
-    desayuno, almuerzo, transporte, guía, entradas, etc.
+note right of E_PAQUETE_SERVICIO
+    Los servicios son la lista de lo que cubre el precio:
+    desayuno, transporte, alojamiento, guía, entradas, etc.
+    El itinerario es el relato día por día.
 end note
 @enduml
