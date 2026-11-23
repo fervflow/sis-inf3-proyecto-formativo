@@ -77,3 +77,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-23 14:33 | `2026-11-23T143302_cierre-hu-02-y-hu-03.md` | Salidas como tarjetas, precio efectivo con precarga, desglose de disponibilidad para el personal y cierre de HU-02/HU-03. |
 | 2026-11-23 14:53 | `2026-11-23T145312_proveedores-y-cotizaciones.md` | Proveedores con vínculos a paquetes, cotizaciones con número automático, condiciones y datos de ejemplo. |
 | 2026-11-23 16:30 | `2026-11-23T163056_reservas-y-solicitudes.md` | Reservas en los dos canales con validación de cupos, página de solicitudes del personal, confirmación y vencimiento de las pendientes. |
+| 2026-11-23 17:09 | `2026-11-23T170900_cupos-en-cotizaciones-y-tarjetas-de-disponibilidad.md` | Control de cupos en cotizaciones, tarjetas informativas en la disponibilidad y botón de envío en la solicitud web. |

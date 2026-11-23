@@ -92,12 +92,13 @@ export const es = {
   'disponibilidad.columnas.disponibles': 'Disponibles',
   'disponibilidad.columnas.precio': 'Precio',
   'disponibilidad.agotada': 'Agotada',
-  'disponibilidad.desglosePersonal':
-    'El desglose de pendientes y confirmados se muestra solo al personal.',
+  'disponibilidad.desgloseLinea':
+    'Pendientes: {pendientes} · Confirmados: {confirmados}',
   'disponibilidad.columnas.acciones': 'Reservar',
   'disponibilidad.solicitar': 'Solicitar',
 
   'solicitudes.publico.titulo': 'Solicitar una reserva',
+  'solicitudes.publico.enviar': 'Enviar solicitud',
   'solicitudes.registrada':
     'Solicitud registrada con el código {codigo}. Tienes hasta el {vencimiento} para que la agencia la confirme.',
   'solicitudes.titulo': 'Solicitudes de reserva',
@@ -417,6 +418,8 @@ export const es = {
   'cotizaciones.form.observaciones': 'Observaciones',
   'cotizaciones.form.estado': 'Estado',
   'cotizaciones.form.disponibles': 'disponibles',
+  'cotizaciones.ayudaCantidad':
+    'No puede superar el cupo disponible de la salida elegida.',
   'cotizaciones.ayudaPrecio':
     'Se completa con el precio de la salida; puedes ajustarlo.',
   'cotizaciones.ayudaDescuento': 'Opcional. No puede superar el subtotal.',

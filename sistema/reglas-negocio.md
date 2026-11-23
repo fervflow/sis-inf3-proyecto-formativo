@@ -211,7 +211,7 @@ programada ──▶ confirmada ──▶ realizada
 | HU-09 · Modificar fechas o capacidad | RN-SAL-09 a RN-SAL-16 |
 | HU-08 · Acceso por rol | RN-USU-01, RN-USU-02 |
 | HU-10 · Proveedores y vínculos | RN-PRV-01 a RN-PRV-07 |
-| HU-05 · Cotizaciones | RN-COT-01 a RN-COT-08 |
+| HU-05 · Cotizaciones | RN-COT-01 a RN-COT-09 |
 | HU-06 · Registro de reservas | RN-GEN-04, RN-GEN-05, RN-SAL-14, RN-SAL-18, RN-COT-08 y RN-RES-01 a RN-RES-06, RN-RES-11, RN-RES-12 |
 | HU-17 · Confirmación y vencimiento de solicitudes | RN-GEN-03, RN-GEN-05, RN-SAL-19 y RN-RES-01, RN-RES-05, RN-RES-07 a RN-RES-10, RN-RES-13 |
 
@@ -246,6 +246,7 @@ programada ──▶ confirmada ──▶ realizada
 | RN-COT-06 | La cotización no descuenta cupo ni crea una reserva. | HU-05 | API de cotizaciones | Vigente |
 | RN-COT-07 | Las condiciones y las observaciones son textos opcionales. Las condiciones son los términos comerciales que se muestran al cliente. | HU-05 | `condiciones` y `observaciones` | Vigente |
 | RN-COT-08 | Una cotización aceptada puede originar una reserva; el vínculo se guarda en `reserva.id_cotizacion` y la API comprueba que la cotización esté aceptada y corresponda al mismo cliente y a la misma salida. | HU-05, HU-06 | API de reservas | Vigente |
+| RN-COT-09 | La cotización no descuenta cupo, pero la cantidad de pasajeros no puede superar el cupo disponible de la salida al prepararla o editarla; la reserva que nazca de ella vuelve a verificarlo. | HU-05, T-COT | API de cotizaciones e interfaz | Vigente |
 
 ## 13. Reservas y solicitudes
 

@@ -118,11 +118,12 @@
             <UFormField
               :label="t('cotizaciones.form.cantidad')"
               name="cantidad"
+              :help="t('cotizaciones.ayudaCantidad')"
             >
               <UInputNumber
                 v-model="formulario.cantidadPasajeros"
                 :min="1"
-                :max="32767"
+                :max="cupoDisponible ?? 32767"
                 :step="1"
                 :increment="false"
                 :decrement="false"
@@ -348,6 +349,12 @@ const salidaSeleccionada = computed(() =>
     (salida) => Number(salida.id_salida) === formulario.idSalida,
   ),
 )
+
+/** El cupo disponible de la salida elegida fija el máximo de pasajeros. */
+const cupoDisponible = computed<number | null>(() => {
+  const salida = salidaSeleccionada.value
+  return salida ? salida.cupo_disponible : null
+})
 
 const estados = computed<{ label: string; value: EstadoCotizacion }[]>(() => {
   const actual = editando.value?.estado

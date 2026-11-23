@@ -191,6 +191,8 @@ sistema no pueda cumplir.
   único y fecha de emisión.
 - El importe se calcula con el precio de la salida y la cantidad de
   pasajeros, y se muestra junto con los servicios incluidos.
+- La cantidad de pasajeros no puede superar el cupo disponible de la salida;
+  la cotización no la descuenta, pero tampoco promete lugares que no hay.
 - La cotización declara su plazo de validez y sus condiciones; vencido el
   plazo, pasa al estado vencida.
 - La cotización no descuenta cupo ni crea reserva: el cupo de la salida no

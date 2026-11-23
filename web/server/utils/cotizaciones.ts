@@ -210,6 +210,21 @@ async function validarReferencias(
     throw createError({ statusCode: 400, statusMessage: 'fecha_pasada' })
   }
 
+  // La cotización no descuenta cupo, pero tampoco puede prometer más
+  // pasajeros que los disponibles: sería una oferta imposible. La reserva
+  // que nazca de ella vuelve a verificarlo dentro de la transacción.
+  const [disponibilidad] = await consultar<{
+    cupo_disponible: string | number
+  }>(sql`
+    select cupo_disponible
+    from turismo.vista_disponibilidad_salida
+    where id_salida = ${datos.idSalida}
+  `)
+
+  if (Number(disponibilidad?.cupo_disponible) < datos.cantidadPasajeros) {
+    throw createError({ statusCode: 400, statusMessage: 'cupo_insuficiente' })
+  }
+
   if (datos.fechaValidez < hoyIso()) {
     throw createError({ statusCode: 400, statusMessage: 'validez_invalida' })
   }

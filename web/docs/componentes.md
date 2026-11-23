@@ -108,7 +108,9 @@ vivir junto a la vista. En `paquetes/` viven `FormularioPaquete` y
 `SelectorLugar`, que sí consultan la API y por eso no son componentes base.
 En `solicitudes/` vive `FormularioPublico`, el formulario de solicitud de
 reserva del canal web: recibe la salida elegida, registra al cliente por
-documento y emite `registrada` con la reserva creada.
+documento y emite `registrada` con la reserva creada. En `disponibilidad/`
+vive `Tarjeta`, el espejo público de la tarjeta de salidas: muestra el
+paquete, fechas, ocupación y precio, y emite `solicitar` para pedir cupo.
 
 ## Slots
 

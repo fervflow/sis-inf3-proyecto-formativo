@@ -12,96 +12,31 @@
       :title="avisoSolicitud"
     />
 
-    <BaseTarjeta>
-      <div
-        v-if="pendiente || salidas.length > 0"
-        class="overflow-x-auto"
-      >
-        <BaseTablaDatos
-          class="min-w-[64rem]"
-          :columnas="columnas"
-          :filas="salidas"
-          :cargando="pendiente"
-          :texto-vacio="t('disponibilidad.vacia')"
-        >
-        <template #celda="{ columna, fila, valor }">
-          <span v-if="columna.clave === 'paquete'">
-            {{ fila.paquete }}
-            <span class="text-xs text-(--vt-color-texto-suave)">
-              {{ fila.codigo_paquete }}
-            </span>
-          </span>
+    <div
+      v-if="pendiente"
+      class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+    >
+      <USkeleton v-for="n in 3" :key="n" class="h-64 w-full" />
+    </div>
 
-          <span
-            v-else-if="
-              columna.clave === 'fecha_salida' ||
-              columna.clave === 'fecha_retorno'
-            "
-          >
-            {{ fecha(String(valor)) }}
-          </span>
+    <BaseEstadoVacio
+      v-else-if="salidas.length === 0"
+      :titulo="t('disponibilidad.vacia')"
+    />
 
-          <UBadge
-            v-else-if="
-              columna.clave === 'cupo_disponible' && fila.cupo_disponible <= 0
-            "
-            color="error"
-            variant="subtle"
-            :label="t('disponibilidad.agotada')"
-          />
-
-          <span
-            v-else-if="
-              columna.clave === 'pasajeros_pendientes' ||
-              columna.clave === 'pasajeros_confirmados'
-            "
-            class="tabular-nums"
-          >
-            {{ valor ?? '—' }}
-          </span>
-
-          <span
-            v-else-if="columna.clave === 'precio'"
-            class="tabular-nums"
-          >
-            {{ moneda(String(valor)) }}
-          </span>
-
-          <span
-            v-else-if="columna.clave === 'acciones'"
-            class="flex justify-center"
-          >
-            <UButton
-              v-if="fila.cupo_disponible > 0"
-              size="xs"
-              color="primary"
-              variant="soft"
-              :label="t('disponibilidad.solicitar')"
-              @click="solicitar(fila)"
-            />
-          </span>
-
-          <span v-else class="tabular-nums">{{ valor }}</span>
-          </template>
-        </BaseTablaDatos>
-      </div>
-
-      <BaseEstadoVacio
-        v-else-if="!error"
-        :titulo="t('disponibilidad.vacia')"
+    <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <DisponibilidadTarjeta
+        v-for="salida in salidas"
+        :key="salida.id_salida"
+        :salida="salida"
+        :desglose="desgloseDe(salida)"
+        @solicitar="solicitar"
       />
+    </div>
 
-      <p v-if="error" class="text-(--vt-texto-sm) text-(--vt-color-error-600)">
-        {{ error }}
-      </p>
-
-      <p
-        v-if="esPersonal && salidas.length > 0"
-        class="mt-3 text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
-      >
-        {{ t('disponibilidad.desglosePersonal') }}
-      </p>
-    </BaseTarjeta>
+    <p v-if="error" class="text-(--vt-texto-sm) text-(--vt-color-error-600)">
+      {{ error }}
+    </p>
 
     <UModal
       v-model:open="solicitudAbierta"
@@ -114,6 +49,7 @@
           ref="formulario-publico"
           :salida="salidaSolicitada"
           @registrada="registrada"
+          @cancelar="solicitudAbierta = false"
         />
       </template>
     </UModal>
@@ -127,11 +63,10 @@ import type {
   ReservaResumen,
   SalidaDisponible,
 } from '#shared/types/api'
-import type { ColumnaTabla } from '#shared/types/ui'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
-const { moneda, fecha, fechaHora } = useFormato()
+const { fecha, fechaHora } = useFormato()
 const peticion = useRequestFetch()
 
 const {
@@ -151,86 +86,31 @@ const esPersonal = computed(
     cuenta.value?.usuario?.rol === 'PERSONAL',
 )
 
-/** Fila de la tabla de disponibilidad con la columna de acción. */
-type FilaDisponibilidad = SalidaDisponible & { acciones: number }
-
-const salidas = computed<FilaDisponibilidad[]>(() =>
-  (data.value?.salidas ?? []).map((salida) => ({
-    ...salida,
-    acciones: salida.id_salida,
-  })),
-)
+const salidas = computed<SalidaDisponible[]>(() => data.value?.salidas ?? [])
 const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
 )
 
-// Las etiquetas se calculan de nuevo cuando cambia el idioma.
-const columnas = computed<ColumnaTabla<FilaDisponibilidad>[]>(() => {
-  const lista: ColumnaTabla<FilaDisponibilidad>[] = [
-    { clave: 'paquete', etiqueta: t('disponibilidad.columnas.paquete') },
-    { clave: 'fecha_salida', etiqueta: t('disponibilidad.columnas.salida') },
-    { clave: 'fecha_retorno', etiqueta: t('disponibilidad.columnas.retorno') },
-    {
-      clave: 'cupo_maximo',
-      etiqueta: t('disponibilidad.columnas.cupo'),
-      alineacion: 'derecha',
-    },
-    {
-      clave: 'pasajeros_ocupados',
-      etiqueta: t('disponibilidad.columnas.ocupados'),
-      alineacion: 'derecha',
-    },
-  ]
-
-  if (esPersonal.value) {
-    lista.push(
-      {
-        clave: 'pasajeros_pendientes',
-        etiqueta: t('disponibilidad.columnas.pendientes'),
-        alineacion: 'derecha',
-      },
-      {
-        clave: 'pasajeros_confirmados',
-        etiqueta: t('disponibilidad.columnas.confirmados'),
-        alineacion: 'derecha',
-      },
-    )
-  }
-
-  lista.push(
-    {
-      clave: 'cupo_disponible',
-      etiqueta: t('disponibilidad.columnas.disponibles'),
-      alineacion: 'derecha',
-    },
-    {
-      clave: 'precio',
-      etiqueta: t('disponibilidad.columnas.precio'),
-      alineacion: 'derecha',
-    },
-  )
-
-  // Solo una salida con cupo admite la solicitud.
-  lista.push({
-    clave: 'acciones',
-    etiqueta: t('disponibilidad.columnas.acciones'),
-    alineacion: 'centro',
+/** Desglose de pendientes y confirmados, solo para el personal. */
+function desgloseDe(salida: SalidaDisponible): string {
+  if (!esPersonal.value) return ''
+  return t('disponibilidad.desgloseLinea', {
+    pendientes: salida.pasajeros_pendientes ?? 0,
+    confirmados: salida.pasajeros_confirmados ?? 0,
   })
-
-  return lista
-})
+}
 
 // --- Solicitud de reserva por el canal web -------------------------------
 
 const solicitudAbierta = ref(false)
-const salidaSolicitada = ref<FilaDisponibilidad | null>(null)
+const salidaSolicitada = ref<SalidaDisponible | null>(null)
 const formularioPublico = useTemplateRef<{
   reiniciar: () => void
 }>('formulario-publico')
 
 const avisoSolicitud = ref<string | null>(null)
 
-function solicitar(salida: FilaDisponibilidad) {
+function solicitar(salida: SalidaDisponible) {
   avisoSolicitud.value = null
   salidaSolicitada.value = salida
   formularioPublico.value?.reiniciar()

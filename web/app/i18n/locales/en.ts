@@ -81,12 +81,13 @@ export const en: Mensajes = {
   'disponibilidad.columnas.disponibles': 'Available',
   'disponibilidad.columnas.precio': 'Price',
   'disponibilidad.agotada': 'Sold out',
-  'disponibilidad.desglosePersonal':
-    'The pending and confirmed breakdown is shown only to staff.',
+  'disponibilidad.desgloseLinea':
+    'Pending: {pendientes} · Confirmed: {confirmados}',
   'disponibilidad.columnas.acciones': 'Book',
   'disponibilidad.solicitar': 'Request',
 
   'solicitudes.publico.titulo': 'Request a booking',
+  'solicitudes.publico.enviar': 'Send request',
   'solicitudes.registrada':
     'Request registered with code {codigo}. You have until {vencimiento} for the agency to confirm it.',
   'solicitudes.titulo': 'Booking requests',
@@ -403,6 +404,8 @@ export const en: Mensajes = {
   'cotizaciones.form.observaciones': 'Notes',
   'cotizaciones.form.estado': 'Status',
   'cotizaciones.form.disponibles': 'available',
+  'cotizaciones.ayudaCantidad':
+    'It cannot exceed the available quota of the chosen departure.',
   'cotizaciones.ayudaPrecio':
     'It is filled from the departure price; you can adjust it.',
   'cotizaciones.ayudaDescuento': 'Optional. It cannot exceed the subtotal.',

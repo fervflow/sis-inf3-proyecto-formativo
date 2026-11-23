@@ -21,6 +21,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   /** La solicitud se registró; la vista cierra el formulario. */
   registrada: [reserva: ReservaResumen]
+  /** La persona canceló; la vista cierra el formulario. */
+  cancelar: []
 }>()
 
 const { t } = useTexto()
@@ -172,5 +174,21 @@ defineExpose({
     </p>
 
     <UAlert v-if="error" color="error" variant="soft" :title="error" />
+
+    <div class="flex justify-end gap-2">
+      <UButton
+        color="neutral"
+        variant="ghost"
+        :label="t('comun.cancelar')"
+        @click="emit('cancelar')"
+      />
+      <UButton
+        color="primary"
+        type="submit"
+        form="form-solicitud"
+        :label="t('solicitudes.publico.enviar')"
+        :loading="guardando"
+      />
+    </div>
   </form>
 </template>

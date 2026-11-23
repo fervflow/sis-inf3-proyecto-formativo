@@ -36,9 +36,13 @@ export interface EstadoSalud {
 /** Una salida con su disponibilidad, tal como la devuelve la vista. */
 export interface SalidaDisponible {
   id_salida: number
+  id_paquete: number
   codigo_paquete: string
   paquete: string
   estado_paquete: string
+  /** Destino principal comercial del paquete, si lo tiene. */
+  destino: string | null
+  duracion_dias: number
   fecha_salida: string
   fecha_retorno: string
   cupo_maximo: number
@@ -49,6 +53,9 @@ export interface SalidaDisponible {
   pasajeros_confirmados: number | null
   cupo_disponible: number
   precio: string
+  /** Precio de catálogo del paquete, para comparar con el de la salida. */
+  precio_base: string
+  punto_encuentro: string | null
   estado: string
 }
 

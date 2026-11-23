@@ -20,15 +20,20 @@ export default defineEventHandler(async (event) => {
     sesion?.user.idRol === ROL_ADMIN || sesion?.user.idRol === ROL_PERSONAL
 
   const salidas = await consultar<SalidaDisponible>(sql`
-    SELECT id_salida, codigo_paquete, paquete, estado_paquete, fecha_salida,
-           fecha_retorno, cupo_maximo, pasajeros_ocupados,
-           pasajeros_pendientes, pasajeros_confirmados, cupo_disponible,
-           precio, estado
-    FROM turismo.vista_disponibilidad_salida
-    WHERE fecha_salida >= CURRENT_DATE
-      AND estado_paquete = 'activo'
-      AND estado IN ('programada', 'confirmada')
-    ORDER BY fecha_salida, codigo_paquete
+    SELECT v.id_salida, v.id_paquete, v.codigo_paquete, v.paquete,
+           v.estado_paquete, v.fecha_salida, v.fecha_retorno, v.cupo_maximo,
+           v.pasajeros_ocupados, v.pasajeros_pendientes,
+           v.pasajeros_confirmados, v.cupo_disponible, v.precio, v.estado,
+           l.nombre AS destino, p.duracion_dias, s.punto_encuentro,
+           p.precio_base
+    FROM turismo.vista_disponibilidad_salida v
+    JOIN turismo.paquete p ON p.id_paquete = v.id_paquete
+    JOIN turismo.salida s ON s.id_salida = v.id_salida
+    LEFT JOIN turismo.lugar l ON l.id_lugar = p.id_lugar_destino
+    WHERE v.fecha_salida >= CURRENT_DATE
+      AND v.estado_paquete = 'activo'
+      AND v.estado IN ('programada', 'confirmada')
+    ORDER BY v.fecha_salida, v.codigo_paquete
   `)
 
   return {
