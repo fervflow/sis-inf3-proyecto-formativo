@@ -12,6 +12,7 @@ import * as schema from '../../db/schema'
 import type {
   LugarResumen,
   PaqueteAdmin,
+  ProveedorPaqueteResumen,
   ServicioResumen,
 } from '#shared/types/api'
 import type { EstadoPaquete, TipoLugar, TipoRecorrido } from '#shared/types/domain'
@@ -149,6 +150,7 @@ export function aPaqueteAdmin(
   origen: LugarResumen | null,
   paradas: LugarResumen[],
   servicios: ServicioResumen[],
+  proveedores: ProveedorPaqueteResumen[] = [],
 ): PaqueteAdmin {
   return {
     idPaquete: fila.idPaquete,
@@ -165,6 +167,7 @@ export function aPaqueteAdmin(
     serviciosDetalle: fila.serviciosDetalle,
     serviciosExcluidos: fila.serviciosExcluidos,
     servicios,
+    proveedores,
     estado: fila.estado as EstadoPaquete,
     fechaActualizacion: fila.fechaActualizacion.toISOString(),
   }

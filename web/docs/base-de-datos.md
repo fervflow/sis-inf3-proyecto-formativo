@@ -174,5 +174,10 @@ lugar por cada destino de texto, mantiene los servicios marcados, mueve el
 texto de `servicios_incluidos` a `servicios_detalle` y conserva los códigos
 existentes.
 
+La migración `2026-11-23-proveedores-cotizaciones.sql` agrega el nombre
+único del proveedor, la columna `condiciones` de la cotización, la secuencia
+y la función del número `COT-AAAA-NNN`, el barrido de cotizaciones vencidas
+y los datos de ejemplo (clientes, proveedores, vínculos y una cotización).
+
 Los objetivos `db-crear`, `db-actualizar` y `db-probar` cargan `.env.local`
 cuando no encuentran las variables exportadas en el entorno.

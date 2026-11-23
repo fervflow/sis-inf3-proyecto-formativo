@@ -15,12 +15,6 @@ kanban-plugin: basic
 - [ ] **T-HU-15.3** · RE · HU-15 \
   Comprobar el acceso del cliente, el bloqueo de la cuenta y la restricción a información ajena.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-10.2** · RE · HU-10 \
-  Vincular uno o varios proveedores a los paquetes turísticos.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
-- [ ] **T-HU-05.2** · RE · HU-05 \
-  Mostrar servicios, importe y condiciones, sin descontar cupos.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
 - [ ] **T-HU-06.1** · EV · HU-06 \
   Crear una reserva desde la atención del personal o como solicitud del cliente, con su origen, el cliente, la salida y la cantidad de pasajeros.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
@@ -87,12 +81,6 @@ kanban-plugin: basic
 
 ## En curso (WIP 4)
 
-- [ ] **T-HU-10.1** · RE · HU-10 \
-  Registrar, consultar y editar proveedores de servicios.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
-- [ ] **T-HU-05.1** · RE · HU-05 \
-  Seleccionar cliente y paquete y calcular el precio de la cotización.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
 
 ## En pruebas / QA (WIP 2)
 
@@ -130,6 +118,18 @@ kanban-plugin: basic
 - [ ] **T-HU-03.2** · EV · HU-03 \
   Calcular los disponibles descontando las reservas pendientes y confirmadas, y comprobar el resultado.
   [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-10.1** · RE · HU-10 \
+  Registrar, consultar y editar proveedores de servicios.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
+- [ ] **T-HU-10.2** · RE · HU-10 \
+  Vincular uno o varios proveedores a los paquetes turísticos.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
+- [ ] **T-HU-05.1** · RE · HU-05 \
+  Seleccionar cliente y paquete y calcular el precio de la cotización.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
+- [ ] **T-HU-05.2** · RE · HU-05 \
+  Mostrar servicios, importe y condiciones, sin descontar cupos.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
 - [ ] **T-HU-04.1** · RE · HU-04 \
   Registrar clientes con documento y datos de contacto, evitando duplicados.
   [Inicio:: 12/11/2026] [Fin:: 18/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media

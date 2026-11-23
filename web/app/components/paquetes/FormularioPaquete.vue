@@ -33,6 +33,7 @@ interface Formulario {
   serviciosExcluidos: string
   paradas: LugarResumen[]
   servicios: number[]
+  proveedores: PaqueteAdmin['proveedores']
   estado: EstadoPaquete
 }
 
@@ -48,6 +49,7 @@ const emit = defineEmits<{
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
+const { moneda } = useFormato()
 
 const abierto = computed({
   get: () => props.abierto,
@@ -76,6 +78,7 @@ const formulario = reactive<Formulario>({
   serviciosExcluidos: '',
   paradas: [],
   servicios: [],
+  proveedores: [],
   estado: 'borrador',
 })
 
@@ -219,6 +222,7 @@ function inicializar() {
   formulario.servicios = (paquete?.servicios ?? []).map(
     (servicio) => servicio.idServicio,
   )
+  formulario.proveedores = [...(paquete?.proveedores ?? [])]
   formulario.estado = paquete?.estado ?? 'borrador'
   rango.value = null
   intentoPublicar.value = false
@@ -691,6 +695,46 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
               />
             </div>
           </UFormField>
+        </section>
+
+        <USeparator />
+
+        <!-- Proveedores -->
+        <section class="space-y-3">
+          <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+            {{ t('paquetes.form.proveedores') }}
+          </h3>
+          <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+            {{ t('paquetes.ayudaProveedores') }}
+          </p>
+
+          <p
+            v-if="formulario.proveedores.length === 0"
+            class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+          >
+            {{ t('paquetes.sinProveedores') }}
+          </p>
+
+          <ul v-else class="space-y-2">
+            <li
+              v-for="proveedor in formulario.proveedores"
+              :key="proveedor.idProveedor"
+              class="flex flex-wrap items-baseline justify-between gap-2 rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
+            >
+              <div>
+                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                  {{ proveedor.nombre }}
+                </p>
+                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                  {{ t(`paquetes.proveedores.tipos.${proveedor.tipo}` as ClaveMensaje) }}
+                  · {{ proveedor.servicio }}
+                </p>
+              </div>
+              <span class="text-(--vt-texto-sm) tabular-nums">
+                {{ moneda(proveedor.costo) }}
+              </span>
+            </li>
+          </ul>
         </section>
 
         <USeparator />

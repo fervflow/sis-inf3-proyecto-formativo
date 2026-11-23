@@ -43,15 +43,15 @@ CREATE SCHEMA turismo;
 | `acceso` | Registro de ingresos al sistema. | `id_usuario` → `usuario`. |
 | `cliente` | Ficha comercial del cliente. | `id_usuario` opcional → `usuario`; documento único. |
 | `pasajero` | Personas que viajan en una reserva. | `id_cliente` → `cliente`; documento único. |
-| `proveedor` | Transporte, hospedaje, guías y otros servicios. | `tipo` restringido por `CHECK`. |
+| `proveedor` | Transporte, hospedaje, guías y otros servicios. | `nombre` único normalizado; `tipo` y `estado` restringidos por `CHECK`. |
 | `lugar` | Catálogo reutilizable de lugares, con coordenadas opcionales. | `codigo` único en mayúsculas; nombre normalizado único; `latitud` y `longitud` válidas o ambas nulas. |
 | `paquete` | Catálogo de paquetes turísticos. | `codigo` único y en mayúsculas; `id_lugar_destino` e `id_lugar_origen` → `lugar`; `id_usuario_creador` e `id_usuario_actualizacion` → `usuario`; el estado `activo` exige destino, descripción, itinerario y al menos un servicio. |
 | `paquete_parada` | Paradas del recorrido, en orden. | PK compuesta (`id_paquete`, `orden`); un lugar no se repite en el mismo paquete. |
 | `servicio` | Catálogo fijo de servicios que un paquete puede incluir. | `codigo` único en minúsculas; se amplía con la semilla, no desde la interfaz. |
 | `paquete_servicio` | Servicios incluidos en el precio de un paquete. | PK compuesta (`id_paquete`, `id_servicio`). |
-| `paquete_proveedor` | Servicios de proveedores incluidos en un paquete. | PK compuesta (`id_paquete`, `id_proveedor`). |
+| `paquete_proveedor` | Servicio y costo de un proveedor en un paquete. | PK compuesta (`id_paquete`, `id_proveedor`); `servicio` obligatorio y `costo >= 0`. |
 | `salida` | Fecha, cupo y precio de una salida concreta. | `id_paquete` → `paquete`; `cupo_maximo > 0`; `precio > 0` y puede diferir del precio base del paquete; única por paquete y fecha. |
-| `cotizacion` | Propuesta económica para un cliente y una salida. | `id_cliente`, `id_salida`, `id_usuario`; `numero` único. |
+| `cotizacion` | Propuesta económica para un cliente y una salida. | `id_cliente`, `id_salida`, `id_usuario`; `numero` único; `subtotal` y `total` generados; `condiciones` y `observaciones` opcionales. |
 | `reserva` | Reserva de cupos para una salida. | `id_cliente`, `id_salida`; `id_cotizacion` opcional y único. |
 | `reserva_pasajero` | Pasajeros incluidos en cada reserva. | PK compuesta (`id_reserva`, `id_pasajero`). |
 | `pago` | Anticipo y saldo de una reserva. | `id_reserva` → `reserva`; único (`id_reserva`, `tipo`). |

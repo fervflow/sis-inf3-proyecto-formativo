@@ -18,8 +18,16 @@ withDefaults(
     placeholder?: string
     /** Exige un valor para enviar el formulario. */
     required?: boolean
+    /** Deshabilita el campo. */
+    disabled?: boolean
   }>(),
-  { min: 0.01, max: 9_999_999.99, placeholder: undefined, required: false },
+  {
+    min: 0.01,
+    max: 9_999_999.99,
+    placeholder: undefined,
+    required: false,
+    disabled: false,
+  },
 )
 
 const emit = defineEmits<{
@@ -48,6 +56,7 @@ const local = computed(() => (idioma.value === 'en' ? 'en-US' : 'es-BO'))
     :decrement="false"
     :placeholder="placeholder"
     :required="required"
+    :disabled="disabled"
     class="w-full"
     @update:model-value="
       (valor) => emit('update:modelValue', typeof valor === 'number' ? valor : null)

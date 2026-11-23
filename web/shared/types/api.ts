@@ -8,6 +8,7 @@
 
 import type {
   EstadoCliente,
+  EstadoCotizacion,
   EstadoPaquete,
   EstadoProveedor,
   EstadoReserva,
@@ -246,6 +247,36 @@ export interface SalidaAdmin {
 /** Respuesta de la lista de salidas. */
 export interface RespuestaSalidas {
   salidas: SalidaAdmin[]
+}
+
+/** Una cotización tal como la edita el personal. */
+export interface CotizacionAdmin {
+  idCotizacion: number
+  numero: string
+  idCliente: number
+  cliente: string
+  documento: string
+  idSalida: number
+  codigoPaquete: string
+  paquete: string
+  fechaSalida: string
+  fechaRetorno: string
+  cantidadPasajeros: number
+  precioUnitario: string
+  subtotal: string
+  descuento: string
+  total: string
+  estado: EstadoCotizacion
+  fechaEmision: string
+  fechaValidez: string
+  condiciones: string | null
+  observaciones: string | null
+  fechaCreacion: string
+}
+
+/** Respuesta de la lista de cotizaciones. */
+export interface RespuestaCotizaciones {
+  cotizaciones: CotizacionAdmin[]
 }
 
 /** La ficha de un cliente. */

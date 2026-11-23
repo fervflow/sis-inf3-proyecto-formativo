@@ -344,6 +344,7 @@ CREATE TABLE cotizacion (
     estado              VARCHAR(15) NOT NULL DEFAULT 'borrador',
     fecha_emision       DATE NOT NULL DEFAULT CURRENT_DATE,
     fecha_validez       DATE NOT NULL,
+    condiciones         TEXT,
     observaciones       TEXT,
     fecha_creacion      TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT ck_cotizacion_cantidad CHECK (cantidad_pasajeros > 0),
@@ -578,6 +579,37 @@ AS $$
         || '-' || to_char(current_date, 'YYYY')
         || '-' || lpad(nextval('seq_paquete_codigo')::TEXT, 3, '0');
 $$ LANGUAGE sql;
+
+-- El número de la cotización se genera al crear, con el año y una
+-- secuencia global. Es único y no se edita.
+CREATE SEQUENCE seq_cotizacion_codigo;
+
+CREATE OR REPLACE FUNCTION fn_generar_codigo_cotizacion()
+RETURNS TEXT
+SET search_path = turismo, public
+AS $$
+    SELECT 'COT-' || to_char(current_date, 'YYYY')
+        || '-' || lpad(nextval('seq_cotizacion_codigo')::TEXT, 3, '0');
+$$ LANGUAGE sql;
+
+-- Marca como vencidas las cotizaciones cuyo plazo ya pasó. Se llama al
+-- consultar la lista; no descuenta cupos ni crea reservas.
+CREATE OR REPLACE FUNCTION fn_vencer_cotizaciones()
+RETURNS INTEGER
+SET search_path = turismo, public
+AS $$
+DECLARE
+    v_vencidas INTEGER;
+BEGIN
+    UPDATE cotizacion
+    SET estado = 'vencida'
+    WHERE estado IN ('borrador', 'enviada')
+      AND fecha_validez < CURRENT_DATE;
+
+    GET DIAGNOSTICS v_vencidas = ROW_COUNT;
+    RETURN v_vencidas;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Un paquete publicado necesita destino, descripción, itinerario y al
 -- menos un servicio. El disparador es diferido: la API inserta el paquete
@@ -1451,3 +1483,34 @@ INSERT INTO lugar (codigo, nombre, tipo, direccion, latitud, longitud) VALUES
     ('SUC', 'Sucre',           'ciudad',    'Sucre, Bolivia',       -19.033000, -65.263000),
     ('LPZ', 'La Paz',          'ciudad',    'La Paz, Bolivia',      -16.500000, -68.150000)
 ON CONFLICT DO NOTHING;
+
+-- Clientes y proveedores de ejemplo. No son datos reales: sirven para
+-- probar cotizaciones, vínculos y la operación de la agencia.
+INSERT INTO cliente (
+    tipo_documento, numero_documento, nombres, apellidos, correo, telefono
+) VALUES
+    ('CI', '12345678', 'Ana',  'Quispe', 'ana.quispe@example.com',  '+591 70000011'),
+    ('CI', '87654321', 'Luis', 'Mamani', 'luis.mamani@example.com', '+591 70000012')
+ON CONFLICT (tipo_documento, numero_documento) DO NOTHING;
+
+INSERT INTO proveedor (nombre, tipo, nit, telefono, correo, direccion) VALUES
+    ('Transporte Andes S.R.L.', 'transporte', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
+    ('Hostal Potosí',           'hospedaje',  NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
+    ('Guías del Salar',         'guia',       NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
+ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
+
+-- Vínculos de ejemplo. Si el paquete no existe, no se inserta nada.
+INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, costo)
+SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.costo
+FROM (
+    VALUES
+        ('POT-001',      'Transporte Andes S.R.L.', 'Traslado ida y vuelta',      140.00),
+        ('POT-001',      'Hostal Potosí',           'Alojamiento 4 noches',       300.00),
+        ('POT-001',      'Guías del Salar',         'Guía local',                 100.00),
+        ('SAL-2026-002', 'Transporte Andes S.R.L.', 'Bus Potosí–Uyuni',           200.00),
+        ('SAL-2026-002', 'Hostal Potosí',           'Alojamiento 3 noches',       250.00),
+        ('SUC-2026-001', 'Transporte Andes S.R.L.', 'Traslado Potosí–Sucre',      120.00)
+) AS v(codigo, proveedor, servicio, costo)
+JOIN paquete p ON p.codigo = v.codigo
+JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.proveedor))
+ON CONFLICT (id_paquete, id_proveedor) DO NOTHING;

@@ -74,6 +74,14 @@ const menuGestion = computed<DropdownMenuItem[][]>(() => {
     },
   ]
 
+  if (esPersonal.value) {
+    items.push({
+      label: t('nav.cotizaciones'),
+      icon: 'i-lucide-file-text',
+      to: '/cotizaciones',
+    })
+  }
+
   if (esAdmin.value) {
     items.push(
       {
@@ -85,6 +93,11 @@ const menuGestion = computed<DropdownMenuItem[][]>(() => {
         label: t('nav.salidas'),
         icon: 'i-lucide-calendar-plus',
         to: '/admin/salidas',
+      },
+      {
+        label: t('nav.proveedores'),
+        icon: 'i-lucide-handshake',
+        to: '/admin/proveedores',
       },
       {
         label: t('nav.usuarios'),
@@ -126,11 +139,18 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
   ]
 
   if (esPersonal.value) {
-    principal.push({
-      label: t('nav.clientes'),
-      icon: 'i-lucide-contact',
-      to: '/clientes',
-    })
+    principal.push(
+      {
+        label: t('nav.clientes'),
+        icon: 'i-lucide-contact',
+        to: '/clientes',
+      },
+      {
+        label: t('nav.cotizaciones'),
+        icon: 'i-lucide-file-text',
+        to: '/cotizaciones',
+      },
+    )
   }
   if (esAdmin.value) {
     principal.push(
@@ -143,6 +163,11 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         label: t('nav.salidas'),
         icon: 'i-lucide-calendar-plus',
         to: '/admin/salidas',
+      },
+      {
+        label: t('nav.proveedores'),
+        icon: 'i-lucide-handshake',
+        to: '/admin/proveedores',
       },
       {
         label: t('nav.usuarios'),

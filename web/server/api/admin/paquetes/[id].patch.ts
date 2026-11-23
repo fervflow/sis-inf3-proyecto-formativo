@@ -17,6 +17,7 @@ import {
   validarTransicionPaquete,
 } from '../../../utils/paquetes'
 import { leerCuerpo } from '../../../utils/validacion'
+import { cargarProveedoresDePaquetes } from '../../../utils/proveedores'
 
 /**
  * Edición de un paquete turístico. El código no cambia.
@@ -95,6 +96,7 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   )
   const paradas = await cargarParadas([id])
   const servicios = await cargarServicios([id])
+  const proveedores = await cargarProveedoresDePaquetes([id])
 
   return aPaqueteAdmin(
     fila,
@@ -102,5 +104,6 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
     fila.idLugarOrigen ? (lugares.get(fila.idLugarOrigen) ?? null) : null,
     paradas.get(id) ?? [],
     servicios.get(id) ?? [],
+    proveedores.get(id) ?? [],
   )
 })

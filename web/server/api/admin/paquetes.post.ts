@@ -15,6 +15,7 @@ import {
   validarServicios,
 } from '../../utils/paquetes'
 import { esDuplicado, leerCuerpo } from '../../utils/validacion'
+import { cargarProveedoresDePaquetes } from '../../utils/proveedores'
 
 /**
  * Alta de un paquete turístico.
@@ -88,6 +89,7 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   )
   const paradas = await cargarParadas([fila.idPaquete])
   const servicios = await cargarServicios([fila.idPaquete])
+  const proveedores = await cargarProveedoresDePaquetes([fila.idPaquete])
 
   return aPaqueteAdmin(
     fila,
@@ -95,5 +97,6 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
     fila.idLugarOrigen ? (lugares.get(fila.idLugarOrigen) ?? null) : null,
     paradas.get(fila.idPaquete) ?? [],
     servicios.get(fila.idPaquete) ?? [],
+    proveedores.get(fila.idPaquete) ?? [],
   )
 })

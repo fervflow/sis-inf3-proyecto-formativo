@@ -81,6 +81,10 @@ Base de datos (Drizzle ORM → PostgreSQL)
 | `GET /api/admin/servicios` | — | Catálogo de servicios que un paquete puede incluir |
 | `GET/POST /api/admin/lugares` | — | Catálogo de lugares y alta desde la búsqueda |
 | `GET /api/geocodificar` | — | Proxy de Photon para autocompletar lugares |
+| `GET/POST /api/admin/proveedores` | — | Catálogo de proveedores, solo `ADMIN` |
+| `POST /api/admin/proveedores/:id/paquetes` | — | Vínculo de un proveedor con un paquete |
+| `GET/POST /api/cotizaciones` | — | Cotizaciones de `ADMIN` y `PERSONAL` |
+| `PATCH /api/cotizaciones/:id` | — | Edición de una cotización abierta |
 | `GET /api/admin/salidas` | — | Salidas programadas, solo `ADMIN` |
 | `GET /api/auth/*` | — | Better Auth |
 

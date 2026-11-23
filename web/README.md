@@ -121,10 +121,12 @@ web/
 - [x] Paquetes turísticos y fichas de clientes.
 - [x] Reglas de paquetes y salidas, con lugares, servicios incluidos e itinerario.
 - [x] Salidas programadas: alta, edición, estados y control de duplicados.
+- [x] Proveedores y vínculos con los paquetes.
+- [x] Cotizaciones desde una salida, con número automático y condiciones.
+- [x] Semilla de datos de prueba (clientes, proveedores y una cotización).
 - [ ] Solicitud pública de acceso y bandeja de aprobación (post-MVP).
 - [ ] Correo: verificación y avisos de HU-16 (post-MVP).
 - [ ] Páginas y rutas de API del resto de las historias.
-- [ ] Semilla de datos de prueba.
 
-Las 17 historias y sus 39 tareas son el plan de desarrollo; el tablero
+Las 17 historias y sus 40 tareas son el plan de desarrollo; el tablero
 lleva el estado.

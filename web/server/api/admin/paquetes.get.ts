@@ -8,6 +8,7 @@ import {
   cargarParadas,
   cargarServicios,
 } from '../../utils/paquetes'
+import { cargarProveedoresDePaquetes } from '../../utils/proveedores'
 
 /**
  * Catálogo completo de paquetes, para el administrador.
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event): Promise<RespuestaPaquetes> => {
   const lugares = await cargarLugares(idsLugares)
   const paradas = await cargarParadas(ids)
   const servicios = await cargarServicios(ids)
+  const proveedores = await cargarProveedoresDePaquetes(ids)
 
   return {
     paquetes: filas.map((fila) =>
@@ -41,6 +43,7 @@ export default defineEventHandler(async (event): Promise<RespuestaPaquetes> => {
         fila.idLugarOrigen ? (lugares.get(fila.idLugarOrigen) ?? null) : null,
         paradas.get(fila.idPaquete) ?? [],
         servicios.get(fila.idPaquete) ?? [],
+        proveedores.get(fila.idPaquete) ?? [],
       ),
     ),
   }

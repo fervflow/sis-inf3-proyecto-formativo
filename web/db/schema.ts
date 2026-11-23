@@ -349,6 +349,7 @@ export const cotizacion = turismo.table(
     estado: varchar('estado', { length: 15 }).notNull().default('borrador'),
     fechaEmision: date('fecha_emision').notNull().defaultNow(),
     fechaValidez: date('fecha_validez').notNull(),
+    condiciones: text('condiciones'),
     observaciones: text('observaciones'),
     fechaCreacion: timestamp('fecha_creacion', { withTimezone: true }).notNull().defaultNow(),
   },

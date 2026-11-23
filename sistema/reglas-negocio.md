@@ -4,9 +4,10 @@ Catálogo canónico de las reglas de negocio del sistema web de gestión de
 paquetes turísticos y reservas de Vizcacha Tours. **No forma parte de
 `main.tex`**: es documentación de trabajo.
 
-- **Alcance de esta versión:** catálogo, paquetes turísticos y salidas.
-- **Fuera de alcance por ahora:** reservas, pagos, cotizaciones, pasajeros,
-  proveedores y avisos. Cada módulo tendrá su propia ampliación del catálogo.
+- **Alcance de esta versión:** catálogo, paquetes turísticos, salidas,
+  proveedores y cotizaciones.
+- **Fuera de alcance por ahora:** reservas, pagos, pasajeros y avisos. Cada
+  módulo tendrá su propia ampliación del catálogo.
 - **Fuente del esquema físico:** `bd/esquema.sql` y `bd/diccionario-datos.md`.
 - **Implementación web:** `web/db/schema.ts`, `web/server/` y `web/app/`.
 
@@ -27,6 +28,8 @@ qué**, **dónde** se aplica y **cómo** se comprueba.
 | **Usuario** | Cuenta de acceso. No es una persona del negocio. | Entidad `usuario`. |
 | **Servicio** | Prestación que cubre el precio del paquete: desayuno, transporte, guía, etc. | Catálogo `servicio` y vínculo `paquete_servicio`. |
 | **Lugar** | Ubicación reutilizable del catálogo: destino principal, origen o parada. | Entidad `lugar`, `paquete.id_lugar_destino`, `paquete.id_lugar_origen` y `paquete_parada`. |
+| **Proveedor** | Empresa o persona que presta transporte, hospedaje, guía, alimentación u otro servicio. | Entidad `proveedor` y vínculo `paquete_proveedor`. |
+| **Cotización** | Propuesta económica para un cliente y una salida, con plazo y condiciones. No ocupa cupo. | Entidad `cotizacion` y API `/api/cotizaciones`. |
 
 El rol de acceso del cliente se llama `CLIENTE`. El código `TURISTA` queda
 obsoleto y no debe volver a introducirse.
@@ -207,6 +210,8 @@ programada ──▶ confirmada ──▶ realizada
 | HU-03 · Consulta de disponibilidad | RN-SAL-17 a RN-SAL-19 |
 | HU-09 · Modificar fechas o capacidad | RN-SAL-09 a RN-SAL-16 |
 | HU-08 · Acceso por rol | RN-USU-01, RN-USU-02 |
+| HU-10 · Proveedores y vínculos | RN-PRV-01 a RN-PRV-07 |
+| HU-05 · Cotizaciones | RN-COT-01 a RN-COT-08 |
 
 ## 10. Reglas de usuarios y roles del alcance
 
@@ -215,7 +220,32 @@ programada ──▶ confirmada ──▶ realizada
 | RN-USU-01 | Los roles son `ADMIN`, `PERSONAL` y `CLIENTE`. El código `TURISTA` queda obsoleto. | Decisión del proyecto | `rol.codigo`, tipos y textos | Vigente |
 | RN-USU-02 | Un usuario `CLIENTE` debe tener una ficha de cliente; una ficha puede existir sin cuenta. | HU-15, HU-04 | Pendiente: módulo de cuentas de cliente | Propuesta |
 
-## 11. Reglas pendientes de otros módulos
+## 11. Proveedores
+
+| ID | Regla | Fuente | Aplicación | Estado |
+|---|---|---|---|---|
+| RN-PRV-01 | El nombre o razón social es obligatorio, tiene entre 3 y 150 caracteres y no se repite. | HU-10 | `ux_proveedor_nombre`, Zod y API | Vigente |
+| RN-PRV-02 | El tipo es uno de `transporte`, `hospedaje`, `guia`, `alimentacion` u `otro`. | HU-10 | `ck_proveedor_tipo` | Vigente |
+| RN-PRV-03 | NIT, teléfono, correo y dirección son opcionales y tienen longitud limitada. | HU-10 | Zod y tabla | Vigente |
+| RN-PRV-04 | El estado es `activo` o `inactivo`. Un proveedor con vínculos no se elimina: pasa a inactivo. | HU-10 | `ck_proveedor_estado` y API | Vigente |
+| RN-PRV-05 | Solo un proveedor `activo` se vincula a un paquete nuevo. | HU-10 | API de proveedores | Vigente |
+| RN-PRV-06 | Un paquete y un proveedor se vinculan una sola vez; el vínculo guarda el servicio y su costo, que no puede ser negativo. | HU-10 | PK (`id_paquete`, `id_proveedor`) y `ck_paquete_proveedor_costo` | Vigente |
+| RN-PRV-07 | Un proveedor puede atender varios paquetes y un paquete puede tener varios proveedores. | HU-10 | `paquete_proveedor` | Vigente |
+
+## 12. Cotizaciones
+
+| ID | Regla | Fuente | Aplicación | Estado |
+|---|---|---|---|---|
+| RN-COT-01 | La cotización se prepara con un cliente y una salida `programada` o `confirmada` de un paquete activo, con fecha desde hoy. | HU-05 | `validarReferencias` | Vigente |
+| RN-COT-02 | El número es único, se genera como `COT-AAAA-NNN` y no se edita. | HU-05 | `fn_generar_codigo_cotizacion` y `numero` único | Vigente |
+| RN-COT-03 | La cantidad de pasajeros es mayor que cero; el precio unitario es mayor que cero; el descuento no es negativo ni supera el subtotal. | HU-05 | Zod y restricciones de `cotizacion` | Vigente |
+| RN-COT-04 | La validez no es anterior a la emisión. La cotización vencida pasa a `vencida` al consultar la lista. | HU-05 | `ck_cotizacion_validez` y `fn_vencer_cotizaciones` | Vigente |
+| RN-COT-05 | Los estados son `borrador`, `enviada`, `aceptada`, `rechazada` y `vencida`. Una cotización terminal no se edita. | HU-05 | API de cotizaciones | Vigente |
+| RN-COT-06 | La cotización no descuenta cupo ni crea una reserva. | HU-05 | API de cotizaciones | Vigente |
+| RN-COT-07 | Las condiciones y las observaciones son textos opcionales. Las condiciones son los términos comerciales que se muestran al cliente. | HU-05 | `condiciones` y `observaciones` | Vigente |
+| RN-COT-08 | Una cotización aceptada podrá originar una reserva en HU-06; el vínculo se guarda en `reserva.id_cotizacion`. | HU-05, HU-06 | Pendiente para reservas | Propuesta |
+
+## 13. Reglas pendientes de otros módulos
 
 Se documentan aquí para que no se pierdan, pero no se implementan en esta
 iteración:
@@ -225,12 +255,12 @@ iteración:
   vencimientos.
 - **Pagos:** no superar el total; estado de la reserva; orden anticipo/saldo;
   `total_pagado` solo con validados; métodos `banca_movil` y `qr`.
-- **Cotizaciones:** vencimiento automático, condiciones, numeración y
-  coherencia con la reserva.
+- **Cotizaciones:** vínculo con la reserva (HU-06); el vencimiento, las
+  condiciones y la numeración ya están implementados.
 - **Pasajeros:** pasajero reutilizable entre reservas; conteo exacto al
   confirmar.
-- **Proveedores:** PK que permita varios servicios del mismo proveedor;
-  proveedor inactivo no se vincula.
+- **Proveedores:** permitir varios servicios del mismo proveedor en un
+  paquete; hoy el vínculo guarda un solo servicio y su costo.
 - **Avisos:** cambios de fecha o capacidad de una salida (HU-16).
 - **Cuentas de cliente:** alta, vínculo con la ficha y restricción a
   información propia. Mientras HU-15 no esté implementada, el panel de
@@ -238,7 +268,7 @@ iteración:
 - **Roles:** resolver `ADMIN`, `PERSONAL` y `CLIENTE` por `codigo` en lugar
   de depender de los identificadores fijos de la semilla.
 
-## 12. Gobierno del catálogo
+## 14. Gobierno del catálogo
 
 1. Una regla nueva se propone aquí con su ID y su fuente.
 2. Se decide si se implementa en la base, en la API, en la interfaz o en un
@@ -249,7 +279,7 @@ iteración:
 5. Se actualiza la historia de usuario y la trazabilidad.
 6. Se registra el trabajo aceptado en `docs/changelog/`.
 
-## 13. Decisiones abiertas
+## 15. Decisiones abiertas
 
 - ¿El catálogo de servicios y el de lugares se podrán editar desde la
   administración o seguirán siendo una semilla fija?

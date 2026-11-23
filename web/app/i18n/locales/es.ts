@@ -22,8 +22,10 @@ export const es = {
   'nav.inicio': 'Inicio',
   'nav.disponibilidad': 'Disponibilidad',
   'nav.clientes': 'Clientes',
+  'nav.cotizaciones': 'Cotizaciones',
   'nav.paquetes': 'Paquetes',
   'nav.salidas': 'Salidas',
+  'nav.proveedores': 'Proveedores',
   'nav.usuarios': 'Usuarios',
   'nav.gestion': 'Gestión',
   'nav.principal': 'Navegación principal',
@@ -187,7 +189,13 @@ export const es = {
   'paquetes.form.servicios': 'Servicios incluidos',
   'paquetes.form.serviciosDetalle': 'Detalles de los servicios',
   'paquetes.form.serviciosExcluidos': 'No incluye',
+  'paquetes.form.proveedores': 'Proveedores',
   'paquetes.form.estado': 'Estado',
+  'paquetes.proveedores.tipos.transporte': 'Transporte',
+  'paquetes.proveedores.tipos.hospedaje': 'Hospedaje',
+  'paquetes.proveedores.tipos.guia': 'Guía',
+  'paquetes.proveedores.tipos.alimentacion': 'Alimentación',
+  'paquetes.proveedores.tipos.otro': 'Otro',
   'paquetes.form.rangoFechas': 'Calcular con un rango de fechas',
   'paquetes.secciones.identidad': 'Identidad',
   'paquetes.secciones.ubicacion': 'Ubicación y recorrido',
@@ -207,6 +215,9 @@ export const es = {
     'Opcional: condiciones o matices de los servicios marcados.',
   'paquetes.ayudaServiciosExcluidos':
     'Opcional: lo que el precio no cubre.',
+  'paquetes.ayudaProveedores':
+    'Se vinculan y editan desde la página de proveedores.',
+  'paquetes.sinProveedores': 'Sin proveedores vinculados.',
   'paquetes.ayudaDuracion':
     'Días inclusivos. Puedes calcularlos con un rango de fechas.',
   'paquetes.ayudaDestino':
@@ -262,6 +273,116 @@ export const es = {
   'paquetes.errores.revisar': 'Revisa los campos marcados.',
   'paquetes.creado': 'Paquete creado: {codigo}.',
   'paquetes.actualizado': 'Paquete actualizado: {codigo}.',
+
+  'proveedores.titulo': 'Proveedores',
+  'proveedores.introduccion':
+    'Catálogo de proveedores y los paquetes que atienden.',
+  'proveedores.crear': 'Nuevo proveedor',
+  'proveedores.editar': 'Editar proveedor',
+  'proveedores.vacio': 'Todavía no hay proveedores.',
+  'proveedores.vacioDescripcion': 'Registra el primer proveedor de servicios.',
+  'proveedores.acciones.editar': 'Editar',
+  'proveedores.acciones.vincular': 'Vincular paquete',
+  'proveedores.acciones.quitar': 'Quitar vínculo',
+  'proveedores.estados.activo': 'Activo',
+  'proveedores.estados.inactivo': 'Inactivo',
+  'proveedores.tipos.transporte': 'Transporte',
+  'proveedores.tipos.hospedaje': 'Hospedaje',
+  'proveedores.tipos.guia': 'Guía',
+  'proveedores.tipos.alimentacion': 'Alimentación',
+  'proveedores.tipos.otro': 'Otro',
+  'proveedores.form.nombre': 'Nombre o razón social',
+  'proveedores.form.tipo': 'Tipo',
+  'proveedores.form.nit': 'NIT',
+  'proveedores.form.telefono': 'Teléfono',
+  'proveedores.form.correo': 'Correo',
+  'proveedores.form.direccion': 'Dirección',
+  'proveedores.form.estado': 'Estado',
+  'proveedores.ayudaNombre':
+    'Entre 3 y 150 caracteres. El nombre no puede repetirse.',
+  'proveedores.paquetes': 'Paquetes que atiende',
+  'proveedores.sinPaquetes': 'Sin paquetes vinculados.',
+  'proveedores.sinContacto': 'Sin datos de contacto.',
+  'proveedores.vinculo.titulo': 'Vincular paquete',
+  'proveedores.vinculo.paquete': 'Paquete',
+  'proveedores.vinculo.elegirPaquete': 'Elige un paquete',
+  'proveedores.vinculo.servicio': 'Servicio',
+  'proveedores.vinculo.costo': 'Costo',
+  'proveedores.vinculo.ayudaServicio':
+    'Describe el servicio que presta el proveedor en ese paquete.',
+  'proveedores.vinculo.ayudaCosto':
+    'Costo del servicio para el paquete. Puede ser cero.',
+  'proveedores.vinculo.guardar': 'Guardar vínculo',
+  'proveedores.creado': 'Proveedor creado: {nombre}.',
+  'proveedores.actualizado': 'Proveedor actualizado: {nombre}.',
+  'proveedores.vinculado': 'Paquete vinculado al proveedor {nombre}.',
+  'proveedores.desvinculado': 'Vínculo quitado al proveedor {nombre}.',
+  'proveedores.errores.nombre':
+    'El nombre debe tener al menos 3 caracteres.',
+  'proveedores.errores.vinculo':
+    'Elige el paquete, escribe el servicio y completa el costo.',
+
+  'cotizaciones.titulo': 'Cotizaciones',
+  'cotizaciones.introduccion':
+    'Propuestas económicas para una salida. La cotización no descuenta cupo.',
+  'cotizaciones.crear': 'Nueva cotización',
+  'cotizaciones.editar': 'Editar cotización',
+  'cotizaciones.ver': 'Ver cotización',
+  'cotizaciones.vacio': 'Todavía no hay cotizaciones.',
+  'cotizaciones.vacioDescripcion':
+    'Prepara la primera propuesta para una salida programada.',
+  'cotizaciones.columnas.numero': 'Número',
+  'cotizaciones.columnas.cliente': 'Cliente',
+  'cotizaciones.columnas.paquete': 'Paquete',
+  'cotizaciones.columnas.salida': 'Salida',
+  'cotizaciones.columnas.pasajeros': 'Pasajeros',
+  'cotizaciones.columnas.total': 'Total',
+  'cotizaciones.columnas.estado': 'Estado',
+  'cotizaciones.columnas.validez': 'Validez',
+  'cotizaciones.columnas.acciones': 'Acciones',
+  'cotizaciones.estados.borrador': 'Borrador',
+  'cotizaciones.estados.enviada': 'Enviada',
+  'cotizaciones.estados.aceptada': 'Aceptada',
+  'cotizaciones.estados.rechazada': 'Rechazada',
+  'cotizaciones.estados.vencida': 'Vencida',
+  'cotizaciones.acciones.editar': 'Editar',
+  'cotizaciones.acciones.ver': 'Ver',
+  'cotizaciones.tarjeta.creadaEl': 'Creada el {fecha}',
+  'cotizaciones.tarjeta.precio': 'Precio',
+  'cotizaciones.form.numero': 'Número',
+  'cotizaciones.ayudaNumero': 'Se genera al guardar',
+  'cotizaciones.form.cliente': 'Cliente',
+  'cotizaciones.form.salida': 'Salida',
+  'cotizaciones.form.cantidad': 'Cantidad de pasajeros',
+  'cotizaciones.form.precio': 'Precio unitario',
+  'cotizaciones.form.descuento': 'Descuento',
+  'cotizaciones.form.validez': 'Válida hasta',
+  'cotizaciones.form.condiciones': 'Condiciones',
+  'cotizaciones.form.observaciones': 'Observaciones',
+  'cotizaciones.form.estado': 'Estado',
+  'cotizaciones.form.disponibles': 'disponibles',
+  'cotizaciones.ayudaPrecio':
+    'Se completa con el precio de la salida; puedes ajustarlo.',
+  'cotizaciones.ayudaDescuento': 'Opcional. No puede superar el subtotal.',
+  'cotizaciones.ayudaValidez':
+    'La cotización pasa a vencida cuando llega esta fecha.',
+  'cotizaciones.ayudaCondiciones':
+    'Qué incluye, qué no incluye y las condiciones comerciales.',
+  'cotizaciones.resumen.subtotal': 'Subtotal',
+  'cotizaciones.resumen.descuento': 'Descuento',
+  'cotizaciones.resumen.total': 'Total',
+  'cotizaciones.sinClientes':
+    'No hay clientes. Registra uno en Clientes para cotizar.',
+  'cotizaciones.sinSalidas':
+    'No hay salidas futuras. Programa una salida para cotizar.',
+  'cotizaciones.creado': 'Cotización creada: {numero}.',
+  'cotizaciones.actualizado': 'Cotización actualizada: {numero}.',
+  'cotizaciones.errores.revisar':
+    'Revisa el cliente, la salida, la cantidad, el precio y la validez.',
+  'cotizaciones.errores.descuento':
+    'El descuento no puede superar el subtotal.',
+  'cotizaciones.errores.validez':
+    'La fecha de validez no puede ser anterior a hoy.',
 
   'salidas.titulo': 'Salidas programadas',
   'salidas.introduccion':
@@ -385,6 +506,18 @@ export const es = {
     'El código solo admite letras, números y guion (entre 3 y 20).',
   'errores.paqueteIncompleto':
     'Para publicar el paquete completa destino, descripción, itinerario y servicios incluidos.',
+  'errores.proveedorDuplicado': 'Ya existe un proveedor con ese nombre.',
+  'errores.proveedorInexistente': 'El proveedor no existe.',
+  'errores.proveedorInactivo':
+    'Reactiva el proveedor antes de vincularlo a un paquete.',
+  'errores.cotizacionInexistente': 'La cotización no existe.',
+  'errores.cotizacionNoEditable': 'La cotización ya está cerrada.',
+  'errores.salidaNoDisponible':
+    'La salida no está disponible para cotizar.',
+  'errores.descuentoInvalido':
+    'El descuento no puede superar el subtotal.',
+  'errores.validezInvalida':
+    'La fecha de validez no puede ser anterior a hoy.',
   'errores.paqueteInactivo':
     'Solo un paquete activo admite salidas nuevas.',
   'errores.actividadInvalida': 'La actividad elegida no está disponible.',
