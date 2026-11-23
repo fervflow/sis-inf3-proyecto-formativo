@@ -349,7 +349,9 @@ export const es = {
   'proveedores.tipos.alimentacion': 'Alimentación',
   'proveedores.tipos.otro': 'Otro',
   'proveedores.form.nombre': 'Nombre o razón social',
-  'proveedores.form.tipo': 'Tipo',
+  'proveedores.form.tipos': 'Tipos de servicio',
+  'proveedores.ayudaTipos':
+    'Marca todos los tipos que el proveedor presta. Al vincularlo a un paquete se elige uno de estos.',
   'proveedores.form.nit': 'NIT',
   'proveedores.form.telefono': 'Teléfono',
   'proveedores.form.correo': 'Correo',
@@ -364,9 +366,13 @@ export const es = {
   'proveedores.vinculo.paquete': 'Paquete',
   'proveedores.vinculo.elegirPaquete': 'Elige un paquete',
   'proveedores.vinculo.servicio': 'Servicio',
+  'proveedores.vinculo.elegirServicio': 'Elige el tipo de servicio',
+  'proveedores.vinculo.detalle': 'Detalle (opcional)',
   'proveedores.vinculo.costo': 'Costo',
   'proveedores.vinculo.ayudaServicio':
-    'Describe el servicio que presta el proveedor en ese paquete.',
+    'Uno de los tipos que el proveedor declaró prestar.',
+  'proveedores.vinculo.ayudaDetalle':
+    'Describe el servicio concreto, por ejemplo «Bus Potosí–Uyuni».',
   'proveedores.vinculo.ayudaCosto':
     'Costo del servicio para el paquete. Puede ser cero.',
   'proveedores.vinculo.guardar': 'Guardar vínculo',
@@ -376,8 +382,9 @@ export const es = {
   'proveedores.desvinculado': 'Vínculo quitado al proveedor {nombre}.',
   'proveedores.errores.nombre':
     'El nombre debe tener al menos 3 caracteres.',
+  'proveedores.errores.tipos': 'Marca al menos un tipo de servicio.',
   'proveedores.errores.vinculo':
-    'Elige el paquete, escribe el servicio y completa el costo.',
+    'Elige el paquete, el servicio y completa el costo.',
 
   'cotizaciones.titulo': 'Cotizaciones',
   'cotizaciones.introduccion':
@@ -603,6 +610,12 @@ export const es = {
     'La fecha de retorno no puede ser anterior a la de salida.',
   'errores.precioInvalido': 'El precio debe ser mayor que cero.',
   'errores.motivoRequerido': 'Escribe el motivo del cambio.',
+  'errores.tiposFaltantes': 'Marca al menos un tipo de servicio.',
+  'errores.tiposRepetidos': 'Un tipo de servicio no puede repetirse.',
+  'errores.tipoEnUso':
+    'Un paquete usa ese tipo; primero quita o cambia ese vínculo.',
+  'errores.servicioNoDeclarado':
+    'Ese tipo no está entre los que el proveedor declaró prestar.',
   'errores.clienteDuplicado': 'Ya existe un cliente con ese documento.',
   'errores.clienteInexistente': 'El cliente no existe.',
   'errores.clienteInactivo': 'El cliente está inactivo; actívalo para reservar.',

@@ -336,7 +336,9 @@ export const en: Mensajes = {
   'proveedores.tipos.alimentacion': 'Food',
   'proveedores.tipos.otro': 'Other',
   'proveedores.form.nombre': 'Name or legal name',
-  'proveedores.form.tipo': 'Type',
+  'proveedores.form.tipos': 'Service types',
+  'proveedores.ayudaTipos':
+    'Check every type the provider offers. When linking it to a package, one of these is chosen.',
   'proveedores.form.nit': 'Tax ID',
   'proveedores.form.telefono': 'Phone',
   'proveedores.form.correo': 'Email',
@@ -351,9 +353,13 @@ export const en: Mensajes = {
   'proveedores.vinculo.paquete': 'Package',
   'proveedores.vinculo.elegirPaquete': 'Choose a package',
   'proveedores.vinculo.servicio': 'Service',
+  'proveedores.vinculo.elegirServicio': 'Choose the service type',
+  'proveedores.vinculo.detalle': 'Detail (optional)',
   'proveedores.vinculo.costo': 'Cost',
   'proveedores.vinculo.ayudaServicio':
-    'Describe the service the provider delivers for that package.',
+    'One of the types the provider declared.',
+  'proveedores.vinculo.ayudaDetalle':
+    'Describe the concrete service, e.g. "Potosí–Uyuni bus".',
   'proveedores.vinculo.ayudaCosto':
     'Cost of the service for the package. It can be zero.',
   'proveedores.vinculo.guardar': 'Save link',
@@ -362,8 +368,9 @@ export const en: Mensajes = {
   'proveedores.vinculado': 'Package linked to provider {nombre}.',
   'proveedores.desvinculado': 'Link removed from provider {nombre}.',
   'proveedores.errores.nombre': 'The name must have at least 3 characters.',
+  'proveedores.errores.tipos': 'Check at least one service type.',
   'proveedores.errores.vinculo':
-    'Choose the package, write the service and complete the cost.',
+    'Choose the package, the service and complete the cost.',
 
   'cotizaciones.titulo': 'Quotes',
   'cotizaciones.introduccion':
@@ -590,6 +597,12 @@ export const en: Mensajes = {
     'The return date cannot be before the departure date.',
   'errores.precioInvalido': 'The price must be greater than zero.',
   'errores.motivoRequerido': 'Enter the reason for the change.',
+  'errores.tiposFaltantes': 'Check at least one service type.',
+  'errores.tiposRepetidos': 'A service type cannot be repeated.',
+  'errores.tipoEnUso':
+    'A package uses that type; remove or change that link first.',
+  'errores.servicioNoDeclarado':
+    'That type is not among the ones the provider declared.',
   'errores.clienteDuplicado': 'A client with that document already exists.',
   'errores.clienteInexistente': 'The client does not exist.',
   'errores.clienteInactivo': 'The client is inactive; activate them to book.',

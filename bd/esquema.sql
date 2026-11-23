@@ -210,14 +210,22 @@ CREATE UNIQUE INDEX ux_lugar_osm ON lugar (osm_tipo, osm_id) WHERE osm_id IS NOT
 CREATE TABLE proveedor (
     id_proveedor        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre              VARCHAR(150) NOT NULL,
-    tipo                VARCHAR(20) NOT NULL,
     nit                 VARCHAR(30),
     telefono            VARCHAR(30),
     correo              VARCHAR(150),
     direccion           VARCHAR(200),
     estado              VARCHAR(15) NOT NULL DEFAULT 'activo',
-    CONSTRAINT ck_proveedor_tipo CHECK (tipo IN ('transporte', 'hospedaje', 'guia', 'alimentacion', 'otro')),
     CONSTRAINT ck_proveedor_estado CHECK (estado IN ('activo', 'inactivo'))
+);
+
+-- Tipos de servicio que declara un proveedor (RN-PRV-02): uno o varios.
+-- El vínculo con el paquete solo puede usar uno de los declarados, por lo
+-- que la FK compuesta de `paquete_proveedor` apunta aquí.
+CREATE TABLE proveedor_tipo (
+    id_proveedor        BIGINT NOT NULL REFERENCES proveedor(id_proveedor) ON DELETE CASCADE,
+    tipo                VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id_proveedor, tipo),
+    CONSTRAINT ck_proveedor_tipo CHECK (tipo IN ('transporte', 'hospedaje', 'guia', 'alimentacion', 'otro'))
 );
 
 -- El nombre comercial identifica al proveedor en el catálogo.
@@ -287,13 +295,18 @@ CREATE TABLE paquete_servicio (
     PRIMARY KEY (id_paquete, id_servicio)
 );
 
+-- El vínculo guarda el tipo de servicio declarado del proveedor y su
+-- costo; el detalle describe el servicio concreto y es opcional.
 CREATE TABLE paquete_proveedor (
     id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE CASCADE,
     id_proveedor        BIGINT NOT NULL REFERENCES proveedor(id_proveedor) ON DELETE RESTRICT,
-    servicio            VARCHAR(150) NOT NULL,
+    servicio            VARCHAR(20) NOT NULL,
+    detalle             VARCHAR(200),
     costo               NUMERIC(12, 2) NOT NULL DEFAULT 0,
     PRIMARY KEY (id_paquete, id_proveedor),
-    CONSTRAINT ck_paquete_proveedor_costo CHECK (costo >= 0)
+    CONSTRAINT ck_paquete_proveedor_costo CHECK (costo >= 0),
+    CONSTRAINT fk_paquete_proveedor_servicio FOREIGN KEY (id_proveedor, servicio)
+        REFERENCES proveedor_tipo (id_proveedor, tipo)
 );
 
 -- ---------------------------------------------------------------------
@@ -1533,24 +1546,35 @@ INSERT INTO cliente (
     ('CI', '87654321', 'Luis', 'Mamani', 'luis.mamani@example.com', '+591 70000012')
 ON CONFLICT (tipo_documento, numero_documento) DO NOTHING;
 
-INSERT INTO proveedor (nombre, tipo, nit, telefono, correo, direccion) VALUES
-    ('Transporte Andes S.R.L.', 'transporte', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
-    ('Hostal Potosí',           'hospedaje',  NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
-    ('Guías del Salar',         'guia',       NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
+INSERT INTO proveedor (nombre, nit, telefono, correo, direccion) VALUES
+    ('Transporte Andes S.R.L.', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
+    ('Hostal Potosí',           NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
+    ('Guías del Salar',         NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
 ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
 
--- Vínculos de ejemplo. Si el paquete no existe, no se inserta nada.
-INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, costo)
-SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.costo
+INSERT INTO proveedor_tipo (id_proveedor, tipo)
+SELECT id_proveedor, v.tipo
+FROM proveedor pr
+JOIN (VALUES
+    ('Transporte Andes S.R.L.', 'transporte'),
+    ('Hostal Potosí',           'hospedaje'),
+    ('Guías del Salar',         'guia')
+) AS v(nombre, tipo) ON lower(btrim(pr.nombre)) = lower(btrim(v.nombre))
+ON CONFLICT DO NOTHING;
+
+-- Vínculos de ejemplo. Si el paquete no existe, no se inserta nada. El
+-- servicio es el tipo declarado del proveedor; el detalle lo describe.
+INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, detalle, costo)
+SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.detalle, v.costo
 FROM (
     VALUES
-        ('POT-001',      'Transporte Andes S.R.L.', 'Traslado ida y vuelta',      140.00),
-        ('POT-001',      'Hostal Potosí',           'Alojamiento 4 noches',       300.00),
-        ('POT-001',      'Guías del Salar',         'Guía local',                 100.00),
-        ('SAL-2026-002', 'Transporte Andes S.R.L.', 'Bus Potosí–Uyuni',           200.00),
-        ('SAL-2026-002', 'Hostal Potosí',           'Alojamiento 3 noches',       250.00),
-        ('SUC-2026-001', 'Transporte Andes S.R.L.', 'Traslado Potosí–Sucre',      120.00)
-) AS v(codigo, proveedor, servicio, costo)
+        ('POT-001',      'Transporte Andes S.R.L.', 'transporte', 'Traslado ida y vuelta',  140.00),
+        ('POT-001',      'Hostal Potosí',           'hospedaje',  'Alojamiento 4 noches',   300.00),
+        ('POT-001',      'Guías del Salar',         'guia',       'Guía local',             100.00),
+        ('SAL-2026-002', 'Transporte Andes S.R.L.', 'transporte', 'Bus Potosí–Uyuni',       200.00),
+        ('SAL-2026-002', 'Hostal Potosí',           'hospedaje',  'Alojamiento 3 noches',   250.00),
+        ('SUC-2026-001', 'Transporte Andes S.R.L.', 'transporte', 'Traslado Potosí–Sucre',  120.00)
+) AS v(codigo, proveedor, servicio, detalle, costo)
 JOIN paquete p ON p.codigo = v.codigo
 JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.proveedor))
 ON CONFLICT (id_paquete, id_proveedor) DO NOTHING;

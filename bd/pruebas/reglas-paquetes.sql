@@ -313,4 +313,64 @@ BEGIN
 END;
 $$;
 
+-- 12. Un proveedor declara sus tipos y el vínculo solo usa uno de ellos.
+INSERT INTO turismo.proveedor (nombre) VALUES ('PRB Transportes');
+INSERT INTO turismo.proveedor_tipo (id_proveedor, tipo)
+SELECT id_proveedor, 'transporte'
+FROM turismo.proveedor WHERE nombre = 'PRB Transportes';
+
+INSERT INTO turismo.paquete (codigo, nombre, duracion_dias, precio_base, estado)
+VALUES ('PRB-PP', 'Paquete de proveedores', 1, 100, 'borrador');
+
+-- 12a. Vínculo con un tipo declarado: se guarda con su detalle.
+DO $$
+BEGIN
+    INSERT INTO turismo.paquete_proveedor (id_paquete, id_proveedor, servicio, detalle, costo)
+    SELECT p.id_paquete, pr.id_proveedor, 'transporte', 'Bus de prueba', 50
+    FROM turismo.paquete p, turismo.proveedor pr
+    WHERE p.codigo = 'PRB-PP' AND pr.nombre = 'PRB Transportes';
+
+    RAISE NOTICE 'OK: vínculo con un tipo declarado se guarda';
+END;
+$$;
+
+-- 12b. Vínculo con un tipo que el proveedor no declaró: la FK compuesta
+--      lo rechaza.
+INSERT INTO turismo.proveedor (nombre) VALUES ('PRB Hospedajes');
+INSERT INTO turismo.proveedor_tipo (id_proveedor, tipo)
+SELECT id_proveedor, 'hospedaje'
+FROM turismo.proveedor WHERE nombre = 'PRB Hospedajes';
+
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO turismo.paquete_proveedor (id_paquete, id_proveedor, servicio, costo)
+        SELECT p.id_paquete, pr.id_proveedor, 'transporte', 10
+        FROM turismo.paquete p, turismo.proveedor pr
+        WHERE p.codigo = 'PRB-PP' AND pr.nombre = 'PRB Hospedajes';
+        RAISE EXCEPTION 'FALLO: se vinculó un servicio no declarado';
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            RAISE NOTICE 'OK: vínculo con un servicio no declarado rechazado';
+    END;
+END;
+$$;
+
+-- 12c. Un proveedor sin tipos declarados no puede vincularse a nada.
+INSERT INTO turismo.proveedor (nombre) VALUES ('PRB Sin Tipos');
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO turismo.paquete_proveedor (id_paquete, id_proveedor, servicio, costo)
+        SELECT p.id_paquete, pr.id_proveedor, 'transporte', 10
+        FROM turismo.paquete p, turismo.proveedor pr
+        WHERE p.codigo = 'PRB-PP' AND pr.nombre = 'PRB Sin Tipos';
+        RAISE EXCEPTION 'FALLO: se vinculó un proveedor sin tipos declarados';
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            RAISE NOTICE 'OK: proveedor sin tipos declarados no puede vincularse';
+    END;
+END;
+$$;
+
 ROLLBACK;

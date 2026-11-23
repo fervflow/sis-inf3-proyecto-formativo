@@ -156,8 +156,10 @@ export interface ServicioResumen {
 export interface ProveedorPaqueteResumen {
   idProveedor: number
   nombre: string
+  /** Tipo de servicio declarado que presta en el paquete (RN-PRV-06). */
   tipo: TipoProveedor
-  servicio: string
+  /** Descripción opcional del servicio concreto. */
+  detalle: string | null
   costo: string
 }
 
@@ -166,7 +168,10 @@ export interface ProveedorPaquete {
   idPaquete: number
   codigoPaquete: string
   paquete: string
-  servicio: string
+  /** Tipo de servicio declarado por el proveedor (RN-PRV-06). */
+  servicio: TipoProveedor
+  /** Descripción opcional del servicio concreto. */
+  detalle: string | null
   costo: string
 }
 
@@ -174,7 +179,8 @@ export interface ProveedorPaquete {
 export interface ProveedorAdmin {
   idProveedor: number
   nombre: string
-  tipo: TipoProveedor
+  /** Tipos de servicio que declara prestar (RN-PRV-02). */
+  tipos: TipoProveedor[]
   nit: string | null
   telefono: string | null
   correo: string | null

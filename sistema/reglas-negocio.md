@@ -227,11 +227,11 @@ programada ──▶ confirmada ──▶ realizada
 | ID | Regla | Fuente | Aplicación | Estado |
 |---|---|---|---|---|
 | RN-PRV-01 | El nombre o razón social es obligatorio, tiene entre 3 y 150 caracteres y no se repite. | HU-10 | `ux_proveedor_nombre`, Zod y API | Vigente |
-| RN-PRV-02 | El tipo es uno de `transporte`, `hospedaje`, `guia`, `alimentacion` u `otro`. | HU-10 | `ck_proveedor_tipo` | Vigente |
+| RN-PRV-02 | El tipo es uno de `transporte`, `hospedaje`, `guia`, `alimentacion` u `otro`, y un proveedor declara uno o varios de ellos sin repetir. | HU-10 | `proveedor_tipo`, Zod e interfaz | Vigente |
 | RN-PRV-03 | NIT, teléfono, correo y dirección son opcionales y tienen longitud limitada. | HU-10 | Zod y tabla | Vigente |
 | RN-PRV-04 | El estado es `activo` o `inactivo`. Un proveedor con vínculos no se elimina: pasa a inactivo. | HU-10 | `ck_proveedor_estado` y API | Vigente |
 | RN-PRV-05 | Solo un proveedor `activo` se vincula a un paquete nuevo. | HU-10 | API de proveedores | Vigente |
-| RN-PRV-06 | Un paquete y un proveedor se vinculan una sola vez; el vínculo guarda el servicio y su costo, que no puede ser negativo. | HU-10 | PK (`id_paquete`, `id_proveedor`) y `ck_paquete_proveedor_costo` | Vigente |
+| RN-PRV-06 | Un paquete y un proveedor se vinculan una sola vez; el vínculo guarda uno de los tipos declarados del proveedor, una descripción opcional (`detalle`) y su costo, que no puede ser negativo. Un tipo declarado que está en uso no se retira de la ficha. | HU-10 | PK (`id_paquete`, `id_proveedor`), FK compuesta a `proveedor_tipo`, `ck_paquete_proveedor_costo` y API | Vigente |
 | RN-PRV-07 | Un proveedor puede atender varios paquetes y un paquete puede tener varios proveedores. | HU-10 | `paquete_proveedor` | Vigente |
 
 ## 12. Cotizaciones
@@ -299,8 +299,8 @@ iteración:
   `total_pagado` solo con validados; métodos `banca_movil` y `qr`.
 - **Pasajeros:** pasajero reutilizable entre reservas; conteo exacto al
   confirmar; el registro debe coincidir con la cantidad declarada.
-- **Proveedores:** permitir varios servicios del mismo proveedor en un
-  paquete; hoy el vínculo guarda un solo servicio y su costo.
+- **Proveedores:** permitir varios tipos del mismo proveedor en un mismo
+  paquete; hoy el vínculo guarda un solo tipo y su costo.
 - **Avisos:** cambios de fecha o capacidad de una salida (HU-16).
 - **Cuentas de cliente:** alta, vínculo con la ficha y restricción a
   información propia (HU-15). Mientras HU-15 no esté implementada, la

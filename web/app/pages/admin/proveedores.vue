@@ -74,14 +74,32 @@
               />
             </UFormField>
 
-            <UFormField :label="t('proveedores.form.tipo')" name="tipo">
+            <UFormField :label="t('proveedores.form.estado')" name="estado">
               <USelect
-                v-model="formulario.tipo"
-                :items="tipos"
+                v-model="formulario.estado"
+                :items="estados"
                 class="w-full"
               />
             </UFormField>
           </div>
+
+          <UFormField
+            :label="t('proveedores.form.tipos')"
+            name="tipos"
+            :help="t('proveedores.ayudaTipos')"
+            :error="errorTipos ?? undefined"
+            required
+          >
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <UCheckbox
+                v-for="tipo in tipos"
+                :key="tipo.value"
+                :model-value="formulario.tipos.includes(tipo.value)"
+                :label="tipo.label"
+                @update:model-value="(valor) => alternarTipo(tipo.value, valor === true)"
+              />
+            </div>
+          </UFormField>
 
           <div class="grid gap-4 sm:grid-cols-2">
             <UFormField :label="t('proveedores.form.nit')" name="nit">
@@ -114,14 +132,6 @@
             <UInput
               v-model="formulario.direccion"
               maxlength="200"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField :label="t('proveedores.form.estado')" name="estado">
-            <USelect
-              v-model="formulario.estado"
-              :items="estados"
               class="w-full"
             />
           </UFormField>
@@ -180,9 +190,22 @@
             :help="t('proveedores.vinculo.ayudaServicio')"
             required
           >
-            <UInput
+            <USelect
               v-model="vinculo.servicio"
-              maxlength="150"
+              :items="tiposDelProveedor"
+              :placeholder="t('proveedores.vinculo.elegirServicio')"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('proveedores.vinculo.detalle')"
+            name="detalle"
+            :help="t('proveedores.vinculo.ayudaDetalle')"
+          >
+            <UInput
+              v-model="vinculo.detalle"
+              maxlength="200"
               class="w-full"
             />
           </UFormField>
@@ -290,7 +313,7 @@ const editando = ref<ProveedorAdmin | null>(null)
 
 const formulario = reactive({
   nombre: '',
-  tipo: 'transporte' as TipoProveedor,
+  tipos: [] as TipoProveedor[],
   nit: '',
   telefono: '',
   correo: '',
@@ -298,19 +321,29 @@ const formulario = reactive({
   estado: 'activo' as EstadoProveedor,
 })
 
+const errorTipos = ref<string | null>(null)
+
 const tituloFormulario = computed(() =>
   editando.value ? t('proveedores.editar') : t('proveedores.crear'),
 )
 
+function alternarTipo(tipo: TipoProveedor, valor: boolean) {
+  errorTipos.value = null
+  formulario.tipos = valor
+    ? [...formulario.tipos, tipo]
+    : formulario.tipos.filter((actual) => actual !== tipo)
+}
+
 function abrirAlta() {
   editando.value = null
   formulario.nombre = ''
-  formulario.tipo = 'transporte'
+  formulario.tipos = []
   formulario.nit = ''
   formulario.telefono = ''
   formulario.correo = ''
   formulario.direccion = ''
   formulario.estado = 'activo'
+  errorTipos.value = null
   errorFormulario.value = null
   formularioAbierto.value = true
 }
@@ -318,12 +351,13 @@ function abrirAlta() {
 function abrirEdicion(proveedor: ProveedorAdmin) {
   editando.value = proveedor
   formulario.nombre = proveedor.nombre
-  formulario.tipo = proveedor.tipo
+  formulario.tipos = [...proveedor.tipos]
   formulario.nit = proveedor.nit ?? ''
   formulario.telefono = proveedor.telefono ?? ''
   formulario.correo = proveedor.correo ?? ''
   formulario.direccion = proveedor.direccion ?? ''
   formulario.estado = proveedor.estado
+  errorTipos.value = null
   errorFormulario.value = null
   formularioAbierto.value = true
 }
@@ -336,11 +370,16 @@ async function guardar() {
     return
   }
 
+  if (formulario.tipos.length === 0) {
+    errorTipos.value = t('proveedores.errores.tipos')
+    return
+  }
+
   guardando.value = true
 
   const cuerpo = {
     nombre: formulario.nombre,
-    tipo: formulario.tipo,
+    tipos: formulario.tipos,
     nit: formulario.nit,
     telefono: formulario.telefono,
     correo: formulario.correo,
@@ -381,7 +420,8 @@ const proveedorVinculo = ref<ProveedorAdmin | null>(null)
 
 const vinculo = reactive({
   idPaquete: undefined as number | undefined,
-  servicio: '',
+  servicio: undefined as TipoProveedor | undefined,
+  detalle: '',
   costo: null as number | null,
 })
 
@@ -390,6 +430,14 @@ const tituloVinculo = computed(
     `${t('proveedores.vinculo.titulo')} · ${
       proveedorVinculo.value?.nombre ?? ''
     }`,
+)
+
+/** Solo los tipos que el proveedor declaró (RN-PRV-06). */
+const tiposDelProveedor = computed<{ label: string; value: TipoProveedor }[]>(
+  () =>
+    tipos.value.filter((tipo) =>
+      proveedorVinculo.value?.tipos.includes(tipo.value),
+    ),
 )
 
 const paquetesDisponibles = computed<{ label: string; value: number }[]>(() =>
@@ -402,7 +450,8 @@ const paquetesDisponibles = computed<{ label: string; value: number }[]>(() =>
 function abrirVinculo(proveedor: ProveedorAdmin) {
   proveedorVinculo.value = proveedor
   vinculo.idPaquete = undefined
-  vinculo.servicio = ''
+  vinculo.servicio = undefined
+  vinculo.detalle = ''
   vinculo.costo = null
   errorVinculo.value = null
   vinculoAbierto.value = true
@@ -416,9 +465,11 @@ watch(
     )
     if (existente) {
       vinculo.servicio = existente.servicio
+      vinculo.detalle = existente.detalle ?? ''
       vinculo.costo = Number(existente.costo)
     } else if (idPaquete) {
-      vinculo.servicio = ''
+      vinculo.servicio = undefined
+      vinculo.detalle = ''
       vinculo.costo = null
     }
   },
@@ -430,7 +481,7 @@ async function guardarVinculo() {
   if (
     !proveedorVinculo.value ||
     !vinculo.idPaquete ||
-    vinculo.servicio.trim().length < 3 ||
+    !vinculo.servicio ||
     vinculo.costo === null
   ) {
     errorVinculo.value = t('proveedores.errores.vinculo')
@@ -447,6 +498,7 @@ async function guardarVinculo() {
         body: {
           idPaquete: vinculo.idPaquete,
           servicio: vinculo.servicio,
+          detalle: vinculo.detalle.trim() || undefined,
           costo: vinculo.costo,
         },
       },

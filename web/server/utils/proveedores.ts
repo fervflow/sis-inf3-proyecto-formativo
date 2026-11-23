@@ -1,9 +1,10 @@
 /**
  * Catálogo de proveedores y sus vínculos con los paquetes.
  *
- * Un proveedor puede atender varios paquetes y un paquete puede tener
- * varios proveedores. El vínculo no se repite y guarda el servicio y su
- * costo. El proveedor no se elimina: pasa a inactivo.
+ * Un proveedor declara uno o varios tipos de servicio (RN-PRV-02) y el
+ * vínculo con un paquete usa uno de los declarados, con un detalle
+ * opcional y su costo (RN-PRV-06). El proveedor no se elimina: pasa a
+ * inactivo.
  */
 import { asc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -15,10 +16,25 @@ import type {
 } from '#shared/types/api'
 import type { EstadoProveedor, TipoProveedor } from '#shared/types/domain'
 
+const tiposValidos = [
+  'transporte',
+  'hospedaje',
+  'guia',
+  'alimentacion',
+  'otro',
+] as const
+
 /** Cuerpo del alta y de la edición de un proveedor. */
 export const esquemaProveedor = z.object({
   nombre: z.string().trim().min(3).max(150),
-  tipo: z.enum(['transporte', 'hospedaje', 'guia', 'alimentacion', 'otro']),
+  // Uno o varios tipos declarados, sin repetir (RN-PRV-02).
+  tipos: z
+    .array(z.enum(tiposValidos))
+    .min(1, 'tipos_faltantes')
+    .max(tiposValidos.length)
+    .refine((tipos) => new Set(tipos).size === tipos.length, {
+      message: 'tipos_repetidos',
+    }),
   nit: z.string().trim().max(30).nullable().optional(),
   telefono: z.string().trim().max(30).nullable().optional(),
   correo: z.string().trim().max(150).nullable().optional(),
@@ -29,7 +45,9 @@ export const esquemaProveedor = z.object({
 /** Cuerpo del vínculo de un proveedor con un paquete. */
 export const esquemaVinculo = z.object({
   idPaquete: z.coerce.number().int().positive(),
-  servicio: z.string().trim().min(3).max(150),
+  // Uno de los tipos declarados del proveedor (RN-PRV-06).
+  servicio: z.enum(tiposValidos),
+  detalle: z.string().trim().max(200).nullable().optional(),
   costo: z.coerce.number().min(0).max(9_999_999.99),
 })
 
@@ -37,7 +55,6 @@ export const esquemaVinculo = z.object({
 interface FilaProveedor {
   idProveedor: number
   nombre: string
-  tipo: string
   nit: string | null
   telefono: string | null
   correo: string | null
@@ -52,18 +69,44 @@ interface FilaVinculo {
   codigoPaquete: string
   paquete: string
   servicio: string
+  detalle: string | null
   costo: string
+}
+
+/** Tipos declarados por cada proveedor de un conjunto. */
+async function cargarTipos(
+  idsProveedores: number[],
+): Promise<Map<number, TipoProveedor[]>> {
+  const mapa = new Map<number, TipoProveedor[]>()
+  if (idsProveedores.length === 0) return mapa
+
+  const filas = await useDb()
+    .select({
+      idProveedor: schema.proveedorTipo.idProveedor,
+      tipo: schema.proveedorTipo.tipo,
+    })
+    .from(schema.proveedorTipo)
+    .where(inArray(schema.proveedorTipo.idProveedor, idsProveedores))
+    .orderBy(asc(schema.proveedorTipo.tipo))
+
+  for (const fila of filas) {
+    const lista = mapa.get(fila.idProveedor) ?? []
+    lista.push(fila.tipo as TipoProveedor)
+    mapa.set(fila.idProveedor, lista)
+  }
+  return mapa
 }
 
 /** Convierte una fila en la forma pública. */
 function aProveedorAdmin(
   fila: FilaProveedor,
+  tipos: TipoProveedor[],
   paquetes: ProveedorPaquete[],
 ): ProveedorAdmin {
   return {
     idProveedor: fila.idProveedor,
     nombre: fila.nombre,
-    tipo: fila.tipo as TipoProveedor,
+    tipos,
     nit: fila.nit,
     telefono: fila.telefono,
     correo: fila.correo,
@@ -87,6 +130,7 @@ async function cargarVinculos(
       codigoPaquete: schema.paquete.codigo,
       paquete: schema.paquete.nombre,
       servicio: schema.paqueteProveedor.servicio,
+      detalle: schema.paqueteProveedor.detalle,
       costo: schema.paqueteProveedor.costo,
     })
     .from(schema.paqueteProveedor)
@@ -103,7 +147,8 @@ async function cargarVinculos(
       idPaquete: fila.idPaquete,
       codigoPaquete: fila.codigoPaquete,
       paquete: fila.paquete,
-      servicio: fila.servicio,
+      servicio: fila.servicio as TipoProveedor,
+      detalle: fila.detalle,
       costo: fila.costo,
     })
     mapa.set(fila.idProveedor, lista)
@@ -117,7 +162,6 @@ export async function listarProveedores(): Promise<ProveedorAdmin[]> {
     .select({
       idProveedor: schema.proveedor.idProveedor,
       nombre: schema.proveedor.nombre,
-      tipo: schema.proveedor.tipo,
       nit: schema.proveedor.nit,
       telefono: schema.proveedor.telefono,
       correo: schema.proveedor.correo,
@@ -130,9 +174,16 @@ export async function listarProveedores(): Promise<ProveedorAdmin[]> {
   const vinculos = await cargarVinculos(
     filas.map((fila) => fila.idProveedor),
   )
+  const tipos = await cargarTipos(
+    filas.map((fila) => fila.idProveedor),
+  )
 
   return filas.map((fila) =>
-    aProveedorAdmin(fila, vinculos.get(fila.idProveedor) ?? []),
+    aProveedorAdmin(
+      fila,
+      tipos.get(fila.idProveedor) ?? [],
+      vinculos.get(fila.idProveedor) ?? [],
+    ),
   )
 }
 
@@ -144,7 +195,6 @@ export async function obtenerProveedor(
     .select({
       idProveedor: schema.proveedor.idProveedor,
       nombre: schema.proveedor.nombre,
-      tipo: schema.proveedor.tipo,
       nit: schema.proveedor.nit,
       telefono: schema.proveedor.telefono,
       correo: schema.proveedor.correo,
@@ -157,7 +207,8 @@ export async function obtenerProveedor(
 
   if (!fila) return null
   const vinculos = await cargarVinculos([id])
-  return aProveedorAdmin(fila, vinculos.get(id) ?? [])
+  const tipos = await cargarTipos([id])
+  return aProveedorAdmin(fila, tipos.get(id) ?? [], vinculos.get(id) ?? [])
 }
 
 /** Comprueba que el nombre no esté usado por otro proveedor. */
@@ -190,11 +241,12 @@ export async function crearProveedor(
 ): Promise<ProveedorAdmin> {
   await validarNombreUnico(datos.nombre)
 
-  const [creado] = await useDb()
+  const db = useDb()
+
+  const [creado] = await db
     .insert(schema.proveedor)
     .values({
       nombre: datos.nombre,
-      tipo: datos.tipo,
       nit: datos.nit || null,
       telefono: datos.telefono || null,
       correo: datos.correo || null,
@@ -204,7 +256,6 @@ export async function crearProveedor(
     .returning({
       idProveedor: schema.proveedor.idProveedor,
       nombre: schema.proveedor.nombre,
-      tipo: schema.proveedor.tipo,
       nit: schema.proveedor.nit,
       telefono: schema.proveedor.telefono,
       correo: schema.proveedor.correo,
@@ -215,7 +266,26 @@ export async function crearProveedor(
   if (!creado) {
     throw createError({ statusCode: 500, statusMessage: 'alta_incompleta' })
   }
-  return aProveedorAdmin(creado, [])
+
+  try {
+    await db
+      .insert(schema.proveedorTipo)
+      .values(
+        datos.tipos.map((tipo) => ({
+          idProveedor: creado.idProveedor,
+          tipo,
+        })),
+      )
+  } catch (error) {
+    // Sin tipos declarados el proveedor no sirve: se deshace el alta para
+    // no dejar una fila a medias.
+    await db
+      .delete(schema.proveedor)
+      .where(eq(schema.proveedor.idProveedor, creado.idProveedor))
+    throw error
+  }
+
+  return aProveedorAdmin(creado, datos.tipos, [])
 }
 
 /** Edición de un proveedor. */
@@ -230,11 +300,29 @@ export async function actualizarProveedor(
 
   await validarNombreUnico(datos.nombre, id)
 
-  const [actualizado] = await useDb()
+  // Un tipo que está en uso por un vínculo no se puede retirar: primero
+  // se quita o se cambia el vínculo.
+  const retirados = actual.tipos.filter(
+    (tipo) => !datos.tipos.includes(tipo),
+  )
+  if (retirados.length > 0) {
+    const enUso = actual.paquetes
+      .filter((vinculo) => retirados.includes(vinculo.servicio))
+      .map((vinculo) => vinculo.codigoPaquete)
+    if (enUso.length > 0) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'tipo_en_uso',
+      })
+    }
+  }
+
+  const db = useDb()
+
+  const [actualizado] = await db
     .update(schema.proveedor)
     .set({
       nombre: datos.nombre,
-      tipo: datos.tipo,
       nit: datos.nit || null,
       telefono: datos.telefono || null,
       correo: datos.correo || null,
@@ -245,7 +333,6 @@ export async function actualizarProveedor(
     .returning({
       idProveedor: schema.proveedor.idProveedor,
       nombre: schema.proveedor.nombre,
-      tipo: schema.proveedor.tipo,
       nit: schema.proveedor.nit,
       telefono: schema.proveedor.telefono,
       correo: schema.proveedor.correo,
@@ -256,7 +343,16 @@ export async function actualizarProveedor(
   if (!actualizado) {
     throw createError({ statusCode: 404, statusMessage: 'proveedor_inexistente' })
   }
-  return aProveedorAdmin(actualizado, actual.paquetes)
+
+  // Los tipos se reemplazan por completo: es la lista declarada.
+  await db
+    .delete(schema.proveedorTipo)
+    .where(eq(schema.proveedorTipo.idProveedor, id))
+  await db
+    .insert(schema.proveedorTipo)
+    .values(datos.tipos.map((tipo) => ({ idProveedor: id, tipo })))
+
+  return aProveedorAdmin(actualizado, datos.tipos, actual.paquetes)
 }
 
 /** Vincula o actualiza el servicio de un proveedor en un paquete. */
@@ -270,6 +366,15 @@ export async function vincularPaquete(
   }
   if (proveedor.estado !== 'activo') {
     throw createError({ statusCode: 400, statusMessage: 'proveedor_inactivo' })
+  }
+
+  // Solo un tipo declarado puede usarse en el vínculo (RN-PRV-06); la FK
+  // compuesta lo exige en la base y aquí se avisa con un código claro.
+  if (!proveedor.tipos.includes(datos.servicio)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'servicio_no_declarado',
+    })
   }
 
   const [paquete] = await useDb()
@@ -288,6 +393,7 @@ export async function vincularPaquete(
       idPaquete: datos.idPaquete,
       idProveedor,
       servicio: datos.servicio,
+      detalle: datos.detalle || null,
       costo: datos.costo.toFixed(2),
     })
     .onConflictDoUpdate({
@@ -297,6 +403,7 @@ export async function vincularPaquete(
       ],
       set: {
         servicio: datos.servicio,
+        detalle: datos.detalle || null,
         costo: datos.costo.toFixed(2),
       },
     })
@@ -344,8 +451,8 @@ export async function cargarProveedoresDePaquetes(
       idPaquete: schema.paqueteProveedor.idPaquete,
       idProveedor: schema.proveedor.idProveedor,
       nombre: schema.proveedor.nombre,
-      tipo: schema.proveedor.tipo,
-      servicio: schema.paqueteProveedor.servicio,
+      tipo: schema.paqueteProveedor.servicio,
+      detalle: schema.paqueteProveedor.detalle,
       costo: schema.paqueteProveedor.costo,
     })
     .from(schema.paqueteProveedor)
@@ -362,7 +469,7 @@ export async function cargarProveedoresDePaquetes(
       idProveedor: fila.idProveedor,
       nombre: fila.nombre,
       tipo: fila.tipo as TipoProveedor,
-      servicio: fila.servicio,
+      detalle: fila.detalle,
       costo: fila.costo,
     })
     mapa.set(fila.idPaquete, lista)

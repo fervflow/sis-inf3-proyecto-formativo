@@ -21,8 +21,10 @@ const emit = defineEmits<{
 const { t } = useTexto()
 const { moneda } = useFormato()
 
-const tipoEtiqueta = computed(() =>
-  t(`proveedores.tipos.${props.proveedor.tipo}` as ClaveMensaje),
+const tiposEtiqueta = computed(() =>
+  props.proveedor.tipos
+    .map((tipo) => t(`proveedores.tipos.${tipo}` as ClaveMensaje))
+    .join(' · '),
 )
 
 const estadoEtiqueta = computed(() =>
@@ -35,7 +37,7 @@ const estadoColor = computed<'success' | 'neutral'>(() =>
 </script>
 
 <template>
-  <BaseTarjeta :titulo="proveedor.nombre" :descripcion="tipoEtiqueta">
+  <BaseTarjeta :titulo="proveedor.nombre" :descripcion="tiposEtiqueta">
     <template #acciones>
       <div class="flex flex-wrap items-center justify-end gap-2">
         <UBadge
@@ -110,7 +112,13 @@ const estadoColor = computed<'success' | 'neutral'>(() =>
                 </span>
               </p>
               <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
-                {{ vinculo.servicio }} · {{ moneda(vinculo.costo) }}
+                {{
+                  t(
+                    `proveedores.tipos.${vinculo.servicio}` as ClaveMensaje,
+                  )
+                }}
+                <span v-if="vinculo.detalle"> · {{ vinculo.detalle }}</span>
+                · {{ moneda(vinculo.costo) }}
               </p>
             </div>
             <UButton

@@ -727,7 +727,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
                 </p>
                 <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
                   {{ t(`paquetes.proveedores.tipos.${proveedor.tipo}` as ClaveMensaje) }}
-                  · {{ proveedor.servicio }}
+                  <span v-if="proveedor.detalle"> · {{ proveedor.detalle }}</span>
                 </p>
               </div>
               <span class="text-(--vt-texto-sm) tabular-nums">

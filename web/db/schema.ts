@@ -13,7 +13,9 @@
 import { relations, sql } from 'drizzle-orm'
 import {
   boolean,
+  check,
   date,
+  foreignKey,
   index,
   numeric,
   pgSchema,
@@ -194,13 +196,31 @@ export const lugar = turismo.table(
 export const proveedor = turismo.table('proveedor', {
   idProveedor: bigint('id_proveedor', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   nombre: varchar('nombre', { length: 150 }).notNull(),
-  tipo: varchar('tipo', { length: 20 }).notNull(),
   nit: varchar('nit', { length: 30 }),
   telefono: varchar('telefono', { length: 30 }),
   correo: varchar('correo', { length: 150 }),
   direccion: varchar('direccion', { length: 200 }),
   estado: varchar('estado', { length: 15 }).notNull().default('activo'),
 })
+
+// Tipos de servicio que declara un proveedor (RN-PRV-02). El vínculo con
+// el paquete solo puede usar uno de los declarados.
+export const proveedorTipo = turismo.table(
+  'proveedor_tipo',
+  {
+    idProveedor: bigint('id_proveedor', { mode: 'number' })
+      .notNull()
+      .references(() => proveedor.idProveedor, { onDelete: 'cascade' }),
+    tipo: varchar('tipo', { length: 20 }).notNull(),
+  },
+  (tabla) => [
+    uniqueIndex('proveedor_tipo_pkey').on(tabla.idProveedor, tabla.tipo),
+    check(
+      'ck_proveedor_tipo',
+      sql`${tabla.tipo} in ('transporte', 'hospedaje', 'guia', 'alimentacion', 'otro')`,
+    ),
+  ],
+)
 
 export const paquete = turismo.table('paquete', {
   idPaquete: bigint('id_paquete', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -284,10 +304,20 @@ export const paqueteProveedor = turismo.table(
     idProveedor: bigint('id_proveedor', { mode: 'number' })
       .notNull()
       .references(() => proveedor.idProveedor, { onDelete: 'restrict' }),
-    servicio: varchar('servicio', { length: 150 }).notNull(),
+    // El servicio es el tipo declarado del proveedor (RN-PRV-06).
+    servicio: varchar('servicio', { length: 20 }).notNull(),
+    // Descripción opcional del servicio concreto que presta.
+    detalle: varchar('detalle', { length: 200 }),
     costo: numeric('costo', { precision: 12, scale: 2 }).notNull().default('0'),
   },
-  (tabla) => [uniqueIndex('pq_paquete_proveedor').on(tabla.idPaquete, tabla.idProveedor)],
+  (tabla) => [
+    uniqueIndex('pq_paquete_proveedor').on(tabla.idPaquete, tabla.idProveedor),
+    foreignKey({
+      name: 'fk_paquete_proveedor_servicio',
+      columns: [tabla.idProveedor, tabla.servicio],
+      foreignColumns: [proveedorTipo.idProveedor, proveedorTipo.tipo],
+    }),
+  ],
 )
 
 // --- Salidas -------------------------------------------------------------
