@@ -223,14 +223,18 @@ db-actualizar:
 	  psql "$$url" -v ON_ERROR_STOP=1 -f "$$archivo" || exit 1; \
 	done
 
-# Pruebas SQL de las reglas de paquetes y salidas. Terminan con ROLLBACK.
+# Pruebas SQL de las reglas de negocio (paquetes, salidas, reservas).
+# Terminan con ROLLBACK, de modo que no dejan datos.
 db-probar:
 	@if [ -z "$$DATABASE_URL" ] && [ -f .env.local ]; then \
 	  set -a; . ./.env.local; set +a; \
 	fi; \
 	url="$$DATABASE_URL"; \
 	if [ -z "$$url" ]; then echo "Falta DATABASE_URL. Revise .env.local o expórtela."; exit 1; fi; \
-	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/pruebas/reglas-paquetes.sql
+	for archivo in $(BD)/pruebas/*.sql; do \
+	  echo ">> $$archivo"; \
+	  psql "$$url" -v ON_ERROR_STOP=1 -f "$$archivo" || exit 1; \
+	done
 
 # Trae de Neon las variables de la rama a .env.local (en la raíz).
 neon-env:

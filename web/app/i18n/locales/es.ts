@@ -23,6 +23,7 @@ export const es = {
   'nav.disponibilidad': 'Disponibilidad',
   'nav.clientes': 'Clientes',
   'nav.cotizaciones': 'Cotizaciones',
+  'nav.solicitudes': 'Solicitudes',
   'nav.paquetes': 'Paquetes',
   'nav.salidas': 'Salidas',
   'nav.proveedores': 'Proveedores',
@@ -93,6 +94,61 @@ export const es = {
   'disponibilidad.agotada': 'Agotada',
   'disponibilidad.desglosePersonal':
     'El desglose de pendientes y confirmados se muestra solo al personal.',
+  'disponibilidad.columnas.acciones': 'Reservar',
+  'disponibilidad.solicitar': 'Solicitar',
+
+  'solicitudes.publico.titulo': 'Solicitar una reserva',
+  'solicitudes.registrada':
+    'Solicitud registrada con el código {codigo}. Tienes hasta el {vencimiento} para que la agencia la confirme.',
+  'solicitudes.titulo': 'Solicitudes de reserva',
+  'solicitudes.introduccion':
+    'Solicitudes pendientes de ambos canales. Confirmarlas descontadas del plazo las pasa a reservas confirmadas; las que vencen liberan su cupo.',
+  'solicitudes.crear': 'Nueva reserva',
+  'solicitudes.vacia': 'No hay solicitudes pendientes.',
+  'solicitudes.vacioDescripcion':
+    'Cuando el personal o un cliente pida una reserva aparecerá aquí con su plazo.',
+  'solicitudes.filtro': 'Filtrar por estado',
+  'solicitudes.filtroPendientes': 'Pendientes',
+  'solicitudes.filtroTodas': 'Todas',
+  'solicitudes.columnas.codigo': 'Código',
+  'solicitudes.columnas.cliente': 'Cliente',
+  'solicitudes.columnas.documento': 'Documento',
+  'solicitudes.columnas.salida': 'Salida',
+  'solicitudes.columnas.pasajeros': 'Pasajeros',
+  'solicitudes.columnas.monto': 'Monto',
+  'solicitudes.columnas.estado': 'Estado',
+  'solicitudes.columnas.vencimiento': 'Vence',
+  'solicitudes.columnas.acciones': 'Acciones',
+  'solicitudes.origenes.personal': 'Personal',
+  'solicitudes.origenes.web': 'Web',
+  'solicitudes.estados.pendiente': 'Pendiente',
+  'solicitudes.estados.confirmada': 'Confirmada',
+  'solicitudes.estados.vencida': 'Vencida',
+  'solicitudes.estados.cancelada': 'Cancelada',
+  'solicitudes.estados.finalizada': 'Finalizada',
+  'solicitudes.confirmar': 'Confirmar',
+  'solicitudes.confirmada': 'Solicitud confirmada: {codigo}.',
+  'solicitudes.creada': 'Reserva creada: {codigo}.',
+  'solicitudes.sinClientes':
+    'No hay clientes. Registra uno en Clientes para reservar.',
+  'solicitudes.sinSalidas':
+    'No hay salidas con cupo. Programa una salida para reservar.',
+  'solicitudes.disponibles': 'disponibles',
+  'solicitudes.form.cliente': 'Cliente',
+  'solicitudes.form.salida': 'Salida',
+  'solicitudes.form.cantidad': 'Cantidad de pasajeros',
+  'solicitudes.form.tipoDocumento': 'Tipo de documento',
+  'solicitudes.form.numeroDocumento': 'Número de documento',
+  'solicitudes.form.nombres': 'Nombres',
+  'solicitudes.form.apellidos': 'Apellidos',
+  'solicitudes.form.correo': 'Correo (opcional)',
+  'solicitudes.form.telefono': 'Teléfono (opcional)',
+  'solicitudes.ayudaCantidad':
+    'La cantidad no puede superar el cupo disponible de la salida.',
+  'solicitudes.ayudaCorreo':
+    'La agencia se comunica con este correo para confirmar tu reserva.',
+  'solicitudes.ayudaVencimiento':
+    'La solicitud queda pendiente y vence a las 48 horas si no se confirma.',
 
   'ingreso.titulo': 'Ingresar al sistema',
   'ingreso.introduccion':
@@ -546,5 +602,16 @@ export const es = {
   'errores.motivoRequerido': 'Escribe el motivo del cambio.',
   'errores.clienteDuplicado': 'Ya existe un cliente con ese documento.',
   'errores.clienteInexistente': 'El cliente no existe.',
+  'errores.clienteInactivo': 'El cliente está inactivo; actívalo para reservar.',
   'errores.fechaFutura': 'La fecha de nacimiento no puede ser futura.',
+  'errores.cupoInsuficiente': 'No hay cupo suficiente para esa salida.',
+  'errores.solicitudPendiente':
+    'Ya hay una solicitud pendiente de ese cliente para esa salida.',
+  'errores.solicitudVencida':
+    'La solicitud venció: no puede confirmarse. Registra una nueva si hay cupo.',
+  'errores.reservaInexistente': 'La reserva no existe.',
+  'errores.cotizacionIncoherente':
+    'Solo una cotización aceptada de ese cliente y esa salida puede originar la reserva.',
+  'errores.sistemaFaltante':
+    'Falta la cuenta de sistema; revisa la semilla de la base de datos.',
 } as const

@@ -5,6 +5,13 @@
       :descripcion="t('disponibilidad.introduccion')"
     />
 
+    <UAlert
+      v-if="avisoSolicitud"
+      color="success"
+      variant="soft"
+      :title="avisoSolicitud"
+    />
+
     <BaseTarjeta>
       <div
         v-if="pendiente || salidas.length > 0"
@@ -60,6 +67,20 @@
             {{ moneda(String(valor)) }}
           </span>
 
+          <span
+            v-else-if="columna.clave === 'acciones'"
+            class="flex justify-center"
+          >
+            <UButton
+              v-if="fila.cupo_disponible > 0"
+              size="xs"
+              color="primary"
+              variant="soft"
+              :label="t('disponibilidad.solicitar')"
+              @click="solicitar(fila)"
+            />
+          </span>
+
           <span v-else class="tabular-nums">{{ valor }}</span>
           </template>
         </BaseTablaDatos>
@@ -81,6 +102,21 @@
         {{ t('disponibilidad.desglosePersonal') }}
       </p>
     </BaseTarjeta>
+
+    <UModal
+      v-model:open="solicitudAbierta"
+      :title="t('solicitudes.publico.titulo')"
+      :ui="{ content: 'max-w-2xl' }"
+    >
+      <template #body>
+        <SolicitudesFormularioPublico
+          v-if="salidaSolicitada"
+          ref="formulario-publico"
+          :salida="salidaSolicitada"
+          @registrada="registrada"
+        />
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -88,19 +124,21 @@
 import type {
   RespuestaCuenta,
   RespuestaDisponibilidad,
+  ReservaResumen,
   SalidaDisponible,
 } from '#shared/types/api'
 import type { ColumnaTabla } from '#shared/types/ui'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
-const { moneda, fecha } = useFormato()
+const { moneda, fecha, fechaHora } = useFormato()
 const peticion = useRequestFetch()
 
 const {
   data,
   pending: pendiente,
   error: errorConsulta,
+  refresh: recargar,
 } = await useAsyncData<RespuestaDisponibilidad>('disponibilidad', () =>
   peticion<RespuestaDisponibilidad>('/api/disponibilidad'),
 )
@@ -113,14 +151,22 @@ const esPersonal = computed(
     cuenta.value?.usuario?.rol === 'PERSONAL',
 )
 
-const salidas = computed<SalidaDisponible[]>(() => data.value?.salidas ?? [])
+/** Fila de la tabla de disponibilidad con la columna de acción. */
+type FilaDisponibilidad = SalidaDisponible & { acciones: number }
+
+const salidas = computed<FilaDisponibilidad[]>(() =>
+  (data.value?.salidas ?? []).map((salida) => ({
+    ...salida,
+    acciones: salida.id_salida,
+  })),
+)
 const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
 )
 
 // Las etiquetas se calculan de nuevo cuando cambia el idioma.
-const columnas = computed<ColumnaTabla<SalidaDisponible>[]>(() => {
-  const lista: ColumnaTabla<SalidaDisponible>[] = [
+const columnas = computed<ColumnaTabla<FilaDisponibilidad>[]>(() => {
+  const lista: ColumnaTabla<FilaDisponibilidad>[] = [
     { clave: 'paquete', etiqueta: t('disponibilidad.columnas.paquete') },
     { clave: 'fecha_salida', etiqueta: t('disponibilidad.columnas.salida') },
     { clave: 'fecha_retorno', etiqueta: t('disponibilidad.columnas.retorno') },
@@ -164,6 +210,43 @@ const columnas = computed<ColumnaTabla<SalidaDisponible>[]>(() => {
     },
   )
 
+  // Solo una salida con cupo admite la solicitud.
+  lista.push({
+    clave: 'acciones',
+    etiqueta: t('disponibilidad.columnas.acciones'),
+    alineacion: 'centro',
+  })
+
   return lista
 })
+
+// --- Solicitud de reserva por el canal web -------------------------------
+
+const solicitudAbierta = ref(false)
+const salidaSolicitada = ref<FilaDisponibilidad | null>(null)
+const formularioPublico = useTemplateRef<{
+  reiniciar: () => void
+}>('formulario-publico')
+
+const avisoSolicitud = ref<string | null>(null)
+
+function solicitar(salida: FilaDisponibilidad) {
+  avisoSolicitud.value = null
+  salidaSolicitada.value = salida
+  formularioPublico.value?.reiniciar()
+  solicitudAbierta.value = true
+}
+
+/** La solicitud quedó registrada: se muestra su código y su vencimiento. */
+function registrada(reserva: ReservaResumen) {
+  solicitudAbierta.value = false
+  avisoSolicitud.value = t('solicitudes.registrada', {
+    codigo: reserva.codigo,
+    vencimiento: reserva.fechaExpiracion
+      ? fechaHora(reserva.fechaExpiracion)
+      : '—',
+  })
+  salidaSolicitada.value = null
+  recargar()
+}
 </script>

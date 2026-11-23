@@ -106,6 +106,9 @@ Se usan con el prefijo de la carpeta en PascalCase: `reservas/ListaReservas.vue`
 se usa como `<ReservasListaReservas />`. Si se usa en un solo lugar, puede
 vivir junto a la vista. En `paquetes/` viven `FormularioPaquete` y
 `SelectorLugar`, que sí consultan la API y por eso no son componentes base.
+En `solicitudes/` vive `FormularioPublico`, el formulario de solicitud de
+reserva del canal web: recibe la salida elegida, registra al cliente por
+documento y emite `registrada` con la reserva creada.
 
 ## Slots
 

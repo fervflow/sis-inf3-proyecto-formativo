@@ -57,7 +57,14 @@ const CODIGOS: Record<string, ClaveMensaje> = {
   motivo_requerido: 'errores.motivoRequerido',
   cliente_duplicado: 'errores.clienteDuplicado',
   cliente_inexistente: 'errores.clienteInexistente',
+  cliente_inactivo: 'errores.clienteInactivo',
   fecha_futura: 'errores.fechaFutura',
+  cupo_insuficiente: 'errores.cupoInsuficiente',
+  solicitud_pendiente: 'errores.solicitudPendiente',
+  solicitud_vencida: 'errores.solicitudVencida',
+  reserva_inexistente: 'errores.reservaInexistente',
+  cotizacion_incoherente: 'errores.cotizacionIncoherente',
+  sistema_faltante: 'errores.sistemaFaltante',
 }
 
 /** Devuelve el texto de un fallo de la API. */

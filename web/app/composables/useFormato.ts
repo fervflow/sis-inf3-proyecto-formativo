@@ -31,5 +31,17 @@ export function useFormato() {
     }).format(new Date(Date.UTC(anio, mes - 1, dia)))
   }
 
-  return { moneda, fecha }
+  /** Fecha y hora de un instante ISO, en el idioma de la aplicación. */
+  function fechaHora(valor: string): string {
+    if (!valor) return ''
+    return new Intl.DateTimeFormat(local.value, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(valor))
+  }
+
+  return { moneda, fecha, fechaHora }
 }

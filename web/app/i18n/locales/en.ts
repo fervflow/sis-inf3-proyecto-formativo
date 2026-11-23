@@ -17,6 +17,7 @@ export const en: Mensajes = {
   'nav.disponibilidad': 'Availability',
   'nav.clientes': 'Clients',
   'nav.cotizaciones': 'Quotes',
+  'nav.solicitudes': 'Requests',
   'nav.paquetes': 'Packages',
   'nav.salidas': 'Departures',
   'nav.proveedores': 'Providers',
@@ -82,6 +83,60 @@ export const en: Mensajes = {
   'disponibilidad.agotada': 'Sold out',
   'disponibilidad.desglosePersonal':
     'The pending and confirmed breakdown is shown only to staff.',
+  'disponibilidad.columnas.acciones': 'Book',
+  'disponibilidad.solicitar': 'Request',
+
+  'solicitudes.publico.titulo': 'Request a booking',
+  'solicitudes.registrada':
+    'Request registered with code {codigo}. You have until {vencimiento} for the agency to confirm it.',
+  'solicitudes.titulo': 'Booking requests',
+  'solicitudes.introduccion':
+    'Pending requests from both channels. Confirming them in time turns them into confirmed bookings; expired ones release their quota.',
+  'solicitudes.crear': 'New booking',
+  'solicitudes.vacia': 'There are no pending requests.',
+  'solicitudes.vacioDescripcion':
+    'When staff or a client requests a booking, it will appear here with its deadline.',
+  'solicitudes.filtro': 'Filter by status',
+  'solicitudes.filtroPendientes': 'Pending',
+  'solicitudes.filtroTodas': 'All',
+  'solicitudes.columnas.codigo': 'Code',
+  'solicitudes.columnas.cliente': 'Client',
+  'solicitudes.columnas.documento': 'Document',
+  'solicitudes.columnas.salida': 'Departure',
+  'solicitudes.columnas.pasajeros': 'Passengers',
+  'solicitudes.columnas.monto': 'Amount',
+  'solicitudes.columnas.estado': 'Status',
+  'solicitudes.columnas.vencimiento': 'Expires',
+  'solicitudes.columnas.acciones': 'Actions',
+  'solicitudes.origenes.personal': 'Staff',
+  'solicitudes.origenes.web': 'Web',
+  'solicitudes.estados.pendiente': 'Pending',
+  'solicitudes.estados.confirmada': 'Confirmed',
+  'solicitudes.estados.vencida': 'Expired',
+  'solicitudes.estados.cancelada': 'Cancelled',
+  'solicitudes.estados.finalizada': 'Completed',
+  'solicitudes.confirmar': 'Confirm',
+  'solicitudes.confirmada': 'Request confirmed: {codigo}.',
+  'solicitudes.creada': 'Booking created: {codigo}.',
+  'solicitudes.sinClientes': 'No clients. Register one in Clients to book.',
+  'solicitudes.sinSalidas':
+    'No departures with quota. Schedule a departure to book.',
+  'solicitudes.disponibles': 'available',
+  'solicitudes.form.cliente': 'Client',
+  'solicitudes.form.salida': 'Departure',
+  'solicitudes.form.cantidad': 'Number of passengers',
+  'solicitudes.form.tipoDocumento': 'Document type',
+  'solicitudes.form.numeroDocumento': 'Document number',
+  'solicitudes.form.nombres': 'First names',
+  'solicitudes.form.apellidos': 'Last names',
+  'solicitudes.form.correo': 'Email (optional)',
+  'solicitudes.form.telefono': 'Phone (optional)',
+  'solicitudes.ayudaCantidad':
+    'The number cannot exceed the available quota of the departure.',
+  'solicitudes.ayudaCorreo':
+    'The agency will contact you at this email to confirm your booking.',
+  'solicitudes.ayudaVencimiento':
+    'The request stays pending and expires after 48 hours if not confirmed.',
 
   'ingreso.titulo': 'Sign in',
   'ingreso.introduccion':
@@ -534,5 +589,16 @@ export const en: Mensajes = {
   'errores.motivoRequerido': 'Enter the reason for the change.',
   'errores.clienteDuplicado': 'A client with that document already exists.',
   'errores.clienteInexistente': 'The client does not exist.',
+  'errores.clienteInactivo': 'The client is inactive; activate them to book.',
   'errores.fechaFutura': 'The date of birth cannot be in the future.',
+  'errores.cupoInsuficiente': 'There is not enough quota for that departure.',
+  'errores.solicitudPendiente':
+    'There is already a pending request from that client for that departure.',
+  'errores.solicitudVencida':
+    'The request expired: it cannot be confirmed. Register a new one if there is quota.',
+  'errores.reservaInexistente': 'The booking does not exist.',
+  'errores.cotizacionIncoherente':
+    'Only an accepted quote for that client and departure can originate the booking.',
+  'errores.sistemaFaltante':
+    'The system account is missing; check the database seed.',
 }

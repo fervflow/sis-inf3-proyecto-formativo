@@ -155,7 +155,15 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
  * peticiones simultáneas.
  */
 export function codigoErrorSalida(error: unknown): string {
-  const codigo = (error as { code?: string }).code
+  // Drizzle envuelve los fallos de consulta en `DrizzleQueryError`; el
+  // código de la base queda en `cause`.
+  const envuelto = error as { code?: string; cause?: { code?: string } }
+  const base =
+    envuelto.code === undefined && envuelto.cause?.code
+      ? envuelto.cause
+      : (envuelto as { code?: string })
+
+  const codigo = base.code
   if (codigo === '23505') return 'salida_duplicada'
   if (codigo === '23514') return 'datos_invalidos'
   if (codigo === 'P0002') return 'salida_inexistente'

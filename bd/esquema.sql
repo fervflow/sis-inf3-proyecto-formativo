@@ -1453,6 +1453,19 @@ INSERT INTO rol (codigo, nombre, descripcion) VALUES
     ('CLIENTE',  'Cliente',             'Consulta la disponibilidad, solicita reservas, registra pagos y sigue sus reservas.')
 ON CONFLICT (codigo) DO NOTHING;
 
+-- Cuenta de sistema. Firma las reservas que llega el cliente por el canal
+-- web, donde todavía no hay sesión (HU-15), y los vencimientos automáticos.
+-- No tiene contraseña en `account`, de modo que nadie puede ingresar con
+-- ella; el auditor queda registrado como «sistema».
+INSERT INTO usuario (id, name, email, id_rol, nombres, apellidos, estado, debe_cambiar_password)
+SELECT 'sistema', 'Sistema', 'sistema@vizcacha.tours', r.id_rol,
+       'Cuenta de sistema', 'Vizcacha Tours', 'activo', false
+FROM rol r
+WHERE r.codigo = 'CLIENTE'
+  AND NOT EXISTS (
+      SELECT 1 FROM usuario u WHERE u.id = 'sistema' OR u.email = 'sistema@vizcacha.tours'
+  );
+
 -- Servicios que un paquete puede incluir. El catálogo es fijo en el MVP:
 -- se amplía con una nueva fila en la semilla, no desde la interfaz.
 INSERT INTO servicio (codigo, nombre, orden) VALUES

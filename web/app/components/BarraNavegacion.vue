@@ -80,6 +80,11 @@ const menuGestion = computed<DropdownMenuItem[][]>(() => {
       icon: 'i-lucide-file-text',
       to: '/cotizaciones',
     })
+    items.push({
+      label: t('nav.solicitudes'),
+      icon: 'i-lucide-inbox',
+      to: '/solicitudes',
+    })
   }
 
   if (esAdmin.value) {
@@ -149,6 +154,11 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         label: t('nav.cotizaciones'),
         icon: 'i-lucide-file-text',
         to: '/cotizaciones',
+      },
+      {
+        label: t('nav.solicitudes'),
+        icon: 'i-lucide-inbox',
+        to: '/solicitudes',
       },
     )
   }

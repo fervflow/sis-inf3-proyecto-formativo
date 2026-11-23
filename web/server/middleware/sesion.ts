@@ -101,13 +101,14 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // La ficha de clientes y las cotizaciones las maneja el personal; el
-  // cliente no entra.
+  // La ficha de clientes, las cotizaciones y las solicitudes las maneja el
+  // personal; el cliente no entra.
   if (
     ruta.startsWith('/clientes') ||
     ruta.startsWith('/api/clientes') ||
     ruta.startsWith('/cotizaciones') ||
-    ruta.startsWith('/api/cotizaciones')
+    ruta.startsWith('/api/cotizaciones') ||
+    ruta.startsWith('/solicitudes')
   ) {
     const esPersonal =
       sesion.user.idRol === ROL_ADMIN || sesion.user.idRol === ROL_PERSONAL

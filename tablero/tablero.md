@@ -15,15 +15,6 @@ kanban-plugin: basic
 - [ ] **T-HU-15.3** · RE · HU-15 \
   Comprobar el acceso del cliente, el bloqueo de la cuenta y la restricción a información ajena.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-06.1** · EV · HU-06 \
-  Crear una reserva desde la atención del personal o como solicitud del cliente, con su origen, el cliente, la salida y la cantidad de pasajeros.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-06.2** · EV · HU-06 \
-  Verificar los cupos antes de guardar y rechazar las reservas que excedan la capacidad.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-06.3** · EV · HU-06 \
-  Guardar la reserva en estado pendiente con su fecha de vencimiento y reflejar la ocupación en la disponibilidad.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
 - [ ] **T-HU-12.1** · RE · HU-12 \
   Registrar los pasajeros asociados a cada reserva, incluido el cliente si viaja.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
@@ -39,15 +30,6 @@ kanban-plugin: basic
 - [ ] **T-HU-07.3** · EV · HU-07 \
   Conservar los cambios realizados para su seguimiento.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-17.1** · EV · HU-17 \
-  Listar las solicitudes pendientes de ambos canales con su fecha de vencimiento.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-17.2** · EV · HU-17 \
-  Confirmar la solicitud, limpiar el vencimiento y auditar el cambio.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-17.3** · EV · HU-17 \
-  Vencer las solicitudes fuera de plazo, liberar los cupos y rechazar su confirmación posterior.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
 - [ ] **T-HU-09.1** · EV · HU-09 \
   Editar la fecha o capacidad e identificar las reservas asociadas.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
@@ -83,6 +65,25 @@ kanban-plugin: basic
 
 
 ## En pruebas / QA (WIP 2)
+
+- [ ] **T-HU-06.1** · EV · HU-06 \
+  Crear una reserva desde la atención del personal o como solicitud del cliente, con su origen, el cliente, la salida y la cantidad de pasajeros.
+  [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-06.2** · EV · HU-06 \
+  Verificar los cupos antes de guardar y rechazar las reservas que excedan la capacidad.
+  [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-06.3** · EV · HU-06 \
+  Guardar la reserva en estado pendiente con su fecha de vencimiento y reflejar la ocupación en la disponibilidad.
+  [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-17.1** · EV · HU-17 \
+  Listar las solicitudes pendientes de ambos canales con su fecha de vencimiento.
+  [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-17.2** · EV · HU-17 \
+  Confirmar la solicitud, limpiar el vencimiento y auditar el cambio.
+  [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-17.3** · EV · HU-17 \
+  Vencer las solicitudes fuera de plazo, liberar los cupos y rechazar su confirmación posterior.
+  [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
 
 ## Listo para producción (WIP 1)
 

@@ -76,3 +76,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-20 11:56 | `2026-11-20T115641_paquetes-lugares-servicios-y-mapa.md` | Lugares, recorrido, servicios incluidos, código automático y mapa en la ficha del paquete. |
 | 2026-11-23 14:33 | `2026-11-23T143302_cierre-hu-02-y-hu-03.md` | Salidas como tarjetas, precio efectivo con precarga, desglose de disponibilidad para el personal y cierre de HU-02/HU-03. |
 | 2026-11-23 14:53 | `2026-11-23T145312_proveedores-y-cotizaciones.md` | Proveedores con vínculos a paquetes, cotizaciones con número automático, condiciones y datos de ejemplo. |
+| 2026-11-23 16:30 | `2026-11-23T163056_reservas-y-solicitudes.md` | Reservas en los dos canales con validación de cupos, página de solicitudes del personal, confirmación y vencimiento de las pendientes. |

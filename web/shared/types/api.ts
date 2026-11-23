@@ -14,6 +14,7 @@ import type {
   EstadoReserva,
   EstadoSalida,
   EstadoUsuario,
+  OrigenReserva,
   Rol,
   TipoDocumento,
   TipoLugar,
@@ -63,13 +64,23 @@ export interface RespuestaBarrido {
 
 /** Datos de una reserva, en la forma en que los muestra la interfaz. */
 export interface ReservaResumen {
-  id: number
+  idReserva: number
   codigo: string
+  idCliente: number
   cliente: string
-  salida: string
-  estado: EstadoReserva
+  documento: string
+  idSalida: number
+  codigoPaquete: string
+  paquete: string
+  fechaSalida: string
+  fechaRetorno: string
+  /** Canal por el que ingresó: atención del personal o solicitud web. */
+  origen: OrigenReserva
   cantidadPasajeros: number
+  montoTotal: string
+  estado: EstadoReserva
   fechaExpiracion: string | null
+  fechaReserva: string
 }
 
 /** Respuesta de la consulta de reservas. */
