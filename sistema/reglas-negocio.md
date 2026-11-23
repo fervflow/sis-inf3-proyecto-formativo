@@ -166,6 +166,7 @@ bebidas y actividades recreativas.
 | RN-SAL-18 | Las reservas vencidas y las canceladas no ocupan cupo. | HU-03, HU-06 | `vista_disponibilidad_salida` | Vigente |
 | RN-SAL-19 | Una solicitud pendiente cuyo plazo venció deja de ocupar cupo aunque su estado guardado siga siendo `pendiente`. | HU-03, HU-17 | `vista_disponibilidad_salida` | Vigente |
 | RN-SAL-20 | Una salida no cambia de paquete; si se necesita otra combinación, se crea una salida nueva. | Decisión del proyecto | API de salidas | Vigente |
+| RN-SAL-21 | El precio de la salida es el precio efectivo de esa fecha. Parte del precio base del paquete y puede ajustarse; el paquete conserva su precio de catálogo. | Decisión del proyecto | `salida.precio` e interfaz de salidas | Vigente |
 
 ## 8. Máquinas de estado del alcance actual
 
@@ -202,7 +203,7 @@ programada ──▶ confirmada ──▶ realizada
 | Historia | Reglas |
 |---|---|
 | HU-01 · Gestión de paquetes | RN-LUG-01 a RN-LUG-03, RN-PAQ-01 a RN-PAQ-17, RN-SER-01 a RN-SER-05 |
-| HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08 |
+| HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08 y RN-SAL-21 |
 | HU-03 · Consulta de disponibilidad | RN-SAL-17 a RN-SAL-19 |
 | HU-09 · Modificar fechas o capacidad | RN-SAL-09 a RN-SAL-16 |
 | HU-08 · Acceso por rol | RN-USU-01, RN-USU-02 |

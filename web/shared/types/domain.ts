@@ -74,6 +74,9 @@ export type TipoProveedor =
   | 'alimentacion'
   | 'otro'
 
+/** Estados del catálogo de proveedores. */
+export type EstadoProveedor = 'activo' | 'inactivo'
+
 /** Tipos de acceso registrado. */
 export type TipoAcceso = 'ingreso' | 'salida' | 'intento'
 

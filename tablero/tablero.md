@@ -15,12 +15,6 @@ kanban-plugin: basic
 - [ ] **T-HU-15.3** · RE · HU-15 \
   Comprobar el acceso del cliente, el bloqueo de la cuenta y la restricción a información ajena.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-02.2** · EV · HU-02 \
-  Validar cupos positivos y evitar salidas duplicadas.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-03.2** · EV · HU-03 \
-  Calcular los disponibles descontando las reservas pendientes y confirmadas, y comprobar el resultado.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
 - [ ] **T-HU-10.2** · RE · HU-10 \
   Vincular uno o varios proveedores a los paquetes turísticos.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
@@ -93,12 +87,6 @@ kanban-plugin: basic
 
 ## En curso (WIP 4)
 
-- [ ] **T-HU-02.1** · EV · HU-02 \
-  Registrar las fechas de salida y la capacidad de cada paquete.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-03.1** · EV · HU-03 \
-  Consultar cupos por paquete y fecha de salida, desde la web o en la oficina.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
 - [ ] **T-HU-10.1** · RE · HU-10 \
   Registrar, consultar y editar proveedores de servicios.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
@@ -130,6 +118,18 @@ kanban-plugin: basic
 - [ ] **T-HU-01.3** · EV · HU-01 \
   Reformular la ficha del paquete con lugares, servicios incluidos, código automático y mapa del recorrido.
   [Inicio:: 20/11/2026] [Fin:: 20/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-02.1** · EV · HU-02 \
+  Registrar las fechas de salida y la capacidad de cada paquete.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-02.2** · EV · HU-02 \
+  Validar cupos positivos y evitar salidas duplicadas.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-03.1** · EV · HU-03 \
+  Consultar cupos por paquete y fecha de salida, desde la web o en la oficina.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-03.2** · EV · HU-03 \
+  Calcular los disponibles descontando las reservas pendientes y confirmadas, y comprobar el resultado.
+  [Inicio:: 20/11/2026] [Fin:: 23/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
 - [ ] **T-HU-04.1** · RE · HU-04 \
   Registrar clientes con documento y datos de contacto, evitando duplicados.
   [Inicio:: 12/11/2026] [Fin:: 18/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media

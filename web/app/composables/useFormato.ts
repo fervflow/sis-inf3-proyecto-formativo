@@ -17,5 +17,19 @@ export function useFormato() {
     }).format(Number(valor))
   }
 
-  return { moneda }
+  /** Fecha ISO corta en el idioma de la aplicación. */
+  function fecha(valor: string): string {
+    if (!valor) return ''
+    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number)
+    if (!anio || !mes || !dia) return valor
+
+    return new Intl.DateTimeFormat(local.value, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(Date.UTC(anio, mes - 1, dia)))
+  }
+
+  return { moneda, fecha }
 }

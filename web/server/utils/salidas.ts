@@ -5,11 +5,12 @@
  * `fn_actualizar_salida`; aquí solo se valida la forma del cuerpo y se
  * traduce la fila de la base a la interfaz.
  */
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import * as schema from '../../db/schema'
 import type { SalidaAdmin } from '#shared/types/api'
-import type { EstadoSalida } from '#shared/types/domain'
+import { consultar } from './db'
+import type { EstadoPaquete, EstadoSalida } from '#shared/types/domain'
 
 const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'datos_invalidos')
 
@@ -49,29 +50,48 @@ export interface FilaSalida {
   idPaquete: number
   codigoPaquete: string
   paquete: string
+  destino: string | null
+  duracionDias: number
   fechaSalida: string
   fechaRetorno: string
   cupoMaximo: number
   precio: string
+  precioBase: string
   puntoEncuentro: string | null
   estado: string
+  estadoPaquete: string
   observaciones: string | null
   fechaActualizacion: Date
 }
 
+/** Ocupación calculada por la vista de disponibilidad. */
+export interface OcupacionSalida {
+  pasajerosOcupados: number
+  cupoDisponible: number
+}
+
 /** Convierte la fila de la base en lo que consume la interfaz. */
-export function aSalidaAdmin(fila: FilaSalida): SalidaAdmin {
+export function aSalidaAdmin(
+  fila: FilaSalida,
+  ocupacion?: OcupacionSalida,
+): SalidaAdmin {
   return {
     idSalida: fila.idSalida,
     idPaquete: fila.idPaquete,
     codigoPaquete: fila.codigoPaquete,
     paquete: fila.paquete,
+    destino: fila.destino,
+    duracionDias: fila.duracionDias,
     fechaSalida: fila.fechaSalida,
     fechaRetorno: fila.fechaRetorno,
     cupoMaximo: fila.cupoMaximo,
+    pasajerosOcupados: ocupacion?.pasajerosOcupados ?? 0,
+    cupoDisponible: ocupacion?.cupoDisponible ?? fila.cupoMaximo,
     precio: fila.precio,
+    precioBase: fila.precioBase,
     puntoEncuentro: fila.puntoEncuentro,
     estado: fila.estado as EstadoSalida,
+    estadoPaquete: fila.estadoPaquete as EstadoPaquete,
     observaciones: fila.observaciones,
     fechaActualizacion: fila.fechaActualizacion.toISOString(),
   }
@@ -85,21 +105,48 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
       idPaquete: schema.salida.idPaquete,
       codigoPaquete: schema.paquete.codigo,
       paquete: schema.paquete.nombre,
+      destino: schema.lugar.nombre,
+      duracionDias: schema.paquete.duracionDias,
       fechaSalida: schema.salida.fechaSalida,
       fechaRetorno: schema.salida.fechaRetorno,
       cupoMaximo: schema.salida.cupoMaximo,
       precio: schema.salida.precio,
+      precioBase: schema.paquete.precioBase,
       puntoEncuentro: schema.salida.puntoEncuentro,
       estado: schema.salida.estado,
+      estadoPaquete: schema.paquete.estado,
       observaciones: schema.salida.observaciones,
       fechaActualizacion: schema.salida.fechaActualizacion,
     })
     .from(schema.salida)
     .innerJoin(schema.paquete, eq(schema.paquete.idPaquete, schema.salida.idPaquete))
+    .leftJoin(
+      schema.lugar,
+      eq(schema.lugar.idLugar, schema.paquete.idLugarDestino),
+    )
     .where(eq(schema.salida.idSalida, id))
     .limit(1)
 
-  return fila ? aSalidaAdmin(fila) : null
+  if (!fila) return null
+
+  const [ocupacion] = await consultar<{
+    pasajeros_ocupados: string | number
+    cupo_disponible: string | number
+  }>(sql`
+    select pasajeros_ocupados, cupo_disponible
+    from turismo.vista_disponibilidad_salida
+    where id_salida = ${id}
+  `)
+
+  return aSalidaAdmin(
+    fila,
+    ocupacion
+      ? {
+          pasajerosOcupados: Number(ocupacion.pasajeros_ocupados),
+          cupoDisponible: Number(ocupacion.cupo_disponible),
+        }
+      : undefined,
+  )
 }
 
 /**

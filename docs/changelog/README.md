@@ -74,3 +74,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-19 19:38 | `2026-11-19T193822_tablero-como-fuente-y-exportador.md` | El tablero pasa a ser la fuente; validador, resumen y exportador al backlog. |
 | 2026-11-20 01:16 | `2026-11-20T011659_reglas-paquetes-y-salidas.md` | Catálogo de reglas, paquetes con destino e itinerario, actividades, salidas y rol `CLIENTE`. |
 | 2026-11-20 11:56 | `2026-11-20T115641_paquetes-lugares-servicios-y-mapa.md` | Lugares, recorrido, servicios incluidos, código automático y mapa en la ficha del paquete. |
+| 2026-11-23 14:33 | `2026-11-23T143302_cierre-hu-02-y-hu-03.md` | Salidas como tarjetas, precio efectivo con precarga, desglose de disponibilidad para el personal y cierre de HU-02/HU-03. |

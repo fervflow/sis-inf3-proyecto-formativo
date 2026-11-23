@@ -84,8 +84,13 @@ export const es = {
   'disponibilidad.columnas.retorno': 'Retorno',
   'disponibilidad.columnas.cupo': 'Cupo',
   'disponibilidad.columnas.ocupados': 'Ocupados',
+  'disponibilidad.columnas.pendientes': 'Pendientes',
+  'disponibilidad.columnas.confirmados': 'Confirmados',
   'disponibilidad.columnas.disponibles': 'Disponibles',
   'disponibilidad.columnas.precio': 'Precio',
+  'disponibilidad.agotada': 'Agotada',
+  'disponibilidad.desglosePersonal':
+    'El desglose de pendientes y confirmados se muestra solo al personal.',
 
   'ingreso.titulo': 'Ingresar al sistema',
   'ingreso.introduccion':
@@ -264,13 +269,23 @@ export const es = {
   'salidas.crear': 'Nueva salida',
   'salidas.editar': 'Editar salida',
   'salidas.vacio': 'Todavía no hay salidas programadas.',
-  'salidas.columnas.paquete': 'Paquete',
-  'salidas.columnas.salida': 'Salida',
-  'salidas.columnas.retorno': 'Retorno',
-  'salidas.columnas.cupo': 'Cupo',
-  'salidas.columnas.precio': 'Precio',
-  'salidas.columnas.estado': 'Estado',
-  'salidas.columnas.acciones': 'Acciones',
+  'salidas.vacioDescripcion':
+    'Programa la primera salida de un paquete activo.',
+  'salidas.tarjeta.destino': 'Destino',
+  'salidas.tarjeta.fechas': 'Fechas',
+  'salidas.tarjeta.duracion': 'Duración',
+  'salidas.tarjeta.dias': '{dias} días',
+  'salidas.tarjeta.cupo': 'Cupo',
+  'salidas.tarjeta.ocupacion': '{ocupados} de {maximo} ocupados',
+  'salidas.tarjeta.disponibles': '{disponibles} disponibles',
+  'salidas.tarjeta.agotada': 'Agotada',
+  'salidas.tarjeta.precio': 'Precio por persona',
+  'salidas.tarjeta.precioBase': 'Base: {precio}',
+  'salidas.tarjeta.puntoEncuentro': 'Punto de encuentro',
+  'salidas.tarjeta.observaciones': 'Observaciones',
+  'salidas.tarjeta.actualizada': 'Actualizada el {fecha}',
+  'salidas.tarjeta.paqueteInactivo': 'Paquete inactivo',
+  'salidas.tarjeta.sinDestino': 'Sin destino',
   'salidas.estados.programada': 'Programada',
   'salidas.estados.confirmada': 'Confirmada',
   'salidas.estados.realizada': 'Realizada',
@@ -288,6 +303,12 @@ export const es = {
   'salidas.ayudaDuracion':
     'La diferencia entre salida y retorno, contada en días inclusivos, debe coincidir con la duración del paquete.',
   'salidas.ayudaCupo': 'Capacidad máxima de pasajeros.',
+  'salidas.ayudaPrecio':
+    'Precio base del paquete: {precio}. Puedes ajustarlo para esta salida.',
+  'salidas.ayudaPrecioVacio':
+    'Al elegir el paquete se completa con su precio base.',
+  'salidas.errores.revisar':
+    'Revisa el paquete, las fechas, la capacidad y el precio.',
   'salidas.creado': 'Salida creada para {paquete}.',
   'salidas.actualizado': 'Salida actualizada para {paquete}.',
   'salidas.motivoCancelacion': 'La cancelación exige un motivo.',

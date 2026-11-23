@@ -73,8 +73,13 @@ export const en: Mensajes = {
   'disponibilidad.columnas.retorno': 'Return',
   'disponibilidad.columnas.cupo': 'Capacity',
   'disponibilidad.columnas.ocupados': 'Taken',
+  'disponibilidad.columnas.pendientes': 'Pending',
+  'disponibilidad.columnas.confirmados': 'Confirmed',
   'disponibilidad.columnas.disponibles': 'Available',
   'disponibilidad.columnas.precio': 'Price',
+  'disponibilidad.agotada': 'Sold out',
+  'disponibilidad.desglosePersonal':
+    'The pending and confirmed breakdown is shown only to staff.',
 
   'ingreso.titulo': 'Sign in',
   'ingreso.introduccion':
@@ -252,13 +257,23 @@ export const en: Mensajes = {
   'salidas.crear': 'New departure',
   'salidas.editar': 'Edit departure',
   'salidas.vacio': 'There are no scheduled departures yet.',
-  'salidas.columnas.paquete': 'Package',
-  'salidas.columnas.salida': 'Departure',
-  'salidas.columnas.retorno': 'Return',
-  'salidas.columnas.cupo': 'Capacity',
-  'salidas.columnas.precio': 'Price',
-  'salidas.columnas.estado': 'Status',
-  'salidas.columnas.acciones': 'Actions',
+  'salidas.vacioDescripcion':
+    'Schedule the first departure for an active package.',
+  'salidas.tarjeta.destino': 'Destination',
+  'salidas.tarjeta.fechas': 'Dates',
+  'salidas.tarjeta.duracion': 'Duration',
+  'salidas.tarjeta.dias': '{dias} days',
+  'salidas.tarjeta.cupo': 'Capacity',
+  'salidas.tarjeta.ocupacion': '{ocupados} of {maximo} booked',
+  'salidas.tarjeta.disponibles': '{disponibles} available',
+  'salidas.tarjeta.agotada': 'Sold out',
+  'salidas.tarjeta.precio': 'Price per person',
+  'salidas.tarjeta.precioBase': 'Base: {precio}',
+  'salidas.tarjeta.puntoEncuentro': 'Meeting point',
+  'salidas.tarjeta.observaciones': 'Notes',
+  'salidas.tarjeta.actualizada': 'Updated on {fecha}',
+  'salidas.tarjeta.paqueteInactivo': 'Inactive package',
+  'salidas.tarjeta.sinDestino': 'No destination',
   'salidas.estados.programada': 'Scheduled',
   'salidas.estados.confirmada': 'Confirmed',
   'salidas.estados.realizada': 'Completed',
@@ -276,6 +291,12 @@ export const en: Mensajes = {
   'salidas.ayudaDuracion':
     'The difference between departure and return, counted in inclusive days, must match the package duration.',
   'salidas.ayudaCupo': 'Maximum number of passengers.',
+  'salidas.ayudaPrecio':
+    'Package base price: {precio}. You can adjust it for this departure.',
+  'salidas.ayudaPrecioVacio':
+    'The package base price is filled in when you choose it.',
+  'salidas.errores.revisar':
+    'Review the package, dates, capacity and price.',
   'salidas.creado': 'Departure created for {paquete}.',
   'salidas.actualizado': 'Departure updated for {paquete}.',
   'salidas.motivoCancelacion': 'Cancellation requires a reason.',

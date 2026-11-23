@@ -9,12 +9,14 @@
 import type {
   EstadoCliente,
   EstadoPaquete,
+  EstadoProveedor,
   EstadoReserva,
   EstadoSalida,
   EstadoUsuario,
   Rol,
   TipoDocumento,
   TipoLugar,
+  TipoProveedor,
   TipoRecorrido,
 } from './domain'
 
@@ -39,6 +41,10 @@ export interface SalidaDisponible {
   fecha_retorno: string
   cupo_maximo: number
   pasajeros_ocupados: number
+  /** Solo para ADMIN y PERSONAL; el cliente recibe `null`. */
+  pasajeros_pendientes: number | null
+  /** Solo para ADMIN y PERSONAL; el cliente recibe `null`. */
+  pasajeros_confirmados: number | null
   cupo_disponible: number
   precio: string
   estado: string
@@ -127,6 +133,42 @@ export interface ServicioResumen {
   orden: number
 }
 
+/** Un proveedor vinculado a un paquete, para la ficha del paquete. */
+export interface ProveedorPaqueteResumen {
+  idProveedor: number
+  nombre: string
+  tipo: TipoProveedor
+  servicio: string
+  costo: string
+}
+
+/** Un paquete atendido por un proveedor. */
+export interface ProveedorPaquete {
+  idPaquete: number
+  codigoPaquete: string
+  paquete: string
+  servicio: string
+  costo: string
+}
+
+/** Un proveedor tal como lo edita el administrador. */
+export interface ProveedorAdmin {
+  idProveedor: number
+  nombre: string
+  tipo: TipoProveedor
+  nit: string | null
+  telefono: string | null
+  correo: string | null
+  direccion: string | null
+  estado: EstadoProveedor
+  paquetes: ProveedorPaquete[]
+}
+
+/** Respuesta de la lista de proveedores. */
+export interface RespuestaProveedores {
+  proveedores: ProveedorAdmin[]
+}
+
 /** Un paquete turístico tal como lo edita el administrador. */
 export interface PaqueteAdmin {
   idPaquete: number
@@ -143,6 +185,7 @@ export interface PaqueteAdmin {
   serviciosDetalle: string | null
   serviciosExcluidos: string | null
   servicios: ServicioResumen[]
+  proveedores: ProveedorPaqueteResumen[]
   estado: EstadoPaquete
   fechaActualizacion: string
 }
@@ -184,12 +227,18 @@ export interface SalidaAdmin {
   idPaquete: number
   codigoPaquete: string
   paquete: string
+  destino: string | null
+  duracionDias: number
   fechaSalida: string
   fechaRetorno: string
   cupoMaximo: number
+  pasajerosOcupados: number
+  cupoDisponible: number
   precio: string
+  precioBase: string
   puntoEncuentro: string | null
   estado: EstadoSalida
+  estadoPaquete: EstadoPaquete
   observaciones: string | null
   fechaActualizacion: string
 }

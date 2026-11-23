@@ -133,6 +133,69 @@ SELECT turismo.fn_crear_salida(
     10, 150::numeric, 'u-prueba', 'Plaza principal', 'Prueba'
 );
 
+-- 5b. La capacidad no baja de los pasajeros reservados y el cambio de
+--     precio queda auditado.
+INSERT INTO turismo.cliente (tipo_documento, numero_documento, nombres, apellidos)
+VALUES ('CI', '99999999', 'Cliente', 'Prueba');
+
+SELECT turismo.fn_crear_reserva(
+    (SELECT id_cliente FROM turismo.cliente WHERE numero_documento = '99999999'),
+    (SELECT s.id_salida
+       FROM turismo.salida s
+       JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+      WHERE p.codigo = 'PRB-04'
+        AND s.fecha_salida = CURRENT_DATE + 10),
+    5, 'personal', 'u-prueba'
+);
+
+DO $$
+BEGIN
+    BEGIN
+        PERFORM turismo.fn_actualizar_salida(
+            (SELECT s.id_salida
+               FROM turismo.salida s
+               JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+              WHERE p.codigo = 'PRB-04'
+                AND s.fecha_salida = CURRENT_DATE + 10),
+            'u-prueba', NULL, NULL, 4, NULL, 'Bajar capacidad', NULL, NULL
+        );
+        RAISE EXCEPTION 'FALLO: se bajó la capacidad por debajo de los reservados';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: capacidad menor que los reservados rechazada';
+    END;
+END;
+$$;
+
+SELECT turismo.fn_actualizar_salida(
+    (SELECT s.id_salida
+       FROM turismo.salida s
+       JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+      WHERE p.codigo = 'PRB-04'
+        AND s.fecha_salida = CURRENT_DATE + 10),
+    'u-prueba', NULL, NULL, NULL, 180::numeric, 'Ajuste de precio', NULL, NULL
+);
+
+DO $$
+DECLARE
+    v_auditoria INT;
+BEGIN
+    SELECT count(*) INTO v_auditoria
+    FROM turismo.historial_salida h
+    JOIN turismo.salida s ON s.id_salida = h.id_salida
+    JOIN turismo.paquete p ON p.id_paquete = s.id_paquete
+    WHERE p.codigo = 'PRB-04'
+      AND s.fecha_salida = CURRENT_DATE + 10
+      AND h.campo_modificado = 'precio';
+
+    IF v_auditoria = 0 THEN
+        RAISE EXCEPTION 'FALLO: no se auditó el cambio de precio';
+    END IF;
+
+    RAISE NOTICE 'OK: cambio de precio auditado';
+END;
+$$;
+
 -- 6. No se repite la salida del mismo paquete el mismo día.
 DO $$
 BEGIN

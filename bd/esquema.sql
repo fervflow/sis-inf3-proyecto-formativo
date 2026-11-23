@@ -220,6 +220,9 @@ CREATE TABLE proveedor (
     CONSTRAINT ck_proveedor_estado CHECK (estado IN ('activo', 'inactivo'))
 );
 
+-- El nombre comercial identifica al proveedor en el catálogo.
+CREATE UNIQUE INDEX ux_proveedor_nombre ON proveedor (lower(btrim(nombre)));
+
 CREATE TABLE paquete (
     id_paquete          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     codigo              VARCHAR(20) NOT NULL UNIQUE,
