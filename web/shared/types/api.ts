@@ -47,10 +47,10 @@ export interface SalidaDisponible {
   fecha_retorno: string
   cupo_maximo: number
   pasajeros_ocupados: number
-  /** Solo para ADMIN y PERSONAL; el cliente recibe `null`. */
-  pasajeros_pendientes: number | null
-  /** Solo para ADMIN y PERSONAL; el cliente recibe `null`. */
-  pasajeros_confirmados: number | null
+  /** Pasajeros de solicitudes pendientes vigentes (en revisión). */
+  pasajeros_pendientes: number
+  /** Pasajeros de reservas confirmadas. */
+  pasajeros_confirmados: number
   cupo_disponible: number
   precio: string
   /** Precio de catálogo del paquete, para comparar con el de la salida. */

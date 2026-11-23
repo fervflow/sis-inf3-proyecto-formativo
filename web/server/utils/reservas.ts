@@ -13,6 +13,7 @@ import { z } from 'zod'
 import * as schema from '../../db/schema'
 import type { ReservaResumen } from '#shared/types/api'
 import type { EstadoReserva, OrigenReserva } from '#shared/types/domain'
+import { SOLICITUD_WEB_MAXIMO_PASAJEROS } from '#shared/reservas'
 
 const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'datos_invalidos')
 
@@ -28,7 +29,9 @@ export const esquemaReservaPersonal = z.object({
  * Cuerpo de la solicitud directa del cliente por el canal web.
  *
  * El cliente se identifica por su documento: si la ficha ya existe se
- * reutiliza y si no se registra con los datos de contacto que envía.
+ * reutiliza y si no se registra con los datos de contacto que envía. El
+ * tope de pasajeros es el de RN-RES-15; la función de la base lo vuelve a
+ * comprobar.
  */
 export const esquemaReservaPublica = z.object({
   tipoDocumento: z.enum(['CI', 'NIT', 'PASAPORTE', 'OTRO']),
@@ -38,7 +41,11 @@ export const esquemaReservaPublica = z.object({
   correo: z.union([z.literal(''), z.email().max(150)]).optional(),
   telefono: z.string().trim().max(30).optional(),
   idSalida: z.coerce.number().int().positive(),
-  cantidadPasajeros: z.coerce.number().int().min(1).max(32_767),
+  cantidadPasajeros: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(SOLICITUD_WEB_MAXIMO_PASAJEROS, 'solicitud_grande'),
 })
 
 /** Identificador de la cuenta de sistema de la semilla. */
@@ -156,6 +163,16 @@ export function codigoErrorReserva(error: unknown): string {
   const mensaje = base.message ?? ''
 
   if (mensaje.includes('cupo suficiente')) return 'cupo_insuficiente'
+  if (
+    mensaje.includes(
+      `hasta ${SOLICITUD_WEB_MAXIMO_PASAJEROS} pasajeros`,
+    )
+  ) {
+    return 'solicitud_grande'
+  }
+  if (mensaje.includes('demasiadas solicitudes pendientes')) {
+    return 'solicitudes_excedidas'
+  }
   if (mensaje.includes('ya tiene una solicitud pendiente')) {
     return 'solicitud_pendiente'
   }

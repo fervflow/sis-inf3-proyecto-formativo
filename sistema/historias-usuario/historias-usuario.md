@@ -209,8 +209,13 @@ sistema no pueda cumplir.
 - La validación de cupos se ejecuta dentro de una transacción que bloquea la
   fila de la salida, de modo que dos registros simultáneos no puedan superar
   la capacidad.
-- El cupo se calcula sobre las reservas pendientes y confirmadas; las
-  vencidas y las canceladas no se cuentan.
+- El cupo se calcula sobre las reservas pendientes vigentes y las
+  confirmadas; las vencidas y las canceladas no se cuentan.
+- Una solicitud web no retiene todo el cupo: admite hasta 4 pasajeros y, en
+  conjunto, las pendientes web de una salida no retienen más de la mitad
+  del cupo.
+- El desglose de confirmados y de pendientes en revisión es público, para
+  que se distinga la venta hecha de la que está en revisión.
 - El cliente puede tener una sola solicitud pendiente por salida; una
   necesidad adicional se gestiona modificando la solicitud existente.
 - Toda reserva pendiente tiene fecha de vencimiento a 48 horas de su

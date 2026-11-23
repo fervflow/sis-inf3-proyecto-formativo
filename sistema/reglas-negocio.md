@@ -270,6 +270,8 @@ el campo `origen`. El cupo lo calcula la base; ninguna capa la reimplementa.
 | RN-RES-12 | Solo una cotización aceptada del mismo cliente y de la misma salida puede originar una reserva, y el vínculo es único. | HU-06 | API de reservas y `reserva.id_cotizacion` | Vigente |
 | RN-RES-13 | La consulta del personal muestra las solicitudes de ambos canales con su cliente, su salida, su monto y su fecha de vencimiento, con filtro por estado. | HU-17 | API `GET /api/reservas` e interfaz «Solicitudes» | Vigente |
 | RN-RES-14 | La reserva no se elimina nunca: la cancelación la ejecuta el personal con motivo y fecha, y las reservas vencidas, canceladas y finalizadas no se modifican. | HU-13, HU-07 | Pendiente: módulo de cancelaciones | Propuesta |
+| RN-RES-15 | Una solicitud del canal web admite como máximo 4 pasajeros; los grupos mayores se atienden por la oficina, en el canal personal, que no tiene ese tope. | Decisión del proyecto | `fn_crear_reserva`, Zod e interfaz | Vigente |
+| RN-RES-16 | Las solicitudes web pendientes vigentes de una misma salida no retienen en conjunto más de la mitad del cupo máximo; alcanzado el tope, nuevas solicitudes web se rechazan hasta que el personal confirme o venza alguna. Las pendientes del canal personal no cuentan para el tope. | Decisión del proyecto | `fn_crear_reserva` | Vigente |
 
 ### 13.1 Máquina de estados de la reserva
 

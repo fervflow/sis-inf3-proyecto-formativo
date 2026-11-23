@@ -93,7 +93,7 @@ export const es = {
   'disponibilidad.columnas.precio': 'Precio',
   'disponibilidad.agotada': 'Agotada',
   'disponibilidad.desgloseLinea':
-    'Pendientes: {pendientes} · Confirmados: {confirmados}',
+    'Confirmados: {confirmados} · Pendientes: {pendientes}',
   'disponibilidad.columnas.acciones': 'Reservar',
   'disponibilidad.solicitar': 'Solicitar',
 
@@ -608,6 +608,10 @@ export const es = {
   'errores.clienteInactivo': 'El cliente está inactivo; actívalo para reservar.',
   'errores.fechaFutura': 'La fecha de nacimiento no puede ser futura.',
   'errores.cupoInsuficiente': 'No hay cupo suficiente para esa salida.',
+  'errores.solicitudGrande':
+    'Una solicitud web admite hasta 4 pasajeros; para grupos mayores, consulta en la agencia.',
+  'errores.solicitudesExcedidas':
+    'Esta salida tiene muchas solicitudes pendientes de confirmación. Consulta con la agencia o espera unas horas.',
   'errores.solicitudPendiente':
     'Ya hay una solicitud pendiente de ese cliente para esa salida.',
   'errores.solicitudVencida':

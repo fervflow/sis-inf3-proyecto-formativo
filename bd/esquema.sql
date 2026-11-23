@@ -711,6 +711,7 @@ AS $$
 DECLARE
     v_cupo_maximo SMALLINT;
     v_ocupados    INT;
+    v_retenidos   INT;
     v_id_reserva  BIGINT;
 BEGIN
     IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
@@ -732,6 +733,32 @@ BEGIN
     IF NOT FOUND THEN
         RAISE EXCEPTION 'La salida % no existe o no admite reservas', p_id_salida
             USING ERRCODE = 'no_data_found';
+    END IF;
+
+    -- Tope de la solicitud web (RN-RES-15): el formulario anónimo no
+    -- retiene todo el cupo en una sola solicitud; los grupos mayores se
+    -- atienden por la oficina, en el canal personal.
+    IF p_origen = 'web' AND p_cantidad > 4 THEN
+        RAISE EXCEPTION 'Una solicitud del canal web admite hasta 4 pasajeros; los grupos mayores se atienden en la agencia'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Tope global de retención (RN-RES-16): las solicitudes web pendientes
+    -- vigentes no retienen más de la mitad del cupo, para que una avalancha
+    -- de formularios no bloquee la venta. Las pendientes del canal personal
+    -- no cuentan: hay una persona atendida detrás. Confirmar libera espacio.
+    IF p_origen = 'web' THEN
+        SELECT COALESCE(SUM(r.cantidad_pasajeros), 0)::INT INTO v_retenidos
+        FROM reserva r
+        WHERE r.id_salida = p_id_salida
+          AND r.origen = 'web'
+          AND r.estado = 'pendiente'
+          AND (r.fecha_expiracion IS NULL OR r.fecha_expiracion > now());
+
+        IF v_retenidos + p_cantidad > (v_cupo_maximo + 1) / 2 THEN
+            RAISE EXCEPTION 'La salida tiene demasiadas solicitudes pendientes de confirmación; consulta con la agencia'
+                USING ERRCODE = 'check_violation';
+        END IF;
     END IF;
 
     -- Ocupación efectiva: una solicitud pendiente cuyo plazo ya venció

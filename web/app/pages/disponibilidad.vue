@@ -58,7 +58,6 @@
 
 <script setup lang="ts">
 import type {
-  RespuestaCuenta,
   RespuestaDisponibilidad,
   ReservaResumen,
   SalidaDisponible,
@@ -69,34 +68,21 @@ const mensajeDeError = useMensajeError()
 const { fecha, fechaHora } = useFormato()
 const peticion = useRequestFetch()
 
-const {
-  data,
-  pending: pendiente,
-  error: errorConsulta,
-  refresh: recargar,
-} = await useAsyncData<RespuestaDisponibilidad>('disponibilidad', () =>
-  peticion<RespuestaDisponibilidad>('/api/disponibilidad'),
-)
-
-const { data: cuenta } = useNuxtData<RespuestaCuenta>('cuenta')
-
-const esPersonal = computed(
-  () =>
-    cuenta.value?.usuario?.rol === 'ADMIN' ||
-    cuenta.value?.usuario?.rol === 'PERSONAL',
-)
+const { data, pending: pendiente, error: errorConsulta, refresh: recargar } =
+  await useAsyncData<RespuestaDisponibilidad>('disponibilidad', () =>
+    peticion<RespuestaDisponibilidad>('/api/disponibilidad'),
+  )
 
 const salidas = computed<SalidaDisponible[]>(() => data.value?.salidas ?? [])
 const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
 )
 
-/** Desglose de pendientes y confirmados, solo para el personal. */
+/** Desglose de confirmados y pendientes, visible para todos. */
 function desgloseDe(salida: SalidaDisponible): string {
-  if (!esPersonal.value) return ''
   return t('disponibilidad.desgloseLinea', {
-    pendientes: salida.pasajeros_pendientes ?? 0,
-    confirmados: salida.pasajeros_confirmados ?? 0,
+    confirmados: salida.pasajeros_confirmados,
+    pendientes: salida.pasajeros_pendientes,
   })
 }
 

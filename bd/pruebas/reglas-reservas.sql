@@ -162,7 +162,12 @@ DECLARE
     v_audita     INT;
 BEGIN
     SELECT id_reserva INTO v_id_reserva
-    FROM reserva WHERE estado = 'pendiente' LIMIT 1;
+    FROM reserva
+    WHERE estado = 'pendiente'
+      AND id_salida = (SELECT id_salida FROM salida
+          WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB'))
+    ORDER BY id_reserva
+    LIMIT 1;
 
     PERFORM fn_confirmar_reserva(v_id_reserva, 'u-prueba');
 
@@ -242,7 +247,86 @@ BEGIN
 END;
 $$;
 
--- 7. Una salida ya realizada no admite reservas.
+-- 7. Tope de la solicitud web: una solicitud del canal web no admite más
+--    de 4 pasajeros (RN-RES-15), aunque el cupo alcanza.
+DO $$
+DECLARE
+    v_salida BIGINT;
+    v_cliente BIGINT;
+BEGIN
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB');
+
+    SELECT id_cliente INTO v_cliente FROM cliente
+    WHERE numero_documento = 'PRB-0002';
+
+    BEGIN
+        PERFORM fn_crear_reserva(v_cliente, v_salida, 5, 'web', 'sistema');
+        RAISE EXCEPTION 'FALLO: se aceptó una solicitud web de 5 pasajeros';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: la solicitud web de 5 pasajeros se rechaza por el tope del canal';
+    END;
+
+    -- El canal personal no tiene ese tope.
+    PERFORM fn_crear_reserva(v_cliente, v_salida, 5, 'personal', 'u-prueba');
+    RAISE NOTICE 'OK: el canal personal admite más de 4 pasajeros';
+END;
+$$;
+
+-- 8. Tope global de retención: las solicitudes web pendientes vigentes de
+--    una salida no retienen más de la mitad del cupo (RN-RES-16). La
+--    salida de prueba tiene 20 lugares; el tope web es 10. Al llegar aquí
+--    hay 5 confirmadas y 5 pendientes del canal personal, que no cuentan
+--    para la retención web.
+DO $$
+DECLARE
+    v_salida BIGINT;
+BEGIN
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB');
+
+    -- Tres solicitudes web de 3 pasajeros: 9 de los 10 lugares retenibles.
+    PERFORM fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0001'),
+        v_salida, 3, 'web', 'sistema');
+
+    INSERT INTO cliente (tipo_documento, numero_documento, nombres, apellidos)
+    VALUES ('CI', 'PRB-0003', 'Prueba', 'Tres');
+    PERFORM fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0003'),
+        v_salida, 3, 'web', 'sistema');
+
+    INSERT INTO cliente (tipo_documento, numero_documento, nombres, apellidos)
+    VALUES ('CI', 'PRB-0004', 'Prueba', 'Cuatro');
+    PERFORM fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0004'),
+        v_salida, 3, 'web', 'sistema');
+    RAISE NOTICE 'OK: la avalancha retiene 9 de los 10 lugares web';
+
+    -- Un quinto cliente no puede retener 2 más: 9 + 2 superan el tope.
+    INSERT INTO cliente (tipo_documento, numero_documento, nombres, apellidos)
+    VALUES ('CI', 'PRB-0005', 'Prueba', 'Cinco');
+
+    BEGIN
+        PERFORM fn_crear_reserva(
+            (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0005'),
+            v_salida, 2, 'web', 'sistema');
+        RAISE EXCEPTION 'FALLO: la retención web superó la mitad del cupo';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: la avalancha de solicitudes web no retiene más de la mitad del cupo';
+    END;
+
+    -- El personal sigue vendiendo aunque la retención web esté al tope.
+    PERFORM fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0005'),
+        v_salida, 1, 'personal', 'u-prueba');
+    RAISE NOTICE 'OK: el personal vende aunque la retención web esté al tope';
+END;
+$$;
+
+-- 9. Una salida ya realizada no admite reservas.
 DO $$
 DECLARE
     v_salida  BIGINT;

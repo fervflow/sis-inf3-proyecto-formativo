@@ -12,6 +12,7 @@ import type {
   ReservaResumen,
   SalidaDisponible,
 } from '#shared/types/api'
+import { SOLICITUD_WEB_MAXIMO_PASAJEROS } from '#shared/reservas'
 
 const props = defineProps<{
   /** Salida a la que se pide cupo. */
@@ -161,7 +162,10 @@ defineExpose({
       <UInputNumber
         v-model="formulario.cantidadPasajeros"
         :min="1"
-        :max="Math.max(1, salida.cupo_disponible)"
+        :max="Math.max(
+          1,
+          Math.min(salida.cupo_disponible, SOLICITUD_WEB_MAXIMO_PASAJEROS),
+        )"
         :step="1"
         :increment="false"
         :decrement="false"

@@ -82,7 +82,7 @@ export const en: Mensajes = {
   'disponibilidad.columnas.precio': 'Price',
   'disponibilidad.agotada': 'Sold out',
   'disponibilidad.desgloseLinea':
-    'Pending: {pendientes} · Confirmed: {confirmados}',
+    'Confirmed: {confirmados} · Pending: {pendientes}',
   'disponibilidad.columnas.acciones': 'Book',
   'disponibilidad.solicitar': 'Request',
 
@@ -595,6 +595,10 @@ export const en: Mensajes = {
   'errores.clienteInactivo': 'The client is inactive; activate them to book.',
   'errores.fechaFutura': 'The date of birth cannot be in the future.',
   'errores.cupoInsuficiente': 'There is not enough quota for that departure.',
+  'errores.solicitudGrande':
+    'A web request accepts up to 4 passengers; for larger groups, contact the agency.',
+  'errores.solicitudesExcedidas':
+    'This departure has many requests pending confirmation. Contact the agency or wait a few hours.',
   'errores.solicitudPendiente':
     'There is already a pending request from that client for that departure.',
   'errores.solicitudVencida':

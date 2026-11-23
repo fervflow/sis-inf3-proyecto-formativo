@@ -60,6 +60,8 @@ const CODIGOS: Record<string, ClaveMensaje> = {
   cliente_inactivo: 'errores.clienteInactivo',
   fecha_futura: 'errores.fechaFutura',
   cupo_insuficiente: 'errores.cupoInsuficiente',
+  solicitud_grande: 'errores.solicitudGrande',
+  solicitudes_excedidas: 'errores.solicitudesExcedidas',
   solicitud_pendiente: 'errores.solicitudPendiente',
   solicitud_vencida: 'errores.solicitudVencida',
   reserva_inexistente: 'errores.reservaInexistente',

@@ -78,3 +78,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-23 14:53 | `2026-11-23T145312_proveedores-y-cotizaciones.md` | Proveedores con vínculos a paquetes, cotizaciones con número automático, condiciones y datos de ejemplo. |
 | 2026-11-23 16:30 | `2026-11-23T163056_reservas-y-solicitudes.md` | Reservas en los dos canales con validación de cupos, página de solicitudes del personal, confirmación y vencimiento de las pendientes. |
 | 2026-11-23 17:09 | `2026-11-23T170900_cupos-en-cotizaciones-y-tarjetas-de-disponibilidad.md` | Control de cupos en cotizaciones, tarjetas informativas en la disponibilidad y botón de envío en la solicitud web. |
+| 2026-11-23 17:46 | `2026-11-23T174644_topes-del-canal-web-y-desglose-publico.md` | Tope de pasajeros y de retención para las solicitudes web, desglose público de confirmados y pendientes, y prueba con alcance corregido. |
