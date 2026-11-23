@@ -94,6 +94,8 @@
               <UCheckbox
                 v-for="tipo in tipos"
                 :key="tipo.value"
+                :id="`proveedor-tipo-${tipo.value}`"
+                :name="`proveedor-tipo-${tipo.value}`"
                 :model-value="formulario.tipos.includes(tipo.value)"
                 :label="tipo.label"
                 @update:model-value="(valor) => alternarTipo(tipo.value, valor === true)"

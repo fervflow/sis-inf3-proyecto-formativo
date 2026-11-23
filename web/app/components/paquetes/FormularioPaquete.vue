@@ -601,6 +601,8 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
               <UCheckbox
                 v-for="servicio in serviciosDisponibles"
                 :key="servicio.idServicio"
+                :id="`paquete-servicio-${servicio.idServicio}`"
+                :name="`paquete-servicio-${servicio.idServicio}`"
                 :model-value="formulario.servicios.includes(servicio.idServicio)"
                 :label="servicio.nombre"
                 @update:model-value="
