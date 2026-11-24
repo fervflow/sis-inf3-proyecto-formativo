@@ -135,8 +135,8 @@ SELECT turismo.fn_crear_salida(
 
 -- 5b. La capacidad no baja de los pasajeros reservados y el cambio de
 --     precio queda auditado.
-INSERT INTO turismo.cliente (tipo_documento, numero_documento, nombres, apellidos)
-VALUES ('CI', '99999999', 'Cliente', 'Prueba');
+INSERT INTO turismo.cliente (tipo_documento, numero_documento, nombres, apellidos, correo)
+VALUES ('CI', '99999999', 'Cliente', 'Prueba', 'prueba999@prueba.bo');
 
 SELECT turismo.fn_crear_reserva(
     (SELECT id_cliente FROM turismo.cliente WHERE numero_documento = '99999999'),

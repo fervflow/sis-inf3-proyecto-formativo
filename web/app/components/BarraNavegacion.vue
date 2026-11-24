@@ -27,6 +27,7 @@ const esAdmin = computed(() => props.cuenta?.rol === 'ADMIN')
 const esPersonal = computed(
   () => props.cuenta?.rol === 'ADMIN' || props.cuenta?.rol === 'PERSONAL',
 )
+const esCliente = computed(() => props.cuenta?.rol === 'CLIENTE')
 
 const idiomaSeleccionado = computed<CodigoIdioma>({
   get: () => idioma.value,
@@ -151,6 +152,14 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
     },
   ]
 
+  if (esCliente.value) {
+    principal.push({
+      label: t('nav.misReservas'),
+      icon: 'i-lucide-ticket',
+      to: '/mis-reservas',
+    })
+  }
+
   if (esPersonal.value) {
     principal.push(
       {
@@ -241,6 +250,14 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
           :variant="variante('/disponibilidad')"
           :color="colorDe('/disponibilidad')"
           :label="t('nav.disponibilidad')"
+        />
+
+        <UButton
+          v-if="esCliente"
+          to="/mis-reservas"
+          :variant="variante('/mis-reservas')"
+          :color="colorDe('/mis-reservas')"
+          :label="t('nav.misReservas')"
         />
 
         <!--

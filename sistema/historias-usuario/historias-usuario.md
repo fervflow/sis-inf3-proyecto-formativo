@@ -103,11 +103,14 @@ sistema no pueda cumplir.
 
 ### HU-15 · Abrir una cuenta de cliente y acceder a su información
 
-- La cuenta se crea con correo, tipo y número de documento, nombre y
-  teléfono; el documento no puede repetirse.
-- Un cliente puede tener como máximo una cuenta vinculada a su ficha.
-- La ficha del cliente puede existir sin cuenta: el personal sigue atendiendo
-  a quien no se registra.
+- El cliente crea su cuenta él mismo desde la web: correo real, contraseña
+  propia, tipo y número de documento, nombre y teléfono; el correo y el
+  documento no pueden repetirse.
+- El registro crea la cuenta y la ficha del cliente en un solo paso. Si el
+  documento ya tiene ficha, la cuenta se vincula a ella y no se duplica.
+- Un cliente puede tener como máximo una cuenta vinculada a su ficha; una
+  ficha puede existir sin cuenta, porque el personal sigue atendiendo a
+  quien no se registra.
 - El cliente ve sus reservas, sus pagos y el estado de sus solicitudes, y
   ninguna otra información.
 - La cuenta puede bloquearse si se detectan solicitudes repetidas o un uso
@@ -158,8 +161,8 @@ sistema no pueda cumplir.
 
 ### HU-04 · Registro y actualización de la ficha del cliente
 
-- La ficha se registra con tipo y número de documento, nombre y teléfono; el
-  documento no puede repetirse.
+- La ficha se registra con tipo y número de documento, nombre, correo y
+  teléfono; el documento y el correo no pueden repetirse.
 - Al ingresar un documento ya existente, el sistema muestra la ficha vigente
   en lugar de crear otra.
 - La ficha puede existir sin cuenta de usuario: el personal sigue atendiendo a
@@ -206,6 +209,8 @@ sistema no pueda cumplir.
 
 - La reserva se crea en estado pendiente en los dos canales; la atención del
   personal y la solicitud del cliente se distinguen por el campo de origen.
+- La solicitud web la hace un cliente con sesión sobre su propia ficha: la
+  firma su cuenta y no se registran fichas desde formularios anónimos.
 - La validación de cupos se ejecuta dentro de una transacción que bloquea la
   fila de la salida, de modo que dos registros simultáneos no puedan superar
   la capacidad.
@@ -218,7 +223,7 @@ sistema no pueda cumplir.
   que se distinga la venta hecha de la que está en revisión.
 - El cliente puede tener una sola solicitud pendiente por salida; una
   necesidad adicional se gestiona modificando la solicitud existente.
-- Toda reserva pendiente tiene fecha de vencimiento a 48 horas de su
+- Toda reserva pendiente tiene fecha de vencimiento a 24 horas de su
   creación.
 - El registro de los pasajeros coincide con la cantidad declarada en la
   reserva.
@@ -258,9 +263,10 @@ sistema no pueda cumplir.
 ### HU-17 · Confirmación de solicitudes y control de su vencimiento
 
 - El personal ve una lista de solicitudes pendientes de ambos canales con su
-  fecha de vencimiento.
+  fecha de vencimiento y el estado de su anticipo.
 - Confirmar una solicitud cambia su estado a confirmada, limpia la fecha de
-  vencimiento y queda auditado.
+  vencimiento y queda auditado; exige el anticipo validado (RN-RES-18), y la
+  confirmación se rechaza sin él.
 - Una solicitud no confirmada dentro del plazo pasa a vencida y libera los
   cupos de forma automática.
 - Una solicitud vencida no puede confirmarse después; el cliente debe
@@ -295,6 +301,9 @@ sistema no pueda cumplir.
 - El cliente puede solicitar la cancelación de una reserva propia que no
   esté finalizada; la solicitud no modifica el estado por sí sola.
 - El personal ejecuta la cancelación, indica el motivo y la fecha.
+- La devolución sigue los tramos del catálogo de pagos (RN-PAG-07): el 100%
+  del abonado validado a 15 días o más de la salida, el 50% entre 8 y 14
+  días y nada con 7 días o menos; si la cancela la agencia, el 100%.
 - La cancelación es lógica: la reserva conserva su historial y los cupos se
   liberan por cálculo, sin eliminar registros.
 - La devolución del dinero se gestiona fuera del sistema y no se registra
@@ -303,18 +312,24 @@ sistema no pueda cumplir.
 
 ### HU-14 · Registro y validación de anticipos y saldos de una reserva
 
-- El pago se registra con tipo (anticipo o saldo), importe mayor que cero,
-  fecha, método y concepto.
-- Solo puede existir un anticipo y un saldo por reserva; un segundo pago del
-  mismo tipo se rechaza.
-- El pago registrado por el cliente desde su cuenta queda en estado registrado
-  y no cuenta como abonado hasta que el personal lo valida.
+- El anticipo no puede ser menor al 30% del monto de la reserva; pagar la
+  totalidad se registra como un anticipo por el monto completo.
+- Solo puede existir un anticipo y un saldo por reserva; el saldo paga el
+  resto completo y ningún pago supera el saldo pendiente.
+- El pago se registra con tipo (anticipo o saldo), importe, fecha, método y
+  referencia; solo las reservas pendientes o confirmadas admiten pagos.
+- Por la web el pago se emula con banca móvil o código QR: la pasarela
+  simulada genera la referencia y el pago queda en estado registrado.
+- El pago registrado por el cliente desde su cuenta no cuenta como abonado
+  hasta que el personal lo valida.
 - El personal valida o anula el pago, dejando el usuario y la fecha de la
   validación; solo los pagos validados suman al total abonado.
 - El saldo pendiente se calcula como el importe total de la reserva menos los
   pagos validados.
 - La consulta del saldo muestra el total abonado, el saldo pendiente y el
   historial de pagos con su estado.
+- Los lineamientos de devolución (RN-PAG-07) se muestran al cliente antes de
+  pagar; su ejecución queda fuera del sistema.
 
 ### HU-16 · Avisos de cambios de fecha y capacidad de una salida
 
@@ -591,6 +606,13 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
     pasaron a ser servicios incluidos: las casillas son la lista de lo que
     cubre el precio y el itinerario es el relato día por día. El código del
     paquete se genera solo y no se edita.
+19. El canal web pasó de solicitud anónima a solicitud con cuenta: el
+    cliente se registra con correo y documento, paga el anticipo con una
+    pasarela simulada (banca móvil o QR) y el personal valida el pago antes
+    de confirmar. El vencimiento de una solicitud pendiente bajó de 48 a 24
+    horas y el anticipo mínimo quedó en el 30% del monto; la totalidad
+    también puede pagarse por la web. El panel de usuarios dejó de crear
+    cuentas de cliente y el correo es obligatorio en toda ficha.
 
 ## Pendientes para la próxima revisión
 

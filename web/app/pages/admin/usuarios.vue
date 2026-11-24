@@ -118,7 +118,11 @@
             <UInput v-model="formulario.telefono" class="w-full" />
           </UFormField>
 
-          <UFormField :label="t('usuarios.form.rol')" name="rol">
+          <UFormField
+            :label="t('usuarios.form.rol')"
+            name="rol"
+            :help="t('usuarios.ayudaRol')"
+          >
             <USelect v-model="formulario.rol" :items="roles" class="w-full" />
           </UFormField>
 
@@ -233,11 +237,10 @@ const formulario = reactive({
   nombres: '',
   apellidos: '',
   telefono: '',
-  rol: 'CLIENTE' as Rol,
+  rol: 'PERSONAL' as Rol,
 })
 
 const roles = computed<{ label: string; value: Rol }[]>(() => [
-  { label: t('usuarios.roles.CLIENTE'), value: 'CLIENTE' },
   { label: t('usuarios.roles.PERSONAL'), value: 'PERSONAL' },
   { label: t('usuarios.roles.ADMIN'), value: 'ADMIN' },
 ])
@@ -247,7 +250,7 @@ function abrirFormulario() {
   formulario.nombres = ''
   formulario.apellidos = ''
   formulario.telefono = ''
-  formulario.rol = 'CLIENTE'
+  formulario.rol = 'PERSONAL'
   errorFormulario.value = null
   formularioAbierto.value = true
 }

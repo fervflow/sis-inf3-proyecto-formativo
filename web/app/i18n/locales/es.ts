@@ -27,6 +27,7 @@ export const es = {
   'nav.proveedores': 'Proveedores',
   'nav.usuarios': 'Usuarios',
   'nav.gestion': 'Gestión',
+  'nav.misReservas': 'Mis reservas',
   'nav.principal': 'Navegación principal',
   'nav.menu': 'Abrir el menú',
   'nav.cuenta': 'Mi cuenta',
@@ -102,10 +103,10 @@ export const es = {
   'disponibilidad.columnas.acciones': 'Reservar',
   'disponibilidad.solicitar': 'Solicitar',
 
-  'solicitudes.publico.titulo': 'Solicitar una reserva',
-  'solicitudes.publico.enviar': 'Enviar solicitud',
-  'solicitudes.registrada':
-    'Solicitud registrada con el código {codigo}. Tienes hasta el {vencimiento} para que la agencia la confirme.',
+  'solicitudes.cliente.titulo': 'Solicitar una reserva',
+  'solicitudes.cliente.enviar': 'Solicitar reserva',
+  'solicitudes.ingresar':
+    'Para reservar, ingresa con tu cuenta o créala: solo se reservan las salidas con la ficha de tu cuenta.',
   'solicitudes.titulo': 'Solicitudes de reserva',
   'solicitudes.introduccion':
     'Solicitudes pendientes de ambos canales. Confirmarlas descontadas del plazo las pasa a reservas confirmadas; las que vencen liberan su cupo.',
@@ -123,8 +124,11 @@ export const es = {
   'solicitudes.columnas.pasajeros': 'Pasajeros',
   'solicitudes.columnas.monto': 'Monto',
   'solicitudes.columnas.estado': 'Estado',
+  'solicitudes.columnas.anticipo': 'Anticipo',
   'solicitudes.columnas.vencimiento': 'Vence',
   'solicitudes.columnas.acciones': 'Acciones',
+  'solicitudes.sinAnticipo': 'Sin anticipo',
+  'solicitudes.pagos.abrir': 'Pagos',
   'solicitudes.origenes.personal': 'Personal',
   'solicitudes.origenes.web': 'Web',
   'solicitudes.estados.pendiente': 'Pendiente',
@@ -140,31 +144,43 @@ export const es = {
   'solicitudes.sinSalidas':
     'No hay salidas con cupo. Programa una salida para reservar.',
   'solicitudes.disponibles': 'disponibles',
+  'solicitudes.porPasajero': 'por pasajero',
   'solicitudes.form.cliente': 'Cliente',
   'solicitudes.form.salida': 'Salida',
   'solicitudes.form.cantidad': 'Cantidad de pasajeros',
-  'solicitudes.form.tipoDocumento': 'Tipo de documento',
-  'solicitudes.form.numeroDocumento': 'Número de documento',
-  'solicitudes.form.nombres': 'Nombres',
-  'solicitudes.form.apellidos': 'Apellidos',
-  'solicitudes.form.correo': 'Correo (opcional)',
-  'solicitudes.form.telefono': 'Teléfono (opcional)',
   'solicitudes.ayudaCantidad':
-    'La cantidad no puede superar el cupo disponible de la salida.',
-  'solicitudes.ayudaCorreo':
-    'La agencia se comunica con este correo para confirmar tu reserva.',
+    'Por la web hasta 4 pasajeros y sin superar el cupo disponible; los grupos mayores se atienden en la agencia.',
   'solicitudes.ayudaVencimiento':
-    'La solicitud queda pendiente y vence a las 48 horas si no se confirma.',
+    'La solicitud queda pendiente y vence a las 24 horas si no se confirma.',
 
   'ingreso.titulo': 'Ingresar al sistema',
   'ingreso.introduccion':
-    'Las cuentas las crea el administrador. Escribe el nombre de usuario que te entregó.',
-  'ingreso.usuario': 'Usuario',
+    'Las cuentas del personal las crea el administrador; como cliente, crea la tuya en «Crear cuenta».',
+  'ingreso.usuario': 'Usuario o correo',
+  'ingreso.sinCuenta': '¿No tienes cuenta?',
+  'ingreso.crearCuenta': 'Crear una',
   'ingreso.contrasena': 'Contraseña',
   'ingreso.pista':
     'La primera vez, la contraseña es el mismo nombre de usuario.',
   'ingreso.error': 'Usuario o contraseña incorrectos.',
   'ingreso.bloqueada': 'La cuenta no está activa. Consulta con el administrador.',
+
+  'registro.titulo': 'Crear tu cuenta',
+  'registro.introduccion':
+    'Con tu cuenta pides reservas, pagas tu anticipo y sigues tus solicitudes sin pasar por la oficina. La ficha se crea con tu documento; si ya la registraste en la agencia, se vincula a tu cuenta.',
+  'registro.form.correo': 'Correo',
+  'registro.ayudaCorreo':
+    'Obligatorio y único: por aquí recibirás las confirmaciones y los avisos.',
+  'registro.form.contrasena': 'Contraseña',
+  'registro.ayudaContrasena': 'Al menos 8 caracteres.',
+  'registro.form.nombres': 'Nombres',
+  'registro.form.apellidos': 'Apellidos',
+  'registro.form.tipoDocumento': 'Tipo de documento',
+  'registro.form.numeroDocumento': 'Número de documento',
+  'registro.form.telefono': 'Teléfono (opcional)',
+  'registro.enviar': 'Crear cuenta',
+  'registro.tengoCuenta': '¿Ya tienes cuenta?',
+  'registro.ingresar': 'Ingresa aquí',
 
   'cambio.titulo': 'Cambiar la contraseña',
   'cambio.introduccion':
@@ -212,6 +228,8 @@ export const es = {
   'usuarios.form.apellidos': 'Apellidos',
   'usuarios.form.telefono': 'Teléfono (opcional)',
   'usuarios.form.rol': 'Rol',
+  'usuarios.ayudaRol':
+    'Las cuentas de cliente se registran ellos mismos desde la web; el panel solo crea administradores y personal.',
   'usuarios.form.ayudaUsuario':
     'Entre 8 y 30 caracteres: minúsculas, números, punto, guion o guion bajo. También será la contraseña inicial.',
 
@@ -505,6 +523,79 @@ export const es = {
   'salidas.actualizado': 'Salida actualizada para {paquete}.',
   'salidas.motivoCancelacion': 'La cancelación exige un motivo.',
 
+  'pagos.titulo': 'Pagos de la reserva',
+  'pagos.total': 'Total',
+  'pagos.comprometido': 'Comprometido',
+  'pagos.abonado': 'Abonado',
+  'pagos.enRevision': 'En revisión',
+  'pagos.saldoPendiente': 'Saldo pendiente',
+  'pagos.sinAnticipoValidado':
+    'Sin anticipo validado: la confirmación de la reserva lo exige.',
+  'pagos.sinPagos': 'Sin pagos registrados.',
+  'pagos.validar': 'Validar',
+  'pagos.anular': 'Anular',
+  'pagos.registrar': 'Registrar pago',
+  'pagos.registrarTitulo': 'Registrar un pago de oficina',
+  'pagos.form.tipo': 'Tipo',
+  'pagos.form.metodo': 'Método',
+  'pagos.form.monto': 'Monto',
+  'pagos.form.referencia': 'Referencia (opcional)',
+  'pagos.ayudaMinimo':
+    'El anticipo no puede ser menor al {porcentaje}% del total.',
+  'pagos.ayudaSaldo': 'El saldo paga el resto completo de la reserva.',
+  'pagos.lineamientosTitulo': 'Devoluciones',
+  'pagos.lineamientos':
+    'Cancelando tu reserva: con 15 días o más antes de la salida se devuelve el 100% de lo abonado, entre 8 y 14 días el 50%, y con 7 días o menos no hay devolución. Si la salida la cancela la agencia, se devuelve el 100%.',
+  'pagos.registradoOk': 'Pago registrado: nace validado por el registro de oficina.',
+  'pagos.tipos.anticipo': 'Anticipo',
+  'pagos.tipos.saldo': 'Saldo',
+  'pagos.metodos.efectivo': 'Efectivo',
+  'pagos.metodos.transferencia': 'Transferencia',
+  'pagos.metodos.tarjeta': 'Tarjeta',
+  'pagos.metodos.banca_movil': 'Banca móvil',
+  'pagos.metodos.qr': 'Código QR',
+  'pagos.metodos.otro': 'Otro',
+  'pagos.estados.registrado': 'Registrado',
+  'pagos.estados.validado': 'Validado',
+  'pagos.estados.anulado': 'Anulado',
+  'pagos.columnas.fecha': 'Fecha',
+  'pagos.columnas.tipo': 'Tipo',
+  'pagos.columnas.metodo': 'Método',
+  'pagos.columnas.referencia': 'Referencia',
+  'pagos.columnas.monto': 'Monto',
+  'pagos.columnas.estado': 'Estado',
+  'pagos.columnas.acciones': 'Acciones',
+
+  'pasarela.titulo': 'Pagar el anticipo',
+  'pasarela.introduccion':
+    'Pago simulado: se registra la referencia y la agencia lo valida; no se mueve dinero real.',
+  'pasarela.minimo': 'El mínimo del anticipo es {monto} (30% del total).',
+  'pasarela.pagar': 'Pagar {monto}',
+  'pasarela.tarde': 'Pagar más tarde',
+  'pasarela.exito':
+    'Pago registrado: {monto} con la referencia {referencia}. La agencia lo validará y confirmará tu reserva.',
+  'pasarela.observacion': 'Pago simulado por la pasarela de la web.',
+
+  'misreservas.titulo': 'Mis reservas',
+  'misreservas.introduccion':
+    'Tus solicitudes y reservas con su estado y su saldo. Paga el anticipo o el saldo desde aquí y sigue sus pagos.',
+  'misreservas.vacia': 'Todavía no tienes reservas.',
+  'misreservas.vacioDescripcion':
+    'Pide tu reserva desde Próximas salidas; aparecerá aquí con su estado.',
+  'misreservas.plazo':
+    'Una solicitud pendiente vence a las {horas} horas; el pago validado la respalda para su confirmación.',
+  'misreservas.columnas.codigo': 'Código',
+  'misreservas.columnas.paquete': 'Paquete',
+  'misreservas.columnas.salida': 'Salida',
+  'misreservas.columnas.pasajeros': 'Pasajeros',
+  'misreservas.columnas.monto': 'Monto',
+  'misreservas.columnas.saldo': 'Saldo',
+  'misreservas.columnas.estado': 'Estado',
+  'misreservas.columnas.vencimiento': 'Vence',
+  'misreservas.columnas.acciones': 'Acciones',
+  'misreservas.pagar': 'Pagar',
+  'misreservas.pagos': 'Pagos',
+
   'clientes.titulo': 'Clientes',
   'clientes.introduccion':
     'Fichas de clientes. El documento identifica a la persona y no se repite.',
@@ -518,6 +609,7 @@ export const es = {
   'clientes.columnas.apellidos': 'Apellidos',
   'clientes.columnas.telefono': 'Teléfono',
   'clientes.columnas.correo': 'Correo',
+  'clientes.columnas.cuenta': 'Cuenta',
   'clientes.columnas.estado': 'Estado',
   'clientes.columnas.acciones': 'Acciones',
   'clientes.estados.activo': 'Activo',
@@ -531,7 +623,9 @@ export const es = {
   'clientes.form.numeroDocumento': 'Número de documento',
   'clientes.form.nombres': 'Nombres',
   'clientes.form.apellidos': 'Apellidos',
-  'clientes.form.correo': 'Correo (opcional)',
+  'clientes.form.correo': 'Correo',
+  'clientes.ayudaCorreo': 'Obligatorio y único: canal de contacto y registro de la cuenta.',
+  'clientes.sinCuenta': 'Sin cuenta',
   'clientes.form.telefono': 'Teléfono (opcional)',
   'clientes.form.direccion': 'Dirección (opcional)',
   'clientes.form.fechaNacimiento': 'Fecha de nacimiento (opcional)',
@@ -639,4 +733,26 @@ export const es = {
     'Solo una cotización aceptada de ese cliente y esa salida puede originar la reserva.',
   'errores.sistemaFaltante':
     'Falta la cuenta de sistema; revisa la semilla de la base de datos.',
+  'errores.sesionRequerida': 'Ingresa a tu cuenta para continuar.',
+  'errores.sesionActiva': 'Ya tienes una sesión abierta.',
+  'errores.sinFicha':
+    'Tu cuenta no tiene ficha de cliente vinculada; consulta con la agencia.',
+  'errores.correoEnUso': 'Ese correo ya tiene una cuenta.',
+  'errores.correoInvalido': 'Escribe un correo válido.',
+  'errores.correoReservado':
+    'Ese correo está reservado a las cuentas del personal.',
+  'errores.correoDuplicado': 'Ese correo ya está en otra ficha de cliente.',
+  'errores.contrasenaCorta': 'La contraseña debe tener al menos 8 caracteres.',
+  'errores.documentoVinculado':
+    'Ya existe una cuenta para ese documento; ingresa con ella o recupérala con el administrador.',
+  'errores.documentoDuplicado': 'Ya existe una ficha para ese documento.',
+  'errores.anticipoRequerido':
+    'La reserva no tiene el anticipo validado: regístralo y valídalo antes de confirmar.',
+  'errores.anticipoMinimo': 'El anticipo no puede ser menor al 30% del total.',
+  'errores.saldoIncompleto': 'El saldo debe pagar el resto completo de la reserva.',
+  'errores.saldoSinAnticipo': 'El saldo exige un anticipo previo de la reserva.',
+  'errores.montoExcedido': 'El pago supera el saldo pendiente de la reserva.',
+  'errores.reservaNoPagable':
+    'Solo una reserva pendiente o confirmada admite pagos.',
+  'errores.pagoDuplicado': 'La reserva ya tiene un pago de ese tipo.',
 } as const

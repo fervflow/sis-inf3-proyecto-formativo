@@ -151,7 +151,9 @@ CREATE TABLE cliente (
     numero_documento    VARCHAR(30) NOT NULL,
     nombres             VARCHAR(100) NOT NULL,
     apellidos           VARCHAR(100) NOT NULL,
-    correo              VARCHAR(150),
+    -- Correo obligatorio y único (RN-USU-05): canal de contacto para
+    -- cotizaciones y avisos, e identidad del registro de la cuenta.
+    correo              VARCHAR(150) NOT NULL,
     telefono            VARCHAR(30),
     direccion           VARCHAR(200),
     fecha_nacimiento    DATE,
@@ -162,6 +164,10 @@ CREATE TABLE cliente (
     CONSTRAINT ck_cliente_estado CHECK (estado IN ('activo', 'inactivo')),
     CONSTRAINT ck_cliente_nacimiento CHECK (fecha_nacimiento IS NULL OR fecha_nacimiento <= CURRENT_DATE)
 );
+
+-- El correo identifica a la ficha para el registro de la cuenta y evita
+-- duplicados al contactar al cliente (RN-USU-05).
+CREATE UNIQUE INDEX ux_cliente_correo ON cliente (lower(btrim(correo)));
 
 CREATE TABLE pasajero (
     id_pasajero         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -393,10 +399,11 @@ CREATE TABLE reserva (
     cantidad_pasajeros  SMALLINT NOT NULL,
     monto_total         NUMERIC(12, 2) NOT NULL,
     estado              VARCHAR(15) NOT NULL DEFAULT 'pendiente',
-    -- Fecha límite para confirmar una reserva pendiente. Al vencer, la
-    -- solicitud deja de ocupar cupo por sí misma (estado derivado) y el
-    -- barrido diario la pasa a 'vencida' para limpiar el historial.
-    fecha_expiracion    TIMESTAMPTZ DEFAULT (now() + INTERVAL '48 hours'),
+    -- Fecha límite para confirmar una reserva pendiente: 24 horas. Al
+    -- vencer, la solicitud deja de ocupar cupo por sí misma (estado
+    -- derivado) y el barrido diario la pasa a 'vencida' para limpiar el
+    -- historial.
+    fecha_expiracion    TIMESTAMPTZ DEFAULT (now() + INTERVAL '24 hours'),
     -- Marca la solicitud de cancelación del cliente. La cancelación la
     -- ejecuta el personal, de modo que el estado no cambia por sí solo.
     fecha_solicitud_cancelacion TIMESTAMPTZ,
@@ -467,7 +474,7 @@ CREATE TABLE pago (
     CONSTRAINT ck_pago_tipo CHECK (tipo IN ('anticipo', 'saldo')),
     CONSTRAINT ck_pago_monto CHECK (monto > 0),
     CONSTRAINT ck_pago_metodo CHECK
-        (metodo IN ('efectivo', 'transferencia', 'tarjeta', 'otro')),
+        (metodo IN ('efectivo', 'transferencia', 'tarjeta', 'banca_movil', 'qr', 'otro')),
     CONSTRAINT ck_pago_estado CHECK
         (estado IN ('registrado', 'validado', 'anulado')),
     CONSTRAINT ck_pago_validacion CHECK (
@@ -748,8 +755,8 @@ BEGIN
             USING ERRCODE = 'no_data_found';
     END IF;
 
-    -- Tope de la solicitud web (RN-RES-15): el formulario anónimo no
-    -- retiene todo el cupo en una sola solicitud; los grupos mayores se
+    -- Tope de la solicitud web (RN-RES-15): la solicitud del cliente no
+    -- retiene todo el cupo en una sola reserva; los grupos mayores se
     -- atienden por la oficina, en el canal personal.
     IF p_origen = 'web' AND p_cantidad > 4 THEN
         RAISE EXCEPTION 'Una solicitud del canal web admite hasta 4 pasajeros; los grupos mayores se atienden en la agencia'
@@ -807,7 +814,7 @@ BEGIN
     )
     SELECT p_id_cliente, p_id_salida, p_id_cotizacion, p_id_usuario, p_origen,
            p_cantidad, s.precio * p_cantidad, 'pendiente',
-           now() + INTERVAL '48 hours'
+           now() + INTERVAL '24 hours'
     FROM salida s
     WHERE s.id_salida = p_id_salida
     RETURNING id_reserva INTO v_id_reserva;
@@ -826,7 +833,9 @@ $$ LANGUAGE plpgsql;
 -- Confirmación de una solicitud pendiente (HU-17).
 -- Limpia la fecha de vencimiento y deja el cambio auditado. Una
 -- solicitud vencida no puede confirmarse: el cliente debe registrar una
--- nueva si la salida sigue disponible.
+-- nueva si la salida sigue disponible. La confirmación exige además el
+-- anticipo validado de la reserva (RN-RES-18): el pago por sí solo no
+-- confirma nada, pero sin pago la reserva no se vuelve definitiva.
 CREATE OR REPLACE FUNCTION fn_confirmar_reserva(
     p_id_reserva BIGINT,
     p_id_usuario TEXT
@@ -836,8 +845,10 @@ AS $$
 DECLARE
     v_estado      VARCHAR(15);
     v_expiracion  TIMESTAMPTZ;
+    v_minimo      NUMERIC(12, 2);
 BEGIN
-    SELECT r.estado, r.fecha_expiracion INTO v_estado, v_expiracion
+    SELECT r.estado, r.fecha_expiracion, round(r.monto_total * 0.30, 2)
+    INTO v_estado, v_expiracion, v_minimo
     FROM reserva r
     WHERE r.id_reserva = p_id_reserva
     FOR UPDATE;
@@ -867,6 +878,20 @@ BEGIN
         );
 
         RAISE EXCEPTION 'La solicitud % venció sin confirmarse', p_id_reserva
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Anticipo validado (RN-RES-18): la reserva nace de una solicitud
+    -- respaldada. El mínimo lo comprobó fn_registrar_pago al registrar el
+    -- anticipo; aquí basta con exigir que exista y esté validado.
+    IF NOT EXISTS (
+        SELECT 1 FROM pago pg
+        WHERE pg.id_reserva = p_id_reserva
+          AND pg.tipo = 'anticipo'
+          AND pg.estado = 'validado'
+          AND pg.monto >= v_minimo
+    ) THEN
+        RAISE EXCEPTION 'La reserva % no tiene el anticipo mínimo validado (30%%)', p_id_reserva
             USING ERRCODE = 'check_violation';
     END IF;
 
@@ -1255,8 +1280,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Registro de un pago (HU-14). El pago registrado por el cliente desde su
--- cuenta queda en estado 'registrado' y no cuenta como abonado hasta que
--- el personal lo valida.
+-- cuenta nace en estado 'registrado' y no cuenta como abonado hasta que
+-- el personal lo valida (RN-PAG-04); el que registra el personal nace
+-- 'validado' (RN-PAG-04). Aplica el anticipo mínimo del 30% (RN-PAG-01),
+-- exige un anticipo previo para el saldo y el tope del saldo pendiente
+-- (RN-PAG-05), y solo admite pagos sobre reservas pendientes o
+-- confirmadas (RN-PAG-06).
 CREATE OR REPLACE FUNCTION fn_registrar_pago(
     p_id_reserva  BIGINT,
     p_tipo        VARCHAR,
@@ -1264,21 +1293,92 @@ CREATE OR REPLACE FUNCTION fn_registrar_pago(
     p_metodo      VARCHAR,
     p_id_usuario  TEXT,
     p_referencia  VARCHAR DEFAULT NULL,
-    p_observacion VARCHAR DEFAULT NULL
+    p_observacion VARCHAR DEFAULT NULL,
+    p_validado    BOOLEAN DEFAULT false
 ) RETURNS BIGINT
 SET search_path = turismo, public
 AS $$
 DECLARE
-    v_id_pago BIGINT;
+    v_id_pago      BIGINT;
+    v_estado_reserva VARCHAR(15);
+    v_monto_total  NUMERIC(12, 2);
+    v_comprometido NUMERIC(12, 2);
+    v_pendiente    NUMERIC(12, 2);
+    v_minimo       NUMERIC(12, 2);
 BEGIN
+    SELECT r.estado, r.monto_total INTO v_estado_reserva, v_monto_total
+    FROM reserva r
+    WHERE r.id_reserva = p_id_reserva
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'La reserva % no existe', p_id_reserva
+            USING ERRCODE = 'no_data_found';
+    END IF;
+
+    IF v_estado_reserva NOT IN ('pendiente', 'confirmada') THEN
+        RAISE EXCEPTION 'Solo una reserva pendiente o confirmada admite pagos; el estado actual es «%»',
+            v_estado_reserva USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_tipo NOT IN ('anticipo', 'saldo') THEN
+        RAISE EXCEPTION 'El tipo de pago debe ser «anticipo» o «saldo»'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF p_monto IS NULL OR p_monto <= 0 THEN
+        RAISE EXCEPTION 'El monto del pago debe ser mayor que cero'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Lo comprometido: todo pago no anulado, validado o no. Un pago
+    -- registrado por el cliente también reserva su parte del total,
+    -- aunque el saldo mostrado solo baje cuando se valide.
+    SELECT COALESCE(SUM(pg.monto), 0) INTO v_comprometido
+    FROM pago pg
+    WHERE pg.id_reserva = p_id_reserva
+      AND pg.estado <> 'anulado';
+
+    v_pendiente := v_monto_total - v_comprometido;
+    v_minimo := round(v_monto_total * 0.30, 2);
+
+    IF p_tipo = 'anticipo' THEN
+        IF p_monto < v_minimo THEN
+            RAISE EXCEPTION 'El anticipo no puede ser menor al 30%% del total (mínimo %, recibido %)',
+                v_minimo, p_monto USING ERRCODE = 'check_violation';
+        END IF;
+    ELSE
+        IF NOT EXISTS (
+            SELECT 1 FROM pago pg
+            WHERE pg.id_reserva = p_id_reserva
+              AND pg.tipo = 'anticipo'
+              AND pg.estado <> 'anulado'
+        ) THEN
+            RAISE EXCEPTION 'El saldo exige un anticipo previo de la reserva'
+                USING ERRCODE = 'check_violation';
+        END IF;
+
+        IF p_monto <> v_pendiente THEN
+            RAISE EXCEPTION 'El saldo debe pagar el resto completo de la reserva (% pendiente)',
+                v_pendiente USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    IF p_monto > v_pendiente THEN
+        RAISE EXCEPTION 'El pago supera el saldo pendiente de la reserva (%)',
+            v_pendiente USING ERRCODE = 'check_violation';
+    END IF;
+
     INSERT INTO pago (
         id_reserva, tipo, monto, metodo, referencia, observacion,
-        id_usuario, estado
+        id_usuario, estado, id_usuario_validacion, fecha_validacion
     ) VALUES (
         p_id_reserva, p_tipo, p_monto, p_metodo, p_referencia, p_observacion,
-        p_id_usuario, 'registrado'
-    )
-    RETURNING id_pago INTO v_id_pago;
+        p_id_usuario,
+        CASE WHEN p_validado THEN 'validado' ELSE 'registrado' END,
+        CASE WHEN p_validado THEN p_id_usuario END,
+        CASE WHEN p_validado THEN now() END
+    ) RETURNING id_pago INTO v_id_pago;
 
     RETURN v_id_pago;
 END;
@@ -1484,7 +1584,7 @@ GROUP BY s.fecha_salida, s.id_salida, p.nombre, s.cupo_maximo
 ORDER BY s.fecha_salida;
 
 -- ---------------------------------------------------------------------
--- 13. Semilla mínima de roles
+-- 13. Semilla mínima
 -- ---------------------------------------------------------------------
 
 INSERT INTO rol (codigo, nombre, descripcion) VALUES
@@ -1493,10 +1593,10 @@ INSERT INTO rol (codigo, nombre, descripcion) VALUES
     ('CLIENTE',  'Cliente',             'Consulta la disponibilidad, solicita reservas, registra pagos y sigue sus reservas.')
 ON CONFLICT (codigo) DO NOTHING;
 
--- Cuenta de sistema. Firma las reservas que llega el cliente por el canal
--- web, donde todavía no hay sesión (HU-15), y los vencimientos automáticos.
--- No tiene contraseña en `account`, de modo que nadie puede ingresar con
--- ella; el auditor queda registrado como «sistema».
+-- Cuenta de sistema para procesos internos. Sin contraseña en `account`,
+-- de modo que nadie puede ingresar con ella. Ya no firma las solicitudes
+-- web (las firma la cuenta del cliente, RN-RES-10); queda para auditorías
+-- y procesos automáticos futuros.
 INSERT INTO usuario (id, name, email, id_rol, nombres, apellidos, estado, debe_cambiar_password)
 SELECT 'sistema', 'Sistema', 'sistema@vizcacha.tours', r.id_rol,
        'Cuenta de sistema', 'Vizcacha Tours', 'activo', false
@@ -1537,44 +1637,10 @@ INSERT INTO lugar (codigo, nombre, tipo, direccion, latitud, longitud) VALUES
     ('LPZ', 'La Paz',          'ciudad',    'La Paz, Bolivia',      -16.500000, -68.150000)
 ON CONFLICT DO NOTHING;
 
--- Clientes y proveedores de ejemplo. No son datos reales: sirven para
--- probar cotizaciones, vínculos y la operación de la agencia.
-INSERT INTO cliente (
-    tipo_documento, numero_documento, nombres, apellidos, correo, telefono
-) VALUES
-    ('CI', '12345678', 'Ana',  'Quispe', 'ana.quispe@example.com',  '+591 70000011'),
-    ('CI', '87654321', 'Luis', 'Mamani', 'luis.mamani@example.com', '+591 70000012')
-ON CONFLICT (tipo_documento, numero_documento) DO NOTHING;
-
-INSERT INTO proveedor (nombre, nit, telefono, correo, direccion) VALUES
-    ('Transporte Andes S.R.L.', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
-    ('Hostal Potosí',           NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
-    ('Guías del Salar',         NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
-ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
-
-INSERT INTO proveedor_tipo (id_proveedor, tipo)
-SELECT id_proveedor, v.tipo
-FROM proveedor pr
-JOIN (VALUES
-    ('Transporte Andes S.R.L.', 'transporte'),
-    ('Hostal Potosí',           'hospedaje'),
-    ('Guías del Salar',         'guia')
-) AS v(nombre, tipo) ON lower(btrim(pr.nombre)) = lower(btrim(v.nombre))
-ON CONFLICT DO NOTHING;
-
--- Vínculos de ejemplo. Si el paquete no existe, no se inserta nada. El
--- servicio es el tipo declarado del proveedor; el detalle lo describe.
-INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, detalle, costo)
-SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.detalle, v.costo
-FROM (
-    VALUES
-        ('POT-001',      'Transporte Andes S.R.L.', 'transporte', 'Traslado ida y vuelta',  140.00),
-        ('POT-001',      'Hostal Potosí',           'hospedaje',  'Alojamiento 4 noches',   300.00),
-        ('POT-001',      'Guías del Salar',         'guia',       'Guía local',             100.00),
-        ('SAL-2026-002', 'Transporte Andes S.R.L.', 'transporte', 'Bus Potosí–Uyuni',       200.00),
-        ('SAL-2026-002', 'Hostal Potosí',           'hospedaje',  'Alojamiento 3 noches',   250.00),
-        ('SUC-2026-001', 'Transporte Andes S.R.L.', 'transporte', 'Traslado Potosí–Sucre',  120.00)
-) AS v(codigo, proveedor, servicio, detalle, costo)
-JOIN paquete p ON p.codigo = v.codigo
-JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.proveedor))
-ON CONFLICT (id_paquete, id_proveedor) DO NOTHING;
+-- ---------------------------------------------------------------------
+-- 14. Datos de demostración
+-- ---------------------------------------------------------------------
+--  Clientes, proveedores, paquetes y salidas de ejemplo viven en
+--  `bd/datos-prueba.sql`: se cargan aparte, con
+--    psql "$DATABASE_URL_UNPOOLED" -f bd/datos-prueba.sql
+--  porque son datos de trabajo, no parte del esquema.

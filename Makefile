@@ -207,7 +207,8 @@ db-crear:
 	url="$$DATABASE_URL_UNPOOLED"; \
 	if [ -z "$$url" ]; then url="$$DATABASE_URL"; fi; \
 	if [ -z "$$url" ]; then echo "Falta DATABASE_URL o DATABASE_URL_UNPOOLED. Revise .env.local o expórtelas."; exit 1; fi; \
-	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/esquema.sql
+	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/esquema.sql && \
+	psql "$$url" -v ON_ERROR_STOP=1 -f $(BD)/permisos.sql
 
 # Aplica en orden las actualizaciones de una base que ya existe. Los
 # scripts son idempotentes, pero conviene revisar los avisos.
@@ -218,18 +219,20 @@ db-actualizar:
 	url="$$DATABASE_URL_UNPOOLED"; \
 	if [ -z "$$url" ]; then url="$$DATABASE_URL"; fi; \
 	if [ -z "$$url" ]; then echo "Falta DATABASE_URL o DATABASE_URL_UNPOOLED. Revise .env.local o expórtelas."; exit 1; fi; \
-	for archivo in $(BD)/actualizaciones/*.sql; do \
+	for archivo in $(BD)/actualizaciones/*.sql $(BD)/permisos.sql; do \
 	  echo ">> $$archivo"; \
 	  psql "$$url" -v ON_ERROR_STOP=1 -f "$$archivo" || exit 1; \
 	done
 
-# Pruebas SQL de las reglas de negocio (paquetes, salidas, reservas).
-# Terminan con ROLLBACK, de modo que no dejan datos.
+# Pruebas SQL de las reglas de negocio (paquetes, salidas, reservas,
+# pagos). Terminan con ROLLBACK, de modo que no dejan datos. Corren por
+# la conexión directa: la transacción y el SET necesitan una sesión.
 db-probar:
-	@if [ -z "$$DATABASE_URL" ] && [ -f .env.local ]; then \
+	@if [ -z "$$DATABASE_URL" ] && [ -z "$$DATABASE_URL_UNPOOLED" ] && [ -f .env.local ]; then \
 	  set -a; . ./.env.local; set +a; \
 	fi; \
-	url="$$DATABASE_URL"; \
+	url="$$DATABASE_URL_UNPOOLED"; \
+	if [ -z "$$url" ]; then url="$$DATABASE_URL"; fi; \
 	if [ -z "$$url" ]; then echo "Falta DATABASE_URL. Revise .env.local o expórtela."; exit 1; fi; \
 	for archivo in $(BD)/pruebas/*.sql; do \
 	  echo ">> $$archivo"; \

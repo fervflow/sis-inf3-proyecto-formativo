@@ -9,21 +9,29 @@ llama `usuario`, porque `user` es palabra reservada en SQL.
 La configuración está en `server/utils/auth.ts` y el manejador en
 `server/api/auth/[...all].ts`.
 
-## Cuentas internas (MVP)
+## Dos clases de cuentas (MVP)
 
 El MVP no envía correo. Para que la identidad funcione sin proveedor:
 
-- **El nombre de usuario es el identificador.** Better Auth exige un
-  correo; se guarda uno interno, `usuario@vizcacha.tours`, que no recibe
-  ni envía mensajes. La regla vive en `shared/usuarios.ts`.
-- **El registro público está cerrado.** Cualquier llamada a
-  `/api/auth/sign-up/*` responde 404; las cuentas las crea únicamente el
-  administrador desde `/admin/usuarios`.
-- **La contraseña inicial es el nombre de usuario.** Al primer ingreso, el
-  middleware obliga a cambiarla (`usuario.debe_cambiar_password`).
-- **El usuario no puede recuperar la contraseña solo.** El
-  restablecimiento lo hace un administrador, que la devuelve al nombre de
-  usuario y cierra las sesiones abiertas.
+- **Las cuentas del personal (`ADMIN` y `PERSONAL`) son internas.** El
+  nombre de usuario es el identificador: Better Auth exige un correo y se
+  guarda uno interno, `usuario@vizcacha.tours`, que no recibe ni envía
+  mensajes. La regla vive en `shared/usuarios.ts`.
+- **La contraseña inicial del personal es el nombre de usuario.** Al
+  primer ingreso, el middleware obliga a cambiarla
+  (`usuario.debe_cambiar_password`).
+- **El restablecimiento lo hace un administrador**, que la devuelve al
+  nombre de usuario y cierra las sesiones abiertas.
+- **Las cuentas de cliente se registran ellos mismos.** La página
+  `/crear-cuenta` llama a `/api/registro`, que crea la cuenta de Better
+  Auth y la ficha del cliente en un solo paso, con el correo real
+  obligatorio y único (RN-USU-03 y RN-USU-05). Si el documento ya tiene
+  ficha, la cuenta se vincula a ella. El rol nace `CLIENTE` y la
+  contraseña la elige la persona.
+- **El sign-up de Better Auth sigue cerrado.** Cualquier llamada a
+  `/api/auth/sign-up/*` responde 404: el registro propio va por
+  `/api/registro`, que controla los datos de la ficha y el rol. El
+  dominio interno `vizcacha.tours` queda reservado al personal.
 
 El nombre de usuario no se guarda en una columna aparte: se deriva del
 correo interno. Así la unicidad la garantiza una sola columna.
@@ -89,8 +97,8 @@ export default defineEventHandler(async (event) => {
 
 ## Panel de usuarios
 
-`/admin/usuarios` permite crear cuentas, cambiar el rol, bloquear o
-activar y restablecer la contraseña. Reglas:
+`/admin/usuarios` permite crear cuentas de `ADMIN` y `PERSONAL`, cambiar el
+rol, bloquear o activar y restablecer la contraseña (RN-USU-04). Reglas:
 
 - nadie puede modificar su propia cuenta desde el panel;
 - al bloquear, se cierran las sesiones abiertas;
@@ -114,14 +122,17 @@ Lo escribe el gancho `after` de Better Auth, en `server/utils/auth.ts`.
 
 ## Cuentas de cliente
 
-- La cuenta es opcional: `cliente.id_usuario` admite nulo.
-- El documento es único en la ficha; la cuenta se vincula a una ficha como
-  máximo.
+- Toda cuenta `CLIENTE` tiene exactamente una ficha vinculada
+  (`cliente.id_usuario`), creada junto con la cuenta por el registro
+  público (RN-USU-02).
+- La ficha puede existir sin cuenta: el personal sigue atendiendo a quien
+  no se registra; la cuenta la vincula el propio cliente al registrarse.
+- El documento es único en la ficha y el correo también lo es
+  (`ux_cliente_correo`): el correo es la identidad del registro y el canal
+  de contacto (RN-USU-05).
 - Una cuenta puede bloquearse (`usuario.estado`) sin borrar su historial.
-- El correo real del cliente, si lo da, va en `cliente.correo`; el de
-  `usuario` es interno.
-- Mientras HU-15 no esté implementada, el panel de usuarios puede crear un
-  rol `CLIENTE` sin ficha. La vinculación automática es una tarea pendiente.
+- El cliente solo ve sus reservas, sus pagos y sus solicitudes: las API
+  filtran por la ficha de su cuenta y `/mis-reservas` es la vista propia.
 
 ## Lo que no se automatiza
 
@@ -136,14 +147,13 @@ sostiene el «mismo proceso validado» en los dos canales.
 ## Límites conocidos del MVP
 
 - Sin verificación de correo ni recuperación por correo.
-- La contraseña inicial es adivinable; se compensa con registro cerrado,
+- La contraseña inicial del personal es adivinable; se compensa con
   cambio obligatorio y el límite de intentos de Better Auth.
-- No hay solicitud pública de acceso: el administrador crea todas las
-  cuentas.
+- No hay verificación del correo en el registro de cliente: se acepta el
+  correo como dato y el envío real queda fuera del MVP.
 
 ## Pendientes
 
-- [ ] Formulario público de solicitud y bandeja de aprobación.
-- [ ] Correo real: verificación y avisos de HU-16.
-- [ ] Proteger las vistas por rol en el cliente, como complemento del
-      servidor.
+- [ ] Correo real: verificación del registro y avisos de HU-16.
+- [ ] Aprobación previa del registro, si la operación la pide: hoy la
+      cuenta y la ficha quedan activas al crearlas.

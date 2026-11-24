@@ -16,15 +16,16 @@ import { leerCuerpo } from '../../utils/validacion'
  * Alta de una cuenta desde el panel.
  *
  * La contraseña inicial es el nombre de usuario y queda marcada para
- * cambiarse en el primer ingreso. El registro público está cerrado: esta
- * es la única vía de alta.
+ * cambiarse en el primer ingreso. Solo se crean cuentas de `ADMIN` y
+ * `PERSONAL` (RN-USU-04): las de cliente nacen del registro público
+ * (`/crear-cuenta`), que crea cuenta y ficha juntas (RN-USU-03).
  */
 const cuerpo = z.object({
   usuario: z.string().trim().min(1).max(40),
   nombres: z.string().trim().min(1).max(100),
   apellidos: z.string().trim().min(1).max(100),
   telefono: z.string().trim().max(30).optional(),
-  rol: z.enum(['ADMIN', 'PERSONAL', 'CLIENTE']),
+  rol: z.enum(['ADMIN', 'PERSONAL']),
 })
 
 type DatosAlta = z.infer<typeof cuerpo>

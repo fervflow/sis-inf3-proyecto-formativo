@@ -29,12 +29,17 @@ de los paquetes y solicitar sus reservas.
         registra en estado pendiente y requiere la confirmación del personal.
   \item \textbf{Pagos:} registro de anticipos y saldos, con pago en efectivo y
         simulación de banca móvil o código QR, sin integración con pasarelas
-        bancarias reales. El pago registrado por el cliente queda pendiente de
-        validación por parte del personal.
-  \item \textbf{Acceso del cliente:} registro de cuenta, consulta de paquetes,
+        bancarias reales. El anticipo no puede ser menor al 30\% del total de
+        la reserva, la totalidad también puede pagarse por la web y el pago
+        registrado por el cliente queda pendiente de validación por parte del
+        personal. La devolución del dinero se rige por tramos según los días
+        de anticipación de la cancelación y su ejecución queda fuera del
+        sistema.
+  \item \textbf{Acceso del cliente:} registro de cuenta, con el correo y el
+        documento obligatorios y únicos, consulta de paquetes,
         salidas y cupos disponibles, solicitud de reserva, seguimiento de sus
-        propias reservas y registro de pagos, con acceso restringido a la
-        información que le corresponde.
+        propias reservas, registro de pagos y pagos simulados, con acceso
+        restringido a la información que le corresponde.
   \item \textbf{Proveedores:} datos básicos de transporte, hospedaje y guías
         vinculados a los paquetes.
   \item \textbf{Reportes y usuarios:} consultas por fecha, ocupación, reservas
@@ -55,9 +60,10 @@ solicitud de reserva junto con el registro de su pago.
 
 En ambos casos la reserva se crea en estado pendiente y requiere la validación
 y la confirmación del personal, con la misma verificación de disponibilidad y
-el mismo registro de auditoría. Las solicitudes del cliente que no son
-confirmadas dentro del plazo establecido quedan vencidas y liberan
-automáticamente los cupos reservados. De esta manera, el acceso directo del
+el mismo registro de auditoría. La confirmación exige el respaldo del anticipo
+validado, y las solicitudes del cliente que no son confirmadas dentro del
+plazo de 24 horas quedan vencidas y liberan automáticamente los cupos
+reservados. De esta manera, el acceso directo del
 cliente amplía la cobertura del proceso sin duplicar reglas ni alterar las
 tareas de confirmación, seguimiento y control que corresponden al personal.
 

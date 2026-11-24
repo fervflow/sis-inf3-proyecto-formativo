@@ -144,7 +144,8 @@ export const cliente = turismo.table('cliente', {
   numeroDocumento: varchar('numero_documento', { length: 30 }).notNull(),
   nombres: varchar('nombres', { length: 100 }).notNull(),
   apellidos: varchar('apellidos', { length: 100 }).notNull(),
-  correo: varchar('correo', { length: 150 }),
+  // Correo obligatorio y único (RN-USU-05).
+  correo: varchar('correo', { length: 150 }).notNull(),
   telefono: varchar('telefono', { length: 30 }),
   direccion: varchar('direccion', { length: 200 }),
   fechaNacimiento: date('fecha_nacimiento'),
@@ -152,6 +153,7 @@ export const cliente = turismo.table('cliente', {
   estado: varchar('estado', { length: 15 }).notNull().default('activo'),
 }, (tabla) => [
   uniqueIndex('uq_cliente_documento').on(tabla.tipoDocumento, tabla.numeroDocumento),
+  uniqueIndex('ux_cliente_correo').on(sql`lower(btrim(${tabla.correo}))`),
 ])
 
 export const pasajero = turismo.table('pasajero', {
@@ -413,7 +415,7 @@ export const reserva = turismo.table(
     montoTotal: numeric('monto_total', { precision: 12, scale: 2 }).notNull(),
     estado: varchar('estado', { length: 15 }).notNull().default('pendiente'),
     fechaExpiracion: timestamp('fecha_expiracion', { withTimezone: true }).default(
-      sql`now() + interval '48 hours'`,
+      sql`now() + interval '24 hours'`,
     ),
     fechaSolicitudCancelacion: timestamp('fecha_solicitud_cancelacion', { withTimezone: true }),
     observaciones: text('observaciones'),

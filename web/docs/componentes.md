@@ -109,9 +109,14 @@ Se usan con el prefijo de la carpeta en PascalCase: `reservas/ListaReservas.vue`
 se usa como `<ReservasListaReservas />`. Si se usa en un solo lugar, puede
 vivir junto a la vista. En `paquetes/` viven `FormularioPaquete` y
 `SelectorLugar`, que sí consultan la API y por eso no son componentes base.
-En `solicitudes/` vive `FormularioPublico`, el formulario de solicitud de
-reserva del canal web: recibe la salida elegida, registra al cliente por
-documento y emite `registrada` con la reserva creada. En `disponibilidad/`
+En `solicitudes/` vive `FormularioCliente`, el formulario de solicitud de
+reserva del canal web: recibe la salida elegida, pide la cantidad sobre la
+ficha de la cuenta en sesión y emite `registrada` con la solicitud creada.
+En `pagos/` viven `FormularioPago`, el pago simulado del cliente con banca
+móvil o código QR, que emite `pagado` con la respuesta de la API, y
+`ResumenPagos`, el resumen del saldo y el historial de pagos de una
+reserva; con `editable` añade las acciones de validar y anular del
+personal y emite `cambio` cuando los pagos cambian. En `disponibilidad/`
 vive `Tarjeta`, el espejo público de la tarjeta de salidas: muestra el
 paquete, fechas, ocupación y precio, y emite `solicitar` para pedir cupo.
 En `salidas/` viven `Tarjeta`, la tarjeta del panel, y `FormularioSalida`,

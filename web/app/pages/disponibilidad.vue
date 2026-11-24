@@ -110,17 +110,28 @@
       </p>
     </template>
 
+    <!--
+      Dos pasos del mismo flujo: la solicitud del canal web (HU-06) y el
+      pago del anticipo por la pasarela simulada (HU-14). Sin sesión, el
+      botón lleva a ingresar o crear cuenta (RN-RES-17).
+    -->
     <UModal
       v-model:open="solicitudAbierta"
-      :title="t('solicitudes.publico.titulo')"
+      :title="tituloModal"
       :ui="{ content: 'max-w-2xl' }"
     >
       <template #body>
-        <SolicitudesFormularioPublico
-          v-if="salidaSolicitada"
-          ref="formulario-publico"
+        <SolicitudesFormularioCliente
+          v-if="paso === 'solicitud' && salidaSolicitada"
+          ref="formulario-cliente"
           :salida="salidaSolicitada"
           @registrada="registrada"
+          @cancelar="solicitudAbierta = false"
+        />
+        <PagosFormularioPago
+          v-else-if="paso === 'pago' && reservaSolicitada"
+          :reserva="reservaSolicitada"
+          @pagado="pagado"
           @cancelar="solicitudAbierta = false"
         />
       </template>
@@ -142,6 +153,7 @@ import type {
   PaqueteAdmin,
   RespuestaCuenta,
   RespuestaDisponibilidad,
+  RespuestaPagos,
   RespuestaPaquetes,
   RespuestaSalidas,
   ReservaResumen,
@@ -151,13 +163,14 @@ import type {
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
-const { fechaHora } = useFormato()
+const { moneda } = useFormato()
 const { armar: armarRecorrido } = useRecorrido()
 const peticion = useRequestFetch()
 
 /** La cuenta de la sesión decide si aparece la vista de gestión. */
 const { data: cuenta } = useNuxtData<RespuestaCuenta>('cuenta')
 const esAdmin = computed(() => cuenta.value?.usuario?.rol === 'ADMIN')
+const esCliente = computed(() => cuenta.value?.usuario?.rol === 'CLIENTE')
 
 // --- Vista --------------------------------------------------------------
 
@@ -253,31 +266,68 @@ function recorridoDeSalida(salida: SalidaAdmin): string {
 
 // --- Solicitud de reserva por el canal web -------------------------------
 
-const solicitudAbierta = ref(false)
-const salidaSolicitada = ref<SalidaDisponible | null>(null)
-const formularioPublico = useTemplateRef<{
-  reiniciar: () => void
-}>('formulario-publico')
+/**
+ * Dos pasos: la solicitud y, si el cliente quiere, el pago del anticipo
+ * en el mismo flujo. El pago también queda disponible para después, desde
+ * «Mis reservas» (HU-14).
+ */
+type PasoSolicitud = 'solicitud' | 'pago'
 
+const paso = ref<PasoSolicitud>('solicitud')
+const salidaSolicitada = ref<SalidaDisponible | null>(null)
+const reservaSolicitada = ref<ReservaResumen | null>(null)
+const formularioCliente = useTemplateRef<{
+  reiniciar: () => void
+}>('formulario-cliente')
+
+const solicitudAbierta = ref(false)
 const avisoSolicitud = ref<string | null>(null)
+
+const tituloModal = computed(() =>
+  paso.value === 'pago'
+    ? t('pasarela.titulo')
+    : t('solicitudes.cliente.titulo'),
+)
 
 function solicitar(salida: SalidaDisponible) {
   avisoSolicitud.value = null
+
+  // Sin sesión no hay solicitud: a ingresar o crear cuenta, con retorno.
+  if (!cuenta.value?.usuario) {
+    return navigateTo(
+      `/ingresar?volver=${encodeURIComponent('/disponibilidad')}`,
+    )
+  }
+
+  // El personal registra por su canal, en «Solicitudes».
+  if (!esCliente.value) {
+    return navigateTo('/solicitudes')
+  }
+
+  paso.value = 'solicitud'
   salidaSolicitada.value = salida
-  formularioPublico.value?.reiniciar()
+  formularioCliente.value?.reiniciar()
   solicitudAbierta.value = true
 }
 
-/** La solicitud quedó registrada: se muestra su código y su vencimiento. */
+/** La solicitud quedó registrada: el siguiente paso es el pago. */
 function registrada(reserva: ReservaResumen) {
+  reservaSolicitada.value = reserva
+  paso.value = 'pago'
+  recargar()
+}
+
+/** El pago quedó registrado: se muestra su referencia y su estado. */
+function pagado(respuesta: RespuestaPagos) {
   solicitudAbierta.value = false
-  avisoSolicitud.value = t('solicitudes.registrada', {
-    codigo: reserva.codigo,
-    vencimiento: reserva.fechaExpiracion
-      ? fechaHora(reserva.fechaExpiracion)
-      : '—',
+  const pago = respuesta.pagos.at(-1)
+  avisoSolicitud.value = t('pasarela.exito', {
+    monto: moneda(pago?.monto ?? '0'),
+    referencia: pago?.referencia ?? '—',
   })
   salidaSolicitada.value = null
+  reservaSolicitada.value = null
+  paso.value = 'solicitud'
   recargar()
 }
 

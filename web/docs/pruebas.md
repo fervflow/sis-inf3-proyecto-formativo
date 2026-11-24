@@ -37,11 +37,14 @@ transacción que se revierte o borran lo que crearon.
 | Estado de salida | Transiciones válidas; cancelar sin motivo; editar una salida realizada |
 | Cupo | Cabe, no cabe y dos reservas simultáneas |
 | Solicitud activa | Una por cliente y salida; la segunda se rechaza |
-| Confirmación | Dentro del plazo, fuera y sobre una ya confirmada |
-| Vencimiento | La vencida no ocupa cupo; el barrido la marca |
+| Vencimiento | A las 24 horas; la vencida no ocupa cupo; el barrido la marca |
+| Confirmación | Dentro del plazo, fuera y sobre una ya confirmada; exige el anticipo validado |
 | Capacidad | No baja de lo reservado; el cambio se audita |
 | Cancelación | La solicitud no cambia el estado; la ejecución sí |
-| Pago | El registrado no cuenta hasta que se valida |
+| Anticipo | El mínimo del 30%; la totalidad como anticipo completo |
+| Saldo | Exige anticipo previo; paga el resto exacto; sin superar el pendiente |
+| Reserva pagable | Solo `pendiente` o `confirmada` admiten pagos |
+| Validación del pago | El registrado no cuenta hasta que se valida; nace validado si lo registra el personal |
 
 Ejemplo:
 

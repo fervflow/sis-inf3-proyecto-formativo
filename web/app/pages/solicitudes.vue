@@ -31,7 +31,7 @@
         class="overflow-x-auto"
       >
         <BaseTablaDatos
-          class="min-w-[70rem]"
+          class="min-w-[78rem]"
           :columnas="columnas"
           :filas="reservas"
           :cargando="pendiente"
@@ -69,6 +69,18 @@
               {{ moneda(String(valor)) }}
             </span>
 
+            <span v-else-if="columna.clave === 'anticipo'">
+              <UBadge
+                v-if="fila.anticipo"
+                :color="fila.anticipo === 'validado' ? 'success' : 'warning'"
+                variant="subtle"
+                :label="t(`pagos.estados.${fila.anticipo}` as ClaveMensaje)"
+              />
+              <span v-else class="text-(--vt-color-texto-suave)">
+                {{ t('solicitudes.sinAnticipo') }}
+              </span>
+            </span>
+
             <span v-else-if="columna.clave === 'vencimiento'">
               <span
                 v-if="fila.fechaExpiracion && fila.estado === 'pendiente'"
@@ -85,16 +97,24 @@
             </span>
 
             <span v-else-if="columna.clave === 'acciones'">
-              <UButton
-                v-if="fila.estado === 'pendiente'"
-                size="xs"
-                color="primary"
-                variant="soft"
-                :label="t('solicitudes.confirmar')"
-                :loading="confirmando === fila.idReserva"
-                @click="confirmar(fila.idReserva)"
-              />
-              <span v-else class="text-(--vt-color-texto-suave)">—</span>
+              <div class="flex justify-end gap-1.5">
+                <UButton
+                  v-if="fila.estado === 'pendiente'"
+                  size="xs"
+                  color="primary"
+                  variant="soft"
+                  :label="t('solicitudes.confirmar')"
+                  :loading="confirmando === fila.idReserva"
+                  @click="confirmar(fila.idReserva)"
+                />
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="soft"
+                  :label="t('solicitudes.pagos.abrir')"
+                  @click="abrirPagos(fila)"
+                />
+              </div>
             </span>
 
             <span v-else class="tabular-nums">{{ valor }}</span>
@@ -201,6 +221,91 @@
         </div>
       </template>
     </UModal>
+
+    <!--
+      Pagos de una reserva (HU-14): resumen del saldo, historial con
+      validar y anular, y el registro de un pago de oficina. La
+      confirmación exige el anticipo validado (RN-RES-18).
+    -->
+    <UModal
+      v-model:open="pagosAbierto"
+      :title="t('pagos.titulo')"
+      :ui="{ content: 'max-w-3xl' }"
+    >
+      <template #body>
+        <div v-if="consultando" class="space-y-5">
+          <PagosResumenPagos
+            ref="panel-pagos"
+            :id-reserva="consultando.idReserva"
+            editable
+            @cambio="recargar()"
+          />
+
+          <div
+            v-if="['pendiente', 'confirmada'].includes(consultando.estado)"
+            class="rounded-(--vt-radio-md) px-3 py-3 ring-1 ring-(--vt-color-borde)"
+          >
+            <form id="form-pago-oficina" class="space-y-3" @submit.prevent="registrarPago">
+              <p class="font-(--vt-texto-peso-medio) text-(--vt-texto-sm)">
+                {{ t('pagos.registrarTitulo') }}
+              </p>
+
+              <div class="grid gap-3 sm:grid-cols-2">
+                <UFormField :label="t('pagos.form.tipo')" name="tipo">
+                  <USelect v-model="pagoFormulario.tipo" :items="tiposPago" class="w-full" />
+                </UFormField>
+                <UFormField :label="t('pagos.form.metodo')" name="metodo">
+                  <USelect v-model="pagoFormulario.metodo" :items="metodosPago" class="w-full" />
+                </UFormField>
+              </div>
+
+              <div class="grid gap-3 sm:grid-cols-2">
+                <UFormField
+                  :label="t('pagos.form.monto')"
+                  name="monto"
+                  :help="
+                    pagoFormulario.tipo === 'saldo'
+                      ? t('pagos.ayudaSaldo')
+                      : t('pagos.ayudaMinimo', { porcentaje: ANTICIPO_MINIMO_PORCENTAJE })
+                  "
+                >
+                  <UInputNumber
+                    v-model="pagoFormulario.monto"
+                    :min="1"
+                    :step="10"
+                    :increment="false"
+                    :decrement="false"
+                    class="w-full"
+                  />
+                </UFormField>
+                <UFormField :label="t('pagos.form.referencia')" name="referencia">
+                  <UInput v-model="pagoFormulario.referencia" class="w-full" />
+                </UFormField>
+              </div>
+
+              <UAlert
+                color="neutral"
+                variant="subtle"
+                icon="i-lucide-rotate-ccw"
+                :title="t('pagos.lineamientosTitulo')"
+                :description="t('pagos.lineamientos')"
+              />
+
+              <div class="flex justify-end">
+                <UButton
+                  type="submit"
+                  form="form-pago-oficina"
+                  color="primary"
+                  size="sm"
+                  :label="t('pagos.registrar')"
+                  :loading="registrandoPago"
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -213,6 +318,12 @@ import type {
   ReservaResumen,
 } from '#shared/types/api'
 import type { ColumnaTabla } from '#shared/types/ui'
+import type { TipoPago } from '#shared/types/domain'
+import {
+  ANTICIPO_MINIMO_PORCENTAJE,
+  METODOS_OFICINA,
+  montoMinimoAnticipo,
+} from '#shared/pagos'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
@@ -275,6 +386,7 @@ const columnas = computed<ColumnaTabla<FilaSolicitud>[]>(() => [
     etiqueta: t('solicitudes.columnas.monto'),
     alineacion: 'derecha',
   },
+  { clave: 'anticipo', etiqueta: t('solicitudes.columnas.anticipo') },
   { clave: 'estado', etiqueta: t('solicitudes.columnas.estado') },
   { clave: 'vencimiento', etiqueta: t('solicitudes.columnas.vencimiento') },
   { clave: 'acciones', etiqueta: t('solicitudes.columnas.acciones') },
@@ -295,9 +407,9 @@ function colorDeEstado(
   }
 }
 
-/** Una pendiente que vence en menos de doce horas se avisa en rojo. */
+/** Una pendiente que vence en menos de ocho horas se avisa en rojo. */
 function expiraPronto(fechaExpiracion: string): boolean {
-  return Date.parse(fechaExpiracion) - Date.now() < 12 * 3_600_000
+  return Date.parse(fechaExpiracion) - Date.now() < 8 * 3_600_000
 }
 
 // --- Confirmación -------------------------------------------------------
@@ -321,6 +433,71 @@ async function confirmar(idReserva: number) {
   } finally {
     confirmando.value = null
     await recargar()
+  }
+}
+
+// --- Pagos de una reserva ----------------------------------------------
+
+const pagosAbierto = ref(false)
+const consultando = ref<ReservaResumen | null>(null)
+const registrandoPago = ref(false)
+const panelPagos = useTemplateRef<{ recargar: () => Promise<void> }>('panel-pagos')
+
+const pagoFormulario = reactive({
+  tipo: 'anticipo' as TipoPago,
+  metodo: 'efectivo' as (typeof METODOS_OFICINA)[number],
+  monto: 0,
+  referencia: '',
+})
+
+const tiposPago = computed(() => [
+  { label: t('pagos.tipos.anticipo'), value: 'anticipo' as const },
+  { label: t('pagos.tipos.saldo'), value: 'saldo' as const },
+])
+
+const metodosPago = computed(() =>
+  METODOS_OFICINA.map((metodo) => ({
+    label: t(`pagos.metodos.${metodo}` as ClaveMensaje),
+    value: metodo,
+  })),
+)
+
+function abrirPagos(reserva: ReservaResumen) {
+  aviso.value = null
+  errorOperacion.value = null
+  consultando.value = reserva
+  pagoFormulario.tipo = 'anticipo'
+  pagoFormulario.metodo = 'efectivo'
+  pagoFormulario.monto =
+    reserva.anticipo && reserva.anticipo !== 'anulado'
+      ? Number(reserva.saldoPendiente)
+      : montoMinimoAnticipo(reserva.montoTotal)
+  pagoFormulario.referencia = ''
+  pagosAbierto.value = true
+}
+
+async function registrarPago() {
+  if (!consultando.value) return
+  registrandoPago.value = true
+  errorOperacion.value = null
+  try {
+    await peticion('/api/pagos', {
+      method: 'POST',
+      body: {
+        idReserva: consultando.value.idReserva,
+        tipo: pagoFormulario.tipo,
+        monto: pagoFormulario.monto,
+        metodo: pagoFormulario.metodo,
+        referencia: pagoFormulario.referencia.trim() || undefined,
+      },
+    })
+    aviso.value = t('pagos.registradoOk')
+    await panelPagos.value?.recargar()
+    await recargar()
+  } catch (fallo) {
+    errorOperacion.value = mensajeDeError(fallo)
+  } finally {
+    registrandoPago.value = false
   }
 }
 

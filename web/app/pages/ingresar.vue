@@ -48,6 +48,17 @@
         />
       </form>
     </BaseTarjeta>
+
+    <p class="text-center text-(--vt-texto-sm)">
+      {{ t('ingreso.sinCuenta') }}
+      <UButton
+        :to="rutaRegistro"
+        variant="soft"
+        color="primary"
+        size="xs"
+        :label="t('ingreso.crearCuenta')"
+      />
+    </p>
   </div>
 </template>
 
@@ -57,11 +68,27 @@ import type { RespuestaCuenta } from '#shared/types/api'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
+const ruta = useRoute()
 
 const usuario = ref('')
 const contrasena = ref('')
 const pendiente = ref(false)
 const error = ref<string | null>(null)
+
+/** El destino tras ingresar: el que pidió la reserva, o el inicio. */
+const retorno = computed(() => {
+  const destino = ruta.query.volver
+  return typeof destino === 'string' && destino.startsWith('/')
+    ? destino
+    : '/'
+})
+
+const rutaRegistro = computed(() => {
+  const volver = ruta.query.volver
+  return typeof volver === 'string' && volver.startsWith('/')
+    ? `/crear-cuenta?volver=${encodeURIComponent(volver)}`
+    : '/crear-cuenta'
+})
 
 async function entrar() {
   error.value = null
@@ -82,7 +109,7 @@ async function entrar() {
     await refreshNuxtData('cuenta')
 
     await navigateTo(
-      cuenta.usuario?.debeCambiarPassword ? '/cambiar-password' : '/',
+      cuenta.usuario?.debeCambiarPassword ? '/cambiar-password' : retorno.value,
     )
   } catch (fallo) {
     const codigo =

@@ -9,6 +9,7 @@
 import type {
   EstadoCliente,
   EstadoCotizacion,
+  EstadoPago,
   EstadoPaquete,
   EstadoProveedor,
   EstadoReserva,
@@ -18,6 +19,7 @@ import type {
   Rol,
   TipoDocumento,
   TipoLugar,
+  TipoPago,
   TipoProveedor,
   TipoRecorrido,
 } from './domain'
@@ -94,11 +96,47 @@ export interface ReservaResumen {
   estado: EstadoReserva
   fechaExpiracion: string | null
   fechaReserva: string
+  /** Estado del anticipo de la reserva: nulo cuando no hay pago. */
+  anticipo: EstadoPago | null
+  /** Total menos lo abonado validado. */
+  saldoPendiente: string
 }
 
 /** Respuesta de la consulta de reservas. */
 export interface RespuestaReservas {
   reservas: ReservaResumen[]
+}
+
+/** Un pago de una reserva, tal como lo muestra la interfaz. */
+export interface PagoResumen {
+  idPago: number
+  idReserva: number
+  tipo: TipoPago
+  monto: string
+  metodo: MetodoPago
+  referencia: string | null
+  fechaPago: string
+  estado: EstadoPago
+  fechaValidacion: string | null
+}
+
+/** Resumen de los pagos de una reserva. */
+export interface ResumenPagos {
+  montoTotal: string
+  /** Suma de los pagos validados. */
+  abonado: string
+  /** Suma de los pagos registrados que esperan validación. */
+  enRevision: string
+  /** Total menos lo abonado validado. */
+  saldoPendiente: string
+  /** Hay un anticipo validado que cumple el mínimo (RN-RES-18). */
+  anticipoValidado: boolean
+}
+
+/** Respuesta de la consulta de pagos de una reserva. */
+export interface RespuestaPagos {
+  pagos: PagoResumen[]
+  resumen: ResumenPagos
 }
 
 /** Cuenta de la sesión en curso. */
@@ -320,12 +358,18 @@ export interface ClienteResumen {
   numeroDocumento: string
   nombres: string
   apellidos: string
-  correo: string | null
+  /** Correo obligatorio y único (RN-USU-05). */
+  correo: string
   telefono: string | null
   direccion: string | null
   fechaNacimiento: string | null
   estado: EstadoCliente
   fechaRegistro: string
+  /** Cuenta vinculada a la ficha, si la tiene (RN-USU-02). */
+  cuenta: {
+    usuario: string
+    estado: EstadoUsuario
+  } | null
 }
 
 /** Respuesta de la lista de clientes. */

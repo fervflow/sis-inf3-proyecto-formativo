@@ -1,6 +1,6 @@
 @startuml
 title Mapa de procesos · Sistema de paquetes turísticos y reservas
-' Dos canales de atención (consulta y solicitud directa del cliente, y
+' Dos canales de atención (solicitud del cliente con su cuenta, y
 ' atención del personal) que desembocan en el mismo proceso validado.
 skinparam ActivityFontName Arial
 skinparam ActivityFontSize 11
@@ -12,6 +12,9 @@ skinparam swimlaneWidth 230
 |Cliente|
 start
 :Consulta paquetes, fechas y cupos\n(HU-03);
+if (¿Tiene cuenta de cliente?) then (no)
+  :Abre su cuenta con correo y\ndocumento (HU-15);
+endif
 if (¿Necesita cotización formal?) then (sí)
   |Personal|
   :Prepara la cotización\n(HU-05);

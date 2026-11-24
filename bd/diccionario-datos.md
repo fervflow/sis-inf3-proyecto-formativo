@@ -41,7 +41,7 @@ CREATE SCHEMA turismo;
 | `account` | Métodos de autenticación de una cuenta, con la contraseña. | `user_id` → `usuario`. |
 | `verification` | Verificaciones de correo y tokens de un solo uso. | `identifier` indexado. |
 | `acceso` | Registro de ingresos al sistema. | `id_usuario` → `usuario`. |
-| `cliente` | Ficha comercial del cliente. | `id_usuario` opcional → `usuario`; documento único. |
+| `cliente` | Ficha comercial del cliente. | `id_usuario` opcional → `usuario`; documento y correo únicos (correo obligatorio). |
 | `pasajero` | Personas que viajan en una reserva. | `id_cliente` → `cliente`; documento único. |
 | `proveedor` | Transporte, hospedaje, guías y otros servicios. | `nombre` único normalizado; `estado` restringido por `CHECK`. |
 | `proveedor_tipo` | Tipos de servicio que declara un proveedor (uno o varios). | PK compuesta (`id_proveedor`, `tipo`); `tipo` restringido por `CHECK`. |
@@ -92,7 +92,7 @@ ingreso, con usuario, fecha y hora, dirección IP y resultado.
 | Tabla | Campo | Propósito |
 |---|---|---|
 | `reserva` | `origen` | Canal de ingreso: `personal` o `web`. Permite conocer de qué vía proviene cada reserva sin duplicar el proceso. |
-| `reserva` | `fecha_expiracion` | Fecha límite para confirmar la reserva pendiente. Por omisión, `now() + 48 horas`. |
+| `reserva` | `fecha_expiracion` | Fecha límite para confirmar la reserva pendiente. Por omisión, `now() + 24 horas`. |
 | `reserva` | `estado = 'vencida'` | Resultado del vencimiento por falta de confirmación. |
 | `reserva` | `fecha_solicitud_cancelacion` | Marca que el cliente pidió la cancelación. El estado de la reserva no cambia hasta que el personal la ejecuta. |
 | `pago` | `estado` | `registrado`, `validado` o `anulado`. Un pago registrado por el cliente queda `registrado` hasta que el personal lo valida. |
@@ -118,7 +118,7 @@ ingreso, con usuario, fecha y hora, dirección IP y resultado.
 | `reserva.estado` | `pendiente`, `confirmada`, `vencida`, `cancelada`, `finalizada` |
 | `reserva.origen` | `personal`, `web` |
 | `pago.tipo` | `anticipo`, `saldo` |
-| `pago.metodo` | `efectivo`, `transferencia`, `tarjeta`, `otro` |
+| `pago.metodo` | `efectivo`, `transferencia`, `tarjeta`, `banca_movil`, `qr`, `otro` |
 | `pago.estado` | `registrado`, `validado`, `anulado` |
 | `acceso.tipo` | `ingreso`, `salida`, `intento` |
 | `acceso.resultado` | `permitido`, `denegado` |
@@ -147,7 +147,7 @@ por sí misma.
    solicitud del cliente (`origen = 'web'`) nace en `pendiente` y requiere la
    confirmación del personal, igual que una creada en la atención presencial
    (`origen = 'personal'`). El sistema no confirma por sí solo.
-9. **Las solicitudes pendientes vencen.** A las 48 horas de creadas, o al
+9. **Las solicitudes pendientes vencen.** A las 24 horas de creadas, o al
    llegar a `fecha_expiracion`, dejan de ocupar cupo y pasan a `vencida`
    cuando corre el barrido, que además las audita.
 10. **Una sola solicitud activa por cliente y salida.** El índice único
@@ -209,7 +209,7 @@ Neon.
 | `fn_actualizar_salida(salida, usuario [, fecha_salida, fecha_retorno, capacidad, precio, motivo, punto_encuentro, estado])` | Bloquea la salida, impide bajar la capacidad por debajo de lo reservado, valida la transición de estado y audita cada campo modificado con su valor anterior y el nuevo. |
 | `fn_solicitar_cancelacion(reserva, usuario)` | Registra la petición del cliente sin cambiar el estado de la reserva. |
 | `fn_ejecutar_cancelacion(reserva, motivo, usuario)` | Ejecuta la cancelación del personal: estado `cancelada`, motivo y fecha, con auditoría. |
-| `fn_registrar_pago(reserva, tipo, monto, metodo, usuario [, referencia, observacion])` | Registra el pago en estado `registrado`. |
+| `fn_registrar_pago(reserva, tipo, monto, metodo, usuario [, referencia, observacion, validado])` | Registra el pago: `registrado` o, si `validado`, `validado` con su usuario y fecha. Aplica el anticipo mínimo del 30%, exige anticipo previo para el saldo y respeta el saldo pendiente. |
 | `fn_validar_pago(pago, usuario [, anular])` | Valida o anula el pago y deja quién lo hizo y cuándo. |
 | `fn_vencer_solicitudes_pendientes()` | Barrido: pasa a `vencida` las solicitudes cuyo plazo venció y las audita. |
 
@@ -276,7 +276,7 @@ confirmar la reserva, porque el plazo deja de correr.
   de filas de `reserva_pasajero`.
 - La devolución de dinero por una cancelación se gestiona fuera del sistema
   en esta versión.
-- El plazo de 48 horas para confirmar una solicitud es un valor inicial y
+- El plazo de 24 horas para confirmar una solicitud es un valor inicial y
   puede ajustarse por la agencia; el esquema lo toma por omisión en
   `fecha_expiracion` y permite fijarlo de forma explícita en cada reserva.
 - La cancelación solicitada por el cliente se registra y la ejecuta el

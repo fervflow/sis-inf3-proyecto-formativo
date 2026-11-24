@@ -1,7 +1,9 @@
 @startuml
 title HU-06 · Registro de reservas con validación de cupos
-' Dos canales de ingreso, un mismo proceso: la reserva nace pendiente,
-' con fecha de vencimiento, y la confirma el personal (HU-17).
+' Dos canales de ingreso, un mismo proceso: la solicitud web exige una
+' cuenta de cliente (HU-15) y nace pendiente, con vencimiento de 24 horas
+' y el pago del anticipo como respaldo (HU-14). La confirma el personal
+' (HU-17).
 hide footbox
 autonumber
 skinparam maxMessageSize 175
@@ -21,24 +23,21 @@ database "reserva" as T_RESERVA <<tabla>>
 database "pasajero" as T_PASAJERO <<tabla>>
 database "reserva_pasajero" as T_RESERVA_PASAJERO <<tabla>>
 
-TUR -> UI : iniciar sesión (HU-08)
-UI -> CTRL : autenticar(credenciales)
-
-alt Credenciales no válidas
-    CTRL --> UI : error «Acceso denegado»
-    UI --> TUR : volver a intentarlo
-else Sesión del cliente válida
+alt Sin sesión
+    TUR -> UI : solicita la reserva
+    UI --> TUR : redirección a ingresar o crear cuenta (RN-RES-17)
+else Sesión del cliente válida (HU-15)
     TUR -> UI : solicita la reserva desde su cuenta
     UI -> CTRL : registrarReserva(datos, origen = 'web')
-else Registro en la atención del personal
+else Atención del personal
     PER -> UI : selecciona cliente, salida y pasajeros
     UI -> CTRL : registrarReserva(datos, origen = 'personal')
 end
 
 group Transacción de registro
-    CTRL -> E_CLIENTE : validarCliente(idCliente)
-    E_CLIENTE -> T_CLIENTE : SELECT ...
-    T_CLIENTE --> E_CLIENTE : cliente
+    CTRL -> E_CLIENTE : validarClienteYFicha(origen)
+    E_CLIENTE -> T_CLIENTE : SELECT ... la ficha la resuelve\nla cuenta del cliente (web)\no el id elegido (personal)
+    T_CLIENTE --> E_CLIENTE : cliente activo
     E_CLIENTE --> CTRL : cliente válido
 
     CTRL -> E_SALIDA : bloquearSalida(idSalida)
@@ -71,11 +70,11 @@ group Transacción de registro
         else Sin duplicidad
             E_RESERVA --> CTRL : sin duplicidad
             CTRL -> E_RESERVA : crear(idSalida, cantidad, monto, origen)
-            E_RESERVA -> T_RESERVA : INSERT ... estado 'pendiente',\nfecha_expiracion = now() + 48 h
+            E_RESERVA -> T_RESERVA : INSERT ... estado 'pendiente',\nfecha_expiracion = now() + 24 h,\nfirma de la cuenta que la registra
             T_RESERVA --> E_RESERVA : id_reserva
             E_RESERVA --> CTRL : reserva creada
 
-            loop Por cada pasajero
+            loop Por cada pasajero (canal personal)
                 CTRL -> E_PASAJERO : registrarPasajero(datos)
                 E_PASAJERO -> T_PASAJERO : INSERT ...
                 T_PASAJERO --> E_PASAJERO : id_pasajero
@@ -86,18 +85,18 @@ group Transacción de registro
 
             CTRL --> UI : código de reserva y fecha de vencimiento
             UI --> PER : reserva pendiente registrada
-            UI --> TUR : solicitud registrada y en espera de confirmación
+            UI --> TUR : solicitud registrada; sigue el pago (HU-14)
         end
     end
 end
 
 note right of CTRL
     La reserva nace pendiente en los dos
-    canales. La confirma el personal (HU-17),
-    y solo si la cantidad de pasajeros coincide
-    con el manifiesto (HU-12). Si no se confirma
-    dentro del plazo, pasa a vencida y libera el
-    cupo.
+    canales. En el web firma la cuenta del
+    cliente (RN-RES-10); el pago del anticipo
+    la respalda (HU-14) y la confirma el
+    personal (HU-17). Si no se confirma dentro
+    del plazo, pasa a vencida y libera el cupo.
 end note
 
 note right of E_RESERVA

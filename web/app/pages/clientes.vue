@@ -45,6 +45,22 @@
             {{ etiquetaTipo(fila.tipoDocumento) }} {{ fila.numeroDocumento }}
           </span>
 
+          <span v-else-if="columna.clave === 'cuenta'" class="text-(--vt-texto-sm)">
+            <template v-if="fila.cuenta">
+              {{ fila.cuenta.usuario }}
+              <UBadge
+                v-if="fila.cuenta.estado !== 'activo'"
+                class="ml-1"
+                color="error"
+                variant="subtle"
+                :label="t(`usuarios.estados.${fila.cuenta.estado}` as ClaveMensaje)"
+              />
+            </template>
+            <span v-else class="text-(--vt-color-texto-suave)">
+              {{ t('clientes.sinCuenta') }}
+            </span>
+          </span>
+
           <UBadge
             v-else-if="columna.clave === 'estado'"
             :color="fila.estado === 'activo' ? 'success' : 'neutral'"
@@ -111,8 +127,17 @@
             <UFormField :label="t('clientes.form.telefono')" name="telefono">
               <UInput v-model="formulario.telefono" class="w-full" />
             </UFormField>
-            <UFormField :label="t('clientes.form.correo')" name="correo">
-              <UInput v-model="formulario.correo" type="email" class="w-full" />
+            <UFormField
+              :label="t('clientes.form.correo')"
+              name="correo"
+              :help="t('clientes.ayudaCorreo')"
+            >
+              <UInput
+                v-model="formulario.correo"
+                type="email"
+                class="w-full"
+                required
+              />
             </UFormField>
           </div>
 
@@ -197,6 +222,7 @@ const columnas = computed<ColumnaTabla<FilaCliente>[]>(() => [
   { clave: 'nombres', etiqueta: t('clientes.columnas.nombres') },
   { clave: 'apellidos', etiqueta: t('clientes.columnas.apellidos') },
   { clave: 'telefono', etiqueta: t('clientes.columnas.telefono') },
+  { clave: 'cuenta', etiqueta: t('clientes.columnas.cuenta') },
   { clave: 'estado', etiqueta: t('clientes.columnas.estado') },
   {
     clave: 'acciones',
@@ -290,7 +316,7 @@ function abrirEdicion(cliente: ClienteResumen) {
   formulario.numeroDocumento = cliente.numeroDocumento
   formulario.nombres = cliente.nombres
   formulario.apellidos = cliente.apellidos
-  formulario.correo = cliente.correo ?? ''
+  formulario.correo = cliente.correo
   formulario.telefono = cliente.telefono ?? ''
   formulario.direccion = cliente.direccion ?? ''
   formulario.fechaNacimiento = cliente.fechaNacimiento ?? ''

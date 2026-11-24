@@ -11,8 +11,10 @@ import {
  * Confirmación de una solicitud pendiente (HU-17).
  *
  * `fn_confirmar_reserva` limpia la fecha de vencimiento y deja el cambio
- * auditado. Una solicitud vencida no puede confirmarse: la función la
- * marca como vencida y rechaza la operación.
+ * auditado. Exige el anticipo validado (RN-RES-18): sin él, la
+ * confirmación se rechaza con `anticipo_requerido`. Una solicitud vencida
+ * no puede confirmarse: la función la marca como vencida y rechaza la
+ * operación.
  */
 export default defineEventHandler(async (event): Promise<ReservaResumen> => {
   const sesion = exigirPersonal(event)

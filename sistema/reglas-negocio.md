@@ -5,9 +5,11 @@ paquetes turísticos y reservas de Vizcacha Tours. **No forma parte de
 `main.tex`**: es documentación de trabajo.
 
 - **Alcance de esta versión:** catálogo, paquetes turísticos, salidas,
-  proveedores, cotizaciones y reservas con su confirmación y vencimiento.
-- **Fuera de alcance por ahora:** pagos, pasajeros, cancelaciones,
-  reportes y avisos. Cada módulo tendrá su propia ampliación del catálogo.
+  proveedores, cotizaciones, reservas con su confirmación y vencimiento,
+  cuentas de cliente (RN-USU-02 a RN-USU-05) y pagos con pasarela
+  simulada (RN-PAG-01 a RN-PAG-08).
+- **Fuera de alcance por ahora:** pasajeros, cancelaciones, reportes y
+  avisos. Cada módulo tendrá su propia ampliación del catálogo.
 - **Fuente del esquema físico:** `bd/esquema.sql` y `bd/diccionario-datos.md`.
 - **Implementación web:** `web/db/schema.ts`, `web/server/` y `web/app/`.
 
@@ -30,6 +32,9 @@ qué**, **dónde** se aplica y **cómo** se comprueba.
 | **Lugar** | Ubicación reutilizable del catálogo: destino principal, origen o parada. | Entidad `lugar`, `paquete.id_lugar_destino`, `paquete.id_lugar_origen` y `paquete_parada`. |
 | **Proveedor** | Empresa o persona que presta transporte, hospedaje, guía, alimentación u otro servicio. | Entidad `proveedor` y vínculo `paquete_proveedor`. |
 | **Cotización** | Propuesta económica para un cliente y una salida, con plazo y condiciones. No ocupa cupo. | Entidad `cotizacion` y API `/api/cotizaciones`. |
+| **Anticipo** | Primer pago de la reserva. No puede ser menor al 30% del monto total y puede cubrir la totalidad. | Entidad `pago` con `tipo = 'anticipo'`. |
+| **Saldo** | Pago que completa la reserva con lo que falta después del anticipo. | Entidad `pago` con `tipo = 'saldo'`. |
+| **Pasarela simulada** | Emulación del cobro por banca móvil o código QR: genera la referencia y registra el pago, sin mover dinero real. | Módulo de pagos de la web. |
 
 El rol de acceso del cliente se llama `CLIENTE`. El código `TURISTA` queda
 obsoleto y no debe volver a introducirse.
@@ -212,15 +217,20 @@ programada ──▶ confirmada ──▶ realizada
 | HU-08 · Acceso por rol | RN-USU-01, RN-USU-02 |
 | HU-10 · Proveedores y vínculos | RN-PRV-01 a RN-PRV-07 |
 | HU-05 · Cotizaciones | RN-COT-01 a RN-COT-09 |
-| HU-06 · Registro de reservas | RN-GEN-04, RN-GEN-05, RN-SAL-14, RN-SAL-18, RN-COT-08 y RN-RES-01 a RN-RES-06, RN-RES-11, RN-RES-12 |
-| HU-17 · Confirmación y vencimiento de solicitudes | RN-GEN-03, RN-GEN-05, RN-SAL-19 y RN-RES-01, RN-RES-05, RN-RES-07 a RN-RES-10, RN-RES-13 |
+| HU-15 · Cuenta de cliente | RN-USU-02 a RN-USU-05 |
+| HU-06 · Registro de reservas | RN-GEN-04, RN-GEN-05, RN-SAL-14, RN-SAL-18, RN-COT-08 y RN-RES-01 a RN-RES-06, RN-RES-11, RN-RES-12, RN-RES-17 |
+| HU-14 · Anticipos y saldos | RN-PAG-01 a RN-PAG-08 |
+| HU-17 · Confirmación y vencimiento de solicitudes | RN-GEN-03, RN-GEN-05, RN-SAL-19 y RN-RES-01, RN-RES-05, RN-RES-07 a RN-RES-10, RN-RES-13, RN-RES-18 |
 
 ## 10. Reglas de usuarios y roles del alcance
 
 | ID | Regla | Fuente | Aplicación | Estado |
 |---|---|---|---|---|
 | RN-USU-01 | Los roles son `ADMIN`, `PERSONAL` y `CLIENTE`. El código `TURISTA` queda obsoleto. | Decisión del proyecto | `rol.codigo`, tipos y textos | Vigente |
-| RN-USU-02 | Un usuario `CLIENTE` debe tener una ficha de cliente; una ficha puede existir sin cuenta. | HU-15, HU-04 | Pendiente: módulo de cuentas de cliente | Propuesta |
+| RN-USU-02 | Un usuario `CLIENTE` tiene exactamente una ficha de cliente vinculada; una ficha puede existir sin cuenta. | HU-15, HU-04 | `cliente.id_usuario`, registro de cuentas y registro de fichas | Vigente |
+| RN-USU-03 | El registro público crea la cuenta y la ficha del cliente en un solo paso, con correo y documento obligatorios y únicos. Si el documento ya tiene ficha, la cuenta se vincula a ella en lugar de duplicarla. El dominio interno `vizcacha.tours` queda reservado a las cuentas del personal. | HU-15 | API `/api/registro`, Better Auth y `uq_cliente_documento` | Vigente |
+| RN-USU-04 | El panel de usuarios solo crea cuentas `ADMIN` y `PERSONAL`; las de cliente nacen del registro público. Una cuenta puede bloquearse sin borrar su historial. | HU-15, HU-08 | API `/api/admin/usuarios` y panel de usuarios | Vigente |
+| RN-USU-05 | El correo es obligatorio y único en toda ficha de cliente: es el canal de contacto para cotizaciones y avisos, y la identidad del registro. | HU-15, HU-04 | `cliente.correo`, `ux_cliente_correo` y formularios | Vigente |
 
 ## 11. Proveedores
 
@@ -251,8 +261,10 @@ programada ──▶ confirmada ──▶ realizada
 ## 13. Reservas y solicitudes
 
 Las reservas se crean en los dos canales con el mismo proceso validado: la
-atención del personal y la solicitud directa del cliente, distinguidas por
-el campo `origen`. El cupo lo calcula la base; ninguna capa la reimplementa.
+atención del personal y la solicitud del cliente con sesión, distinguidas
+por el campo `origen`. El canal web exige una cuenta de cliente con su
+ficha; nadie reserva de forma anónima. El cupo lo calcula la base;
+ninguna capa la reimplementa.
 
 | ID | Regla | Fuente | Aplicación | Estado |
 |---|---|---|---|---|
@@ -260,18 +272,20 @@ el campo `origen`. El cupo lo calcula la base; ninguna capa la reimplementa.
 | RN-RES-02 | La validación de cupos se ejecuta dentro de una transacción que bloquea la fila de la salida, de modo que dos registros simultáneos no superen la capacidad. | HU-06 | `fn_crear_reserva` | Vigente |
 | RN-RES-03 | El cupo se calcula sobre las reservas pendientes vigentes y las confirmadas; las vencidas y las canceladas no se cuentan. | HU-03, HU-06 | `vista_disponibilidad_salida` y `fn_crear_reserva` | Vigente |
 | RN-RES-04 | Un cliente tiene una sola solicitud pendiente por salida; una necesidad adicional se gestiona modificando la solicitud existente. | HU-06 | `ux_reserva_solicitud_activa` y `fn_crear_reserva` | Vigente |
-| RN-RES-05 | Toda reserva pendiente tiene fecha de vencimiento a 48 horas de su creación; al vencer deja de ocupar cupo por sí misma. | HU-06, HU-17 | `reserva.fecha_expiracion` y vistas | Vigente |
+| RN-RES-05 | Toda reserva pendiente tiene fecha de vencimiento a 24 horas de su creación; al vencer deja de ocupar cupo por sí misma. | HU-06, HU-17 | `reserva.fecha_expiracion` y vistas | Vigente |
 | RN-RES-06 | El monto de la reserva se congela al crear con el precio de la salida por la cantidad de pasajeros; los cambios de precio posteriores no lo alteran. | HU-06 | `reserva.monto_total` y `fn_crear_reserva` | Vigente |
 | RN-RES-07 | Confirmar una solicitud pendiente la pasa a `confirmada`, limpia su fecha de vencimiento y deja el cambio auditado con usuario y fecha. | HU-17 | `fn_confirmar_reserva` e `historial_reserva` | Vigente |
 | RN-RES-08 | Una solicitud vencida no puede confirmarse; el intento la marca como `vencida` y audita el intento. El cliente debe registrar una nueva si la salida sigue disponible. | HU-17 | `fn_confirmar_reserva` | Vigente |
 | RN-RES-09 | El barrido diario pasa las solicitudes pendientes fuera de plazo a `vencida` y deja el cambio auditado; es limpieza, porque el cupo ya se liberó por cálculo. | HU-17 | `fn_vencer_solicitudes_pendientes` y el cron `vencer-solicitudes` | Vigente |
-| RN-RES-10 | La reserva nace auditada: `historial_reserva` registra la creación con su canal y usuario. Las solicitudes del canal web se firman con la cuenta de sistema, que no tiene contraseña y no permite ingreso. | HU-06, HU-17 | `historial_reserva` y la semilla de `usuario` | Vigente |
-| RN-RES-11 | La solicitud web identifica al cliente por su documento y tipo; la ficha se reutiliza si existe y se registra con los datos de contacto si no existe, sin duplicar el documento. | HU-06, HU-04 | API de reservas y `uq_cliente_documento` | Vigente |
+| RN-RES-10 | La reserva nace auditada: `historial_reserva` registra la creación con su canal y el usuario que la firmó. En el canal web firma la cuenta del cliente; en el personal, la cuenta del trabajador. | HU-06, HU-17 | `historial_reserva`, API de reservas | Vigente |
+| RN-RES-11 | El canal web no crea fichas: la solicitud usa la ficha vinculada a la cuenta del cliente, y el registro de la ficha corresponde al registro de la cuenta (RN-USU-03). | HU-06, HU-15 | API de reservas | Vigente |
 | RN-RES-12 | Solo una cotización aceptada del mismo cliente y de la misma salida puede originar una reserva, y el vínculo es único. | HU-06 | API de reservas y `reserva.id_cotizacion` | Vigente |
-| RN-RES-13 | La consulta del personal muestra las solicitudes de ambos canales con su cliente, su salida, su monto y su fecha de vencimiento, con filtro por estado. | HU-17 | API `GET /api/reservas` e interfaz «Solicitudes» | Vigente |
+| RN-RES-13 | La consulta del personal muestra las solicitudes de ambos canales con su cliente, su salida, su monto, su vencimiento y el estado de su anticipo, con filtro por estado. | HU-17 | API `GET /api/reservas` e interfaz «Solicitudes» | Vigente |
 | RN-RES-14 | La reserva no se elimina nunca: la cancelación la ejecuta el personal con motivo y fecha, y las reservas vencidas, canceladas y finalizadas no se modifican. | HU-13, HU-07 | Pendiente: módulo de cancelaciones | Propuesta |
 | RN-RES-15 | Una solicitud del canal web admite como máximo 4 pasajeros; los grupos mayores se atienden por la oficina, en el canal personal, que no tiene ese tope. | Decisión del proyecto | `fn_crear_reserva`, Zod e interfaz | Vigente |
 | RN-RES-16 | Las solicitudes web pendientes vigentes de una misma salida no retienen en conjunto más de la mitad del cupo máximo; alcanzado el tope, nuevas solicitudes web se rechazan hasta que el personal confirme o venza alguna. Las pendientes del canal personal no cuentan para el tope. | Decisión del proyecto | `fn_crear_reserva` | Vigente |
+| RN-RES-17 | Reservar por el canal web exige una sesión de `CLIENTE` con ficha activa vinculada. Sin sesión, la interfaz redirige a ingresar o crear cuenta; la API responde 401. | HU-15, HU-06 | API de reservas, middleware e interfaz | Vigente |
+| RN-RES-18 | Confirmar una solicitud exige un anticipo validado que cumpla el mínimo (RN-PAG-01); la base lo exige en `fn_confirmar_reserva` y no admite confirmar sin pago. | HU-17, HU-14 | `fn_confirmar_reserva` | Vigente |
 
 ### 13.1 Máquina de estados de la reserva
 
@@ -281,13 +295,46 @@ pendiente ──▶ confirmada
     └──────▶ vencida
 ```
 
-- `pendiente → confirmada`: la hace el personal dentro del plazo y audita.
+- `pendiente → confirmada`: la hace el personal dentro del plazo, con el
+  anticipo validado exigido por RN-RES-18, y audita.
 - `pendiente → vencida`: la hacen el intento de confirmación fuera de plazo
   o el barrido diario; es la única transición automática de estado.
 - `cancelada` y `finalizada`: llegan con los módulos de cancelaciones (HU-13)
   y seguimiento (HU-07); cualquier otro cambio de estado está rechazado.
 
-## 14. Reglas pendientes de otros módulos
+## 14. Pagos
+
+El pago emula la transacción con una pasarela simulada: registra la
+referencia y el estado del cobro, sin mover dinero real. La validación
+sigue siendo del personal: un pago del cliente no cuenta hasta que se
+comprueba.
+
+| ID | Regla | Fuente | Aplicación | Estado |
+|---|---|---|---|---|
+| RN-PAG-01 | El anticipo no puede ser menor al 30% del monto total de la reserva. Puede cubrir la totalidad: pagar todo de una vez se registra como un anticipo por el monto completo. | HU-14 | `fn_registrar_pago`, Zod e interfaz | Vigente |
+| RN-PAG-02 | Por reserva hay como máximo un anticipo y un saldo; un segundo pago del mismo tipo se rechaza. | HU-14 | `uq_pago_reserva_tipo` y API | Vigente |
+| RN-PAG-03 | Por la web se paga con `banca_movil` o `qr`, con referencia generada por la pasarela simulada. En la oficina se registra con `efectivo`, `transferencia`, `tarjeta` u `otro`. | HU-14 | `ck_pago_metodo` y módulo de pagos | Vigente |
+| RN-PAG-04 | Los pagos que registra el personal nacen `validado`; los que registra el cliente nacen `registrado` y no suman al abonado hasta que el personal los valide o los anule. | HU-14 | `fn_registrar_pago` y `fn_validar_pago` | Vigente |
+| RN-PAG-05 | Ningún pago supera el saldo pendiente de la reserva. El saldo paga el resto completo; solo pagos `validado` reducen el saldo mostrado. | HU-14 | `fn_registrar_pago` e interfaz | Vigente |
+| RN-PAG-06 | Solo las reservas `pendiente` o `confirmada` admiten pagos; las `vencida`, `cancelada` y `finalizada` no. | HU-14 | `fn_registrar_pago` | Vigente |
+| RN-PAG-07 | La devolución por cancelación del cliente sigue tramos sobre lo abonado validado: a 15 días o más de la salida, el 100%; entre 8 y 14 días, el 50%; con 7 días o menos, o inasistencia, nada. Si la cancela la agencia o la solicitud vence sin confirmarse por falta de atención, se devuelve el 100%. La ejecución queda fuera del sistema; los lineamientos se muestran al cliente antes de pagar. | HU-13, HU-14 | Política documentada e interfaz de pagos | Vigente |
+| RN-PAG-08 | Confirmar una reserva exige el anticipo validado del mínimo (RN-RES-18); el pago por sí solo no confirma nada. | HU-14, HU-17 | `fn_confirmar_reserva` | Vigente |
+
+### 14.1 Máquina de estados del pago
+
+```text
+registrado ──▶ validado
+     │
+     └──────▶ anulado
+```
+
+- `registrado`: nace así el pago del cliente por la web.
+- `validado`: lo marca el personal, con su usuario y fecha; solo entonces
+  suma al total abonado y habilita la confirmación si es el anticipo.
+- `anulado`: lo marca el personal cuando el cobro no se corresponde; deja
+  de comprometer el saldo pendiente.
+
+## 15. Reglas pendientes de otros módulos
 
 Se documentan aquí para que no se pierdan, pero no se implementan en esta
 iteración:
@@ -295,21 +342,18 @@ iteración:
 - **Reservas:** manifiesto completo al confirmar; modificación de cantidad
   y salida con nueva verificación de cupos (HU-07); transición a
   `finalizada`; cancelaciones con motivo (HU-13); reportes por fecha (HU-11).
-- **Pagos:** no superar el total; estado de la reserva; orden anticipo/saldo;
-  `total_pagado` solo con validados; métodos `banca_movil` y `qr`.
+- **Pagos:** ejecución y registro de las devoluciones del catálogo (RN-PAG-07);
+  pasarela real en lugar de la simulada.
 - **Pasajeros:** pasajero reutilizable entre reservas; conteo exacto al
   confirmar; el registro debe coincidir con la cantidad declarada.
 - **Proveedores:** permitir varios tipos del mismo proveedor en un mismo
   paquete; hoy el vínculo guarda un solo tipo y su costo.
-- **Avisos:** cambios de fecha o capacidad de una salida (HU-16).
-- **Cuentas de cliente:** alta, vínculo con la ficha y restricción a
-  información propia (HU-15). Mientras HU-15 no esté implementada, la
-  solicitud web se hace sin cuenta y queda firmada por la cuenta de
-  sistema; el panel de usuarios permite crear un `CLIENTE` sin ficha.
+- **Avisos:** cambios de fecha o capacidad de una salida (HU-16), por
+  correo y en las pantallas del cliente.
 - **Roles:** resolver `ADMIN`, `PERSONAL` y `CLIENTE` por `codigo` en lugar
   de depender de los identificadores fijos de la semilla.
 
-## 15. Gobierno del catálogo
+## 16. Gobierno del catálogo
 
 1. Una regla nueva se propone aquí con su ID y su fuente.
 2. Se decide si se implementa en la base, en la API, en la interfaz o en un
@@ -320,7 +364,7 @@ iteración:
 5. Se actualiza la historia de usuario y la trazabilidad.
 6. Se registra el trabajo aceptado en `docs/changelog/`.
 
-## 16. Decisiones abiertas
+## 17. Decisiones abiertas
 
 - ¿El catálogo de servicios y el de lugares se podrán editar desde la
   administración o seguirán siendo una semilla fija?

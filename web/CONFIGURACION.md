@@ -38,10 +38,11 @@
 No se usa el «Managed Better Auth» de Neon: la identidad vive en la
 aplicación y el esquema queda bajo control.
 
-**Usuarios del MVP:** el registro público está cerrado y el correo queda
-fuera de alcance. Las cuentas se crean desde `/admin/usuarios`; el nombre de
-usuario es el identificador y la contraseña inicial. Ver
-`docs/autenticacion.md`.
+**Usuarios del MVP:** el personal se crea desde `/admin/usuarios` (el
+nombre de usuario es el identificador y la contraseña inicial); los
+clientes se registran ellos mismos desde `/crear-cuenta`, con correo y
+documento obligatorios y únicos. El pago web es una pasarela simulada y la
+devolución se ejecuta fuera del sistema. Ver `docs/autenticacion.md`.
 
 ## Vercel
 

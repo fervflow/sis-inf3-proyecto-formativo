@@ -150,8 +150,9 @@ RES_0117 ..> SALDO_0117 : totaliza
 
 note bottom of RES_0117
   Nace pendiente en los dos canales, con
-  vencimiento a las 48 horas. El personal
-  la confirma.
+  vencimiento a las 24 horas y el respaldo
+  del anticipo validado. El personal la
+  confirma.
 end note
 
 note bottom of PAG_ANTICIPO

@@ -61,10 +61,19 @@ note right of UC9
   Gestionar la reserva es el caso
   general. Tres acciones lo
   extienden con su precondición:
-  confirmar (pendiente y dentro
-  del plazo), cancelar (no
+  confirmar (pendiente, dentro
+  del plazo y con el anticipo
+  validado), cancelar (no
   finalizada) y registrar pagos
-  (reserva confirmada).
+  (reserva pendiente o
+  confirmada).
+end note
+
+note right of UC2
+  El cliente abre su cuenta por
+  sí mismo desde la web: crea
+  la ficha con su documento o
+  se vincula a la que ya tiene.
 end note
 
 @enduml

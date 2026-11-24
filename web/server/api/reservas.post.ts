@@ -8,11 +8,9 @@ import {
 } from '../utils/autorizacion'
 import { consultar } from '../utils/db'
 import {
-  buscarClientePorDocumento,
   codigoErrorReserva,
+  esquemaReservaCliente,
   esquemaReservaPersonal,
-  esquemaReservaPublica,
-  idUsuarioSistema,
   obtenerReserva,
   validarCotizacionOrigen,
 } from '../utils/reservas'
@@ -23,11 +21,12 @@ import { leerCuerpo } from '../utils/validacion'
  *
  * - Con sesión de personal (`ADMIN` o `PERSONAL`), la reserva nace del
  *   canal `personal`: el cliente se elige de las fichas registradas.
- * - Sin sesión, es la solicitud directa del cliente por el canal `web`:
- *   el cliente se identifica por documento y, si no tiene ficha, se
- *   registra con los datos de contacto que envía.
+ * - Con sesión de cliente, es la solicitud del canal `web`: usa la ficha
+ *   vinculada a su cuenta (RN-USU-02) y queda firmada por ella
+ *   (RN-RES-10). Sin sesión no hay solicitud: la interfaz redirige a
+ *   ingresar o crear cuenta y la API responde 401 (RN-RES-17).
  *
- * La validación de cupos y la creación con vencimiento de 48 horas están
+ * La validación de cupos y la creación con vencimiento de 24 horas están
  * en `fn_crear_reserva`, que bloquea la fila de la salida.
  */
 export default defineEventHandler(async (event): Promise<ReservaResumen> => {
@@ -40,13 +39,14 @@ export default defineEventHandler(async (event): Promise<ReservaResumen> => {
     return crearReservaPersonal(await leerCuerpo(event, esquemaReservaPersonal), sesion.user.id)
   }
 
-  if (sesion) {
-    // El cliente autenticado podrá reservar desde su cuenta cuando se
-    // implemente HU-15; por ahora solo el personal y el anónimo llegan.
-    throw createError({ statusCode: 403, statusMessage: 'sin_permiso' })
+  if (sesion?.user) {
+    return crearReservaCliente(
+      await leerCuerpo(event, esquemaReservaCliente),
+      sesion.user,
+    )
   }
 
-  return crearReservaPublica(await leerCuerpo(event, esquemaReservaPublica))
+  throw createError({ statusCode: 401, statusMessage: 'sesion_requerida' })
 })
 
 /** Alta desde la atención del personal. */
@@ -99,55 +99,36 @@ async function crearReservaPersonal(
   }
 }
 
-/** Solicitud directa del cliente por el canal web. */
-async function crearReservaPublica(
-  datos: ReturnType<typeof esquemaReservaPublica.parse>,
+/** Solicitud del cliente con sesión (canal web). */
+async function crearReservaCliente(
+  datos: ReturnType<typeof esquemaReservaCliente.parse>,
+  usuario: { id: string },
 ): Promise<ReservaResumen> {
-  const documento = datos.numeroDocumento.trim().toUpperCase()
   const db = useDb()
 
-  // La ficha se reutiliza si existe; si no, se registra con lo que envía
-  // el formulario. El documento es la clave de negocio y evita duplicados.
-  let idCliente = await buscarClientePorDocumento(datos.tipoDocumento, documento)
+  // La ficha viene de la cuenta: el canal web ya no registra fichas al
+  // vuelo (RN-RES-11). Una cuenta sin ficha no puede reservar.
+  const [ficha] = await db
+    .select({ idCliente: schema.cliente.idCliente, estado: schema.cliente.estado })
+    .from(schema.cliente)
+    .where(eq(schema.cliente.idUsuario, usuario.id))
+    .limit(1)
 
-  if (!idCliente) {
-    try {
-      const [creada] = await db
-        .insert(schema.cliente)
-        .values({
-          tipoDocumento: datos.tipoDocumento,
-          numeroDocumento: documento,
-          nombres: datos.nombres,
-          apellidos: datos.apellidos,
-          correo: datos.correo || null,
-          telefono: datos.telefono || null,
-        })
-        .returning({ idCliente: schema.cliente.idCliente })
-      idCliente = creada?.idCliente ?? null
-    } catch (error) {
-      // Una carrera entre dos solicitudes con el mismo documento se
-      // resuelve buscando la ficha que la otra petición creó.
-      if ((error as { code?: string }).code === '23505') {
-        idCliente = await buscarClientePorDocumento(datos.tipoDocumento, documento)
-      }
-      if (!idCliente) throw error
-    }
+  if (!ficha) {
+    throw createError({ statusCode: 409, statusMessage: 'sin_ficha' })
   }
-
-  if (idCliente === null) {
-    throw createError({ statusCode: 500, statusMessage: 'alta_incompleta' })
+  if (ficha.estado !== 'activo') {
+    throw createError({ statusCode: 400, statusMessage: 'cliente_inactivo' })
   }
-
-  const idUsuario = await idUsuarioSistema()
 
   try {
     const filas = await consultar<{ id_reserva: string | number }>(sql`
       select turismo.fn_crear_reserva(
-        ${idCliente}::bigint,
+        ${ficha.idCliente}::bigint,
         ${datos.idSalida}::bigint,
         ${datos.cantidadPasajeros}::integer,
         'web',
-        ${idUsuario}::text
+        ${usuario.id}::text
       ) as id_reserva
     `)
 

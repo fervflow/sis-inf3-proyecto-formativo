@@ -50,6 +50,7 @@ de acción, objetivo general y objetivos específicos.
 | Compilar la hoja con Scrum | `make estimacion-scrum` | `.\build.ps1 -EstimacionScrum` |
 | Actualizar una base existente | `make db-actualizar` | — |
 | Probar las reglas de paquetes y salidas | `make db-probar` | — |
+| Cargar datos de demostración | `psql "$DATABASE_URL_UNPOOLED" -f bd/datos-prueba.sql` | — |
 | Volver a publicar el PDF | `make publicar` | — |
 | Limpiar | `make clean` / `make distclean` | `.\build.ps1 -Limpiar` / `-LimpiarTodo` |
 

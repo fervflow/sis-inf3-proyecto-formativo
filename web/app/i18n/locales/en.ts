@@ -21,6 +21,7 @@ export const en: Mensajes = {
   'nav.proveedores': 'Providers',
   'nav.usuarios': 'Users',
   'nav.gestion': 'Management',
+  'nav.misReservas': 'My bookings',
   'nav.principal': 'Main navigation',
   'nav.menu': 'Open menu',
   'nav.cuenta': 'My account',
@@ -91,10 +92,10 @@ export const en: Mensajes = {
   'disponibilidad.columnas.acciones': 'Book',
   'disponibilidad.solicitar': 'Request',
 
-  'solicitudes.publico.titulo': 'Request a booking',
-  'solicitudes.publico.enviar': 'Send request',
-  'solicitudes.registrada':
-    'Request registered with code {codigo}. You have until {vencimiento} for the agency to confirm it.',
+  'solicitudes.cliente.titulo': 'Request a booking',
+  'solicitudes.cliente.enviar': 'Request booking',
+  'solicitudes.ingresar':
+    'To book, sign in with your account or create one: only departures with your own client record can be requested.',
   'solicitudes.titulo': 'Booking requests',
   'solicitudes.introduccion':
     'Pending requests from both channels. Confirming them in time turns them into confirmed bookings; expired ones release their quota.',
@@ -112,8 +113,11 @@ export const en: Mensajes = {
   'solicitudes.columnas.pasajeros': 'Passengers',
   'solicitudes.columnas.monto': 'Amount',
   'solicitudes.columnas.estado': 'Status',
+  'solicitudes.columnas.anticipo': 'Deposit',
   'solicitudes.columnas.vencimiento': 'Expires',
   'solicitudes.columnas.acciones': 'Actions',
+  'solicitudes.sinAnticipo': 'No deposit',
+  'solicitudes.pagos.abrir': 'Payments',
   'solicitudes.origenes.personal': 'Staff',
   'solicitudes.origenes.web': 'Web',
   'solicitudes.estados.pendiente': 'Pending',
@@ -128,30 +132,42 @@ export const en: Mensajes = {
   'solicitudes.sinSalidas':
     'No departures with quota. Schedule a departure to book.',
   'solicitudes.disponibles': 'available',
+  'solicitudes.porPasajero': 'per passenger',
   'solicitudes.form.cliente': 'Client',
   'solicitudes.form.salida': 'Departure',
   'solicitudes.form.cantidad': 'Number of passengers',
-  'solicitudes.form.tipoDocumento': 'Document type',
-  'solicitudes.form.numeroDocumento': 'Document number',
-  'solicitudes.form.nombres': 'First names',
-  'solicitudes.form.apellidos': 'Last names',
-  'solicitudes.form.correo': 'Email (optional)',
-  'solicitudes.form.telefono': 'Phone (optional)',
   'solicitudes.ayudaCantidad':
-    'The number cannot exceed the available quota of the departure.',
-  'solicitudes.ayudaCorreo':
-    'The agency will contact you at this email to confirm your booking.',
+    'Up to 4 passengers on the web and never above the available quota; larger groups are served at the agency.',
   'solicitudes.ayudaVencimiento':
-    'The request stays pending and expires after 48 hours if not confirmed.',
+    'The request stays pending and expires after 24 hours if not confirmed.',
 
   'ingreso.titulo': 'Sign in',
   'ingreso.introduccion':
-    'Accounts are created by the administrator. Enter the username you were given.',
-  'ingreso.usuario': 'Username',
+    'Staff accounts are created by the administrator; as a client, create yours under “Create account”.',
+  'ingreso.usuario': 'Username or email',
+  'ingreso.sinCuenta': "Don't have an account?",
+  'ingreso.crearCuenta': 'Create one',
   'ingreso.contrasena': 'Password',
   'ingreso.pista': 'The first time, the password is the username itself.',
   'ingreso.error': 'Wrong username or password.',
   'ingreso.bloqueada': 'The account is not active. Contact the administrator.',
+
+  'registro.titulo': 'Create your account',
+  'registro.introduccion':
+    'With your account you request bookings, pay your deposit and follow your requests without visiting the office. Your client record is created with your document; if the agency already registered it, it gets linked to your account.',
+  'registro.form.correo': 'Email',
+  'registro.ayudaCorreo':
+    'Required and unique: confirmations and notices reach you here.',
+  'registro.form.contrasena': 'Password',
+  'registro.ayudaContrasena': 'At least 8 characters.',
+  'registro.form.nombres': 'First names',
+  'registro.form.apellidos': 'Last names',
+  'registro.form.tipoDocumento': 'Document type',
+  'registro.form.numeroDocumento': 'Document number',
+  'registro.form.telefono': 'Phone (optional)',
+  'registro.enviar': 'Create account',
+  'registro.tengoCuenta': 'Already have an account?',
+  'registro.ingresar': 'Sign in here',
 
   'cambio.titulo': 'Change password',
   'cambio.introduccion':
@@ -199,6 +215,8 @@ export const en: Mensajes = {
   'usuarios.form.apellidos': 'Last names',
   'usuarios.form.telefono': 'Phone (optional)',
   'usuarios.form.rol': 'Role',
+  'usuarios.ayudaRol':
+    'Clients register their own accounts on the web; the panel only creates administrators and staff.',
   'usuarios.form.ayudaUsuario':
     'Between 8 and 30 characters: lowercase letters, numbers, dot, hyphen or underscore. It will also be the initial password.',
 
@@ -491,6 +509,79 @@ export const en: Mensajes = {
   'salidas.actualizado': 'Departure updated for {paquete}.',
   'salidas.motivoCancelacion': 'Cancellation requires a reason.',
 
+  'pagos.titulo': 'Payments of the booking',
+  'pagos.total': 'Total',
+  'pagos.comprometido': 'Committed',
+  'pagos.abonado': 'Paid',
+  'pagos.enRevision': 'Under review',
+  'pagos.saldoPendiente': 'Balance due',
+  'pagos.sinAnticipoValidado':
+    'No validated deposit: confirming the booking requires it.',
+  'pagos.sinPagos': 'No payments registered.',
+  'pagos.validar': 'Validate',
+  'pagos.anular': 'Void',
+  'pagos.registrar': 'Register payment',
+  'pagos.registrarTitulo': 'Register an office payment',
+  'pagos.form.tipo': 'Type',
+  'pagos.form.metodo': 'Method',
+  'pagos.form.monto': 'Amount',
+  'pagos.form.referencia': 'Reference (optional)',
+  'pagos.ayudaMinimo':
+    'The deposit cannot be lower than {porcentaje}% of the total.',
+  'pagos.ayudaSaldo': 'The balance pays the exact remainder of the booking.',
+  'pagos.lineamientosTitulo': 'Refunds',
+  'pagos.lineamientos':
+    'Cancelling your booking: 15 days or more before departure, 100% of the paid amount is refunded; between 8 and 14 days, 50%; with 7 days or less, no refund. If the agency cancels the departure, 100% is refunded.',
+  'pagos.registradoOk': 'Payment registered: validated by the office record.',
+  'pagos.tipos.anticipo': 'Deposit',
+  'pagos.tipos.saldo': 'Balance',
+  'pagos.metodos.efectivo': 'Cash',
+  'pagos.metodos.transferencia': 'Transfer',
+  'pagos.metodos.tarjeta': 'Card',
+  'pagos.metodos.banca_movil': 'Mobile banking',
+  'pagos.metodos.qr': 'QR code',
+  'pagos.metodos.otro': 'Other',
+  'pagos.estados.registrado': 'Registered',
+  'pagos.estados.validado': 'Validated',
+  'pagos.estados.anulado': 'Voided',
+  'pagos.columnas.fecha': 'Date',
+  'pagos.columnas.tipo': 'Type',
+  'pagos.columnas.metodo': 'Method',
+  'pagos.columnas.referencia': 'Reference',
+  'pagos.columnas.monto': 'Amount',
+  'pagos.columnas.estado': 'Status',
+  'pagos.columnas.acciones': 'Actions',
+
+  'pasarela.titulo': 'Pay the deposit',
+  'pasarela.introduccion':
+    'Simulated payment: the reference is recorded and the agency validates it; no real money moves.',
+  'pasarela.minimo': 'The deposit minimum is {monto} (30% of the total).',
+  'pasarela.pagar': 'Pay {monto}',
+  'pasarela.tarde': 'Pay later',
+  'pasarela.exito':
+    'Payment registered: {monto} with reference {referencia}. The agency will validate it and confirm your booking.',
+  'pasarela.observacion': 'Simulated payment through the web gateway.',
+
+  'misreservas.titulo': 'My bookings',
+  'misreservas.introduccion':
+    'Your requests and bookings with their status and balance. Pay the deposit or the balance from here and follow their payments.',
+  'misreservas.vacia': "You don't have bookings yet.",
+  'misreservas.vacioDescripcion':
+    'Request yours from Upcoming departures; it will appear here with its status.',
+  'misreservas.plazo':
+    'A pending request expires after {horas} hours; the validated payment backs it up for confirmation.',
+  'misreservas.columnas.codigo': 'Code',
+  'misreservas.columnas.paquete': 'Package',
+  'misreservas.columnas.salida': 'Departure',
+  'misreservas.columnas.pasajeros': 'Passengers',
+  'misreservas.columnas.monto': 'Amount',
+  'misreservas.columnas.saldo': 'Balance',
+  'misreservas.columnas.estado': 'Status',
+  'misreservas.columnas.vencimiento': 'Expires',
+  'misreservas.columnas.acciones': 'Actions',
+  'misreservas.pagar': 'Pay',
+  'misreservas.pagos': 'Payments',
+
   'clientes.titulo': 'Clients',
   'clientes.introduccion':
     'Client records. The document identifies the person and is unique.',
@@ -504,6 +595,7 @@ export const en: Mensajes = {
   'clientes.columnas.apellidos': 'Last names',
   'clientes.columnas.telefono': 'Phone',
   'clientes.columnas.correo': 'Email',
+  'clientes.columnas.cuenta': 'Account',
   'clientes.columnas.estado': 'Status',
   'clientes.columnas.acciones': 'Actions',
   'clientes.estados.activo': 'Active',
@@ -517,7 +609,9 @@ export const en: Mensajes = {
   'clientes.form.numeroDocumento': 'Document number',
   'clientes.form.nombres': 'First names',
   'clientes.form.apellidos': 'Last names',
-  'clientes.form.correo': 'Email (optional)',
+  'clientes.form.correo': 'Email',
+  'clientes.ayudaCorreo': 'Required and unique: the contact channel and the account identity.',
+  'clientes.sinCuenta': 'No account',
   'clientes.form.telefono': 'Phone (optional)',
   'clientes.form.direccion': 'Address (optional)',
   'clientes.form.fechaNacimiento': 'Date of birth (optional)',
@@ -626,4 +720,25 @@ export const en: Mensajes = {
     'Only an accepted quote for that client and departure can originate the booking.',
   'errores.sistemaFaltante':
     'The system account is missing; check the database seed.',
+  'errores.sesionRequerida': 'Sign in to your account to continue.',
+  'errores.sesionActiva': 'You already have an open session.',
+  'errores.sinFicha':
+    'Your account has no linked client record; ask at the agency.',
+  'errores.correoEnUso': 'That email already has an account.',
+  'errores.correoInvalido': 'Enter a valid email.',
+  'errores.correoReservado': 'That email is reserved for staff accounts.',
+  'errores.correoDuplicado': 'That email is already on another client record.',
+  'errores.contrasenaCorta': 'The password must be at least 8 characters.',
+  'errores.documentoVinculado':
+    'That document already has an account; sign in with it or recover it with the administrator.',
+  'errores.documentoDuplicado': 'A record already exists for that document.',
+  'errores.anticipoRequerido':
+    'The booking has no validated deposit: register and validate it before confirming.',
+  'errores.anticipoMinimo': 'The deposit cannot be lower than 30% of the total.',
+  'errores.saldoIncompleto': 'The balance must pay the exact remainder of the booking.',
+  'errores.saldoSinAnticipo': 'The balance requires a previous deposit.',
+  'errores.montoExcedido': 'The payment exceeds the balance due of the booking.',
+  'errores.reservaNoPagable':
+    'Only a pending or confirmed booking accepts payments.',
+  'errores.pagoDuplicado': 'The booking already has a payment of that type.',
 }

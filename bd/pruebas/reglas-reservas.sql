@@ -31,11 +31,14 @@ SELECT id_paquete,
 FROM turismo.paquete
 WHERE codigo = 'PRB';
 
-INSERT INTO turismo.cliente (tipo_documento, numero_documento, nombres, apellidos)
-VALUES ('CI', 'PRB-0001', 'Prueba', 'Uno'),
-       ('CI', 'PRB-0002', 'Prueba', 'Dos');
+INSERT INTO turismo.cliente (tipo_documento, numero_documento, nombres, apellidos, correo)
+VALUES ('CI', 'PRB-0001', 'Prueba', 'Uno',   'prb1@prueba.bo'),
+       ('CI', 'PRB-0002', 'Prueba', 'Dos',   'prb2@prueba.bo'),
+       ('CI', 'PRB-0003', 'Prueba', 'Tres',  'prb3@prueba.bo'),
+       ('CI', 'PRB-0004', 'Prueba', 'Cuatro','prb4@prueba.bo'),
+       ('CI', 'PRB-0005', 'Prueba', 'Cinco', 'prb5@prueba.bo');
 
--- 1. Crear una reserva: nace pendiente, con vencimiento a 48 horas,
+-- 1. Crear una reserva: nace pendiente, con vencimiento a 24 horas,
 --    monto congelado y el cambio auditado.
 DO $$
 DECLARE
@@ -65,9 +68,9 @@ BEGIN
         RAISE EXCEPTION 'FALLO: el monto congelado es %', v_monto;
     END IF;
     IF v_expira IS NULL
-       OR v_expira < now() + INTERVAL '47 hours'
-       OR v_expira > now() + INTERVAL '48 hours' THEN
-        RAISE EXCEPTION 'FALLO: el vencimiento no es a 48 horas';
+       OR v_expira < now() + INTERVAL '23 hours'
+       OR v_expira > now() + INTERVAL '24 hours' THEN
+        RAISE EXCEPTION 'FALLO: el vencimiento no es a 24 horas';
     END IF;
 
     SELECT count(*) INTO v_audita
@@ -80,7 +83,7 @@ BEGIN
         RAISE EXCEPTION 'FALLO: la creación no quedó auditada';
     END IF;
 
-    RAISE NOTICE 'OK: la reserva nace pendiente, a 48 horas y auditada';
+    RAISE NOTICE 'OK: la reserva nace pendiente, a 24 horas y auditada';
 END;
 $$;
 
@@ -121,7 +124,7 @@ BEGIN
     WHERE numero_documento = 'PRB-0001';
 
     BEGIN
-        PERFORM fn_crear_reserva(v_cliente, v_salida, 2, 'web', 'sistema');
+        PERFORM fn_crear_reserva(v_cliente, v_salida, 2, 'web', 'u-prueba');
         RAISE EXCEPTION 'FALLO: se creó una segunda solicitud pendiente';
     EXCEPTION
         WHEN unique_violation THEN
@@ -169,6 +172,13 @@ BEGIN
     ORDER BY id_reserva
     LIMIT 1;
 
+    -- La confirmación exige el anticipo validado (RN-RES-18): la prueba
+    -- registra el pago completo como lo haría la oficina.
+    PERFORM fn_registrar_pago(
+        v_id_reserva, 'anticipo', 150, 'efectivo', 'u-prueba',
+        NULL, 'Pago completo en la oficina.', true
+    );
+
     PERFORM fn_confirmar_reserva(v_id_reserva, 'u-prueba');
 
     SELECT estado, fecha_expiracion INTO v_estado, v_expira
@@ -214,7 +224,7 @@ BEGIN
         codigo, id_cliente, id_salida, id_usuario, origen,
         cantidad_pasajeros, monto_total, estado, fecha_expiracion
     ) VALUES (
-        'PRB-RES-01', v_cliente, v_salida, 'sistema', 'web',
+        'PRB-RES-01', v_cliente, v_salida, 'u-prueba', 'web',
         4, 400, 'pendiente', now() - INTERVAL '1 hour'
     ) RETURNING id_reserva INTO v_id_reserva;
 
@@ -261,7 +271,7 @@ BEGIN
     WHERE numero_documento = 'PRB-0002';
 
     BEGIN
-        PERFORM fn_crear_reserva(v_cliente, v_salida, 5, 'web', 'sistema');
+        PERFORM fn_crear_reserva(v_cliente, v_salida, 5, 'web', 'u-prueba');
         RAISE EXCEPTION 'FALLO: se aceptó una solicitud web de 5 pasajeros';
     EXCEPTION
         WHEN check_violation THEN
@@ -289,29 +299,22 @@ BEGIN
     -- Tres solicitudes web de 3 pasajeros: 9 de los 10 lugares retenibles.
     PERFORM fn_crear_reserva(
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0001'),
-        v_salida, 3, 'web', 'sistema');
+        v_salida, 3, 'web', 'u-prueba');
 
-    INSERT INTO cliente (tipo_documento, numero_documento, nombres, apellidos)
-    VALUES ('CI', 'PRB-0003', 'Prueba', 'Tres');
     PERFORM fn_crear_reserva(
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0003'),
-        v_salida, 3, 'web', 'sistema');
+        v_salida, 3, 'web', 'u-prueba');
 
-    INSERT INTO cliente (tipo_documento, numero_documento, nombres, apellidos)
-    VALUES ('CI', 'PRB-0004', 'Prueba', 'Cuatro');
     PERFORM fn_crear_reserva(
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0004'),
-        v_salida, 3, 'web', 'sistema');
+        v_salida, 3, 'web', 'u-prueba');
     RAISE NOTICE 'OK: la avalancha retiene 9 de los 10 lugares web';
 
     -- Un quinto cliente no puede retener 2 más: 9 + 2 superan el tope.
-    INSERT INTO cliente (tipo_documento, numero_documento, nombres, apellidos)
-    VALUES ('CI', 'PRB-0005', 'Prueba', 'Cinco');
-
     BEGIN
         PERFORM fn_crear_reserva(
             (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0005'),
-            v_salida, 2, 'web', 'sistema');
+            v_salida, 2, 'web', 'u-prueba');
         RAISE EXCEPTION 'FALLO: la retención web superó la mitad del cupo';
     EXCEPTION
         WHEN check_violation THEN

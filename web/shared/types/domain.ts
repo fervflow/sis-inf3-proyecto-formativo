@@ -57,8 +57,14 @@ export type OrigenReserva = 'personal' | 'web'
 /** Tipos de pago. */
 export type TipoPago = 'anticipo' | 'saldo'
 
-/** Métodos de pago admitidos. */
-export type MetodoPago = 'efectivo' | 'transferencia' | 'tarjeta' | 'otro'
+/** Métodos de pago admitidos. Los del canal web los emula la pasarela. */
+export type MetodoPago =
+  | 'efectivo'
+  | 'transferencia'
+  | 'tarjeta'
+  | 'banca_movil'
+  | 'qr'
+  | 'otro'
 
 /** Estados de un pago. */
 export type EstadoPago = 'registrado' | 'validado' | 'anulado'

@@ -11,8 +11,8 @@ editarlos hay que respetar el modelo de este documento.
 
 | Carpeta | Contenido |
 |---|---|
-| `uml/secuencia/` | Los 9 flujos completos de HU-01, HU-02, HU-03, HU-05, HU-06, HU-07, HU-09, HU-13 y HU-14 |
-| `uml/secuencia-light/` | Versiones resumidas de esos 9 |
+| `uml/secuencia/` | Los 10 flujos completos de HU-01, HU-02, HU-03, HU-05, HU-06, HU-07, HU-09, HU-13, HU-14 y HU-15 |
+| `uml/secuencia-light/` | Versiones resumidas de esos 10 |
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables, sin actor ni interfaz |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan historias |
 | `uml/estructural/` | Diagramas de clases y de objetos, completos y simplificados |
@@ -47,16 +47,22 @@ estructurales y el de casos de uso usan «Tipo · Descripción».
 ## Reglas del modelo
 
 - **Dos canales, un proceso.** La consulta, la solicitud de reserva y el
-  pago pueden venir del cliente (`origen = 'web'`) o del personal
-  (`origen = 'personal'`); ambos terminan en la misma validación.
+  pago pueden venir del cliente con cuenta (`origen = 'web'`) o del
+  personal (`origen = 'personal'`); ambos terminan en la misma validación.
+  La solicitud del canal web exige una cuenta de cliente con ficha
+  (RN-RES-17) y la firma su cuenta (RN-RES-10).
 - **La reserva nace pendiente.** Solo el personal confirma, cancela y
-  valida el pago.
+  valida el pago; la confirmación exige el anticipo validado
+  (RN-RES-18).
 - **Bloqueo transaccional.** Toda validación o modificación de cupos bloquea
   la fila con `SELECT ... FOR UPDATE`.
-- **Vencimiento.** Una reserva pendiente vence y libera el cupo.
+- **Vencimiento.** Una reserva pendiente vence a las 24 horas y libera
+  el cupo.
 - **Una solicitud activa** por cliente y salida.
 - **La cancelación del cliente es una solicitud** que ejecuta el personal.
-- **El pago registrado no es pago validado.**
+- **El pago registrado no es pago validado.** El anticipo no baja del
+  30% del total y el saldo paga el resto completo (RN-PAG-01 y
+  RN-PAG-05); el cobro web lo emula la pasarela simulada.
 - **Los avisos** se emiten cuando cambia la fecha o la capacidad de una
   salida.
 
@@ -64,7 +70,7 @@ estructurales y el de casos de uso usan «Tipo · Descripción».
 
 `make verificar` ejecuta dos comprobaciones:
 
-- `sistema/verificar-uml.py` revisa los 33 `.puml` de `uml/` y detecta participantes
+- `sistema/verificar-uml.py` revisa los 34 `.puml` de `uml/` y detecta participantes
   usados sin declarar, declarados sin mensajes, entidades o tablas con una
   sola línea de vida, y clases u objetos fuera de toda relación.
 - `sistema/verificar-rutas.py` comprueba que las rutas citadas existan y que

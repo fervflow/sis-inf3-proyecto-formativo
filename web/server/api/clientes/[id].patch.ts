@@ -4,10 +4,11 @@ import type { ClienteResumen } from '#shared/types/api'
 import { exigirPersonal } from '../../utils/autorizacion'
 import {
   aClienteResumen,
+  codigoDuplicadoCliente,
   esquemaCliente,
   normalizarDocumento,
 } from '../../utils/clientes'
-import { esDuplicado, leerCuerpo } from '../../utils/validacion'
+import { leerCuerpo } from '../../utils/validacion'
 
 /**
  * Actualización de la ficha de un cliente.
@@ -48,7 +49,7 @@ export default defineEventHandler(async (event): Promise<ClienteResumen> => {
         numeroDocumento,
         nombres: datos.nombres,
         apellidos: datos.apellidos,
-        correo: datos.correo || null,
+        correo: datos.correo,
         telefono: datos.telefono || null,
         direccion: datos.direccion || null,
         fechaNacimiento: datos.fechaNacimiento || null,
@@ -66,8 +67,9 @@ export default defineEventHandler(async (event): Promise<ClienteResumen> => {
 
     return aClienteResumen(fila)
   } catch (error) {
-    if (esDuplicado(error)) {
-      throw createError({ statusCode: 409, statusMessage: 'cliente_duplicado' })
+    const duplicado = codigoDuplicadoCliente(error)
+    if (duplicado) {
+      throw createError({ statusCode: 409, statusMessage: duplicado })
     }
     throw error
   }

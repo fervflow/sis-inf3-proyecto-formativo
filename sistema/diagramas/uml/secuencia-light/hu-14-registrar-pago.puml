@@ -8,11 +8,11 @@ control "ControlPagos" as CTRL <<control>>
 entity "Pago" as E_PAGO <<entidad>>
 database "pago" as T_PAGO <<tabla>>
 
-TUR -> UI : registra monto, tipo, método y referencia
+TUR -> UI : elige anticipo o saldo, monto y método\n(banca móvil o código QR)
 UI -> CTRL : registrarPago(datos)
 CTRL -> E_PAGO : validarTipoYMonto(tipo, monto)
-E_PAGO --> CTRL : validación correcta
-CTRL -> E_PAGO : crear(pago, estado = 'registrado')
+E_PAGO --> CTRL : validación correcta:\nel anticipo no baja del 30% del total
+CTRL -> E_PAGO : crear(pago, estado = 'registrado',\nreferencia de la pasarela simulada)
 E_PAGO -> T_PAGO : INSERT ...
 T_PAGO --> E_PAGO : id_pago
 E_PAGO --> CTRL : pago registrado

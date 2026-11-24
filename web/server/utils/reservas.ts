@@ -3,16 +3,17 @@
  *
  * Las reglas críticas viven en la base: `fn_crear_reserva` valida los
  * cupos dentro de una transacción que bloquea la fila de la salida,
- * `fn_confirmar_reserva` limpia el vencimiento y `fn_vencer_solicitudes_
- * pendientes` pasa a vencidas las que no se confirmaron. Aquí solo se
- * valida la forma del cuerpo, se traduce la fila de la base y se clasifican
- * los errores de la base en códigos de la interfaz.
+ * `fn_confirmar_reserva` exige el anticipo validado y limpia el
+ * vencimiento, y `fn_vencer_solicitudes_pendientes` pasa a vencidas las
+ * que no se confirmaron. Aquí solo se valida la forma del cuerpo, se
+ * traduce la fila de la base y se clasifican los errores de la base en
+ * códigos de la interfaz.
  */
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import * as schema from '../../db/schema'
 import type { ReservaResumen } from '#shared/types/api'
-import type { EstadoReserva, OrigenReserva } from '#shared/types/domain'
+import type { EstadoPago, EstadoReserva, OrigenReserva } from '#shared/types/domain'
 import { SOLICITUD_WEB_MAXIMO_PASAJEROS } from '#shared/reservas'
 
 const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'datos_invalidos')
@@ -26,20 +27,13 @@ export const esquemaReservaPersonal = z.object({
 })
 
 /**
- * Cuerpo de la solicitud directa del cliente por el canal web.
+ * Cuerpo de la solicitud del cliente con sesión (canal web).
  *
- * El cliente se identifica por su documento: si la ficha ya existe se
- * reutiliza y si no se registra con los datos de contacto que envía. El
- * tope de pasajeros es el de RN-RES-15; la función de la base lo vuelve a
- * comprobar.
+ * El cliente viene de su cuenta: la ficha la resuelve el servidor con
+ * `cliente.id_usuario` (RN-RES-17). El tope de pasajeros es el de
+ * RN-RES-15; la función de la base lo vuelve a comprobar.
  */
-export const esquemaReservaPublica = z.object({
-  tipoDocumento: z.enum(['CI', 'NIT', 'PASAPORTE', 'OTRO']),
-  numeroDocumento: z.string().trim().min(3).max(30),
-  nombres: z.string().trim().min(2).max(100),
-  apellidos: z.string().trim().min(2).max(100),
-  correo: z.union([z.literal(''), z.email().max(150)]).optional(),
-  telefono: z.string().trim().max(30).optional(),
+export const esquemaReservaCliente = z.object({
   idSalida: z.coerce.number().int().positive(),
   cantidadPasajeros: z.coerce
     .number()
@@ -47,23 +41,6 @@ export const esquemaReservaPublica = z.object({
     .min(1)
     .max(SOLICITUD_WEB_MAXIMO_PASAJEROS, 'solicitud_grande'),
 })
-
-/** Identificador de la cuenta de sistema de la semilla. */
-export const USUARIO_SISTEMA = 'sistema'
-
-/** Devuelve el identificador de la cuenta de sistema, o falla si falta. */
-export async function idUsuarioSistema(): Promise<string> {
-  const [fila] = await useDb()
-    .select({ id: schema.usuario.id })
-    .from(schema.usuario)
-    .where(eq(schema.usuario.id, USUARIO_SISTEMA))
-    .limit(1)
-
-  if (!fila) {
-    throw createError({ statusCode: 500, statusMessage: 'sistema_faltante' })
-  }
-  return fila.id
-}
 
 /** Fila de la consulta de reservas con cliente, salida y paquete resueltos. */
 export interface FilaReserva {
@@ -85,6 +62,10 @@ export interface FilaReserva {
   estado: string
   fechaExpiracion: Date | null
   fechaReserva: Date
+  /** Estado del anticipo de la reserva, si tiene pago. */
+  anticipo: string | null
+  /** Total menos lo abonado validado. */
+  saldoPendiente: string
 }
 
 /** Convierte la fila de la base en lo que consume la interfaz. */
@@ -106,6 +87,8 @@ export function aReservaResumen(fila: FilaReserva): ReservaResumen {
     estado: fila.estado as EstadoReserva,
     fechaExpiracion: fila.fechaExpiracion?.toISOString() ?? null,
     fechaReserva: fila.fechaReserva.toISOString(),
+    anticipo: (fila.anticipo as EstadoPago | null) ?? null,
+    saldoPendiente: fila.saldoPendiente,
   }
 }
 
@@ -130,6 +113,24 @@ export function seleccionReserva() {
     estado: schema.reserva.estado,
     fechaExpiracion: schema.reserva.fechaExpiracion,
     fechaReserva: schema.reserva.fechaReserva,
+    // El estado del anticipo lo resuelve una subconsulta: la reserva no
+    // guarda pagos, pero la vista del personal y la del cliente muestran
+    // si el respaldo existe (RN-RES-18).
+    anticipo: sql<string | null>`(
+      select p2.estado
+      from ${schema.pago} p2
+      where p2.id_reserva = ${schema.reserva.idReserva}
+        and p2.tipo = 'anticipo'
+        and p2.estado <> 'anulado'
+      order by p2.id_pago
+      limit 1
+    )`,
+    saldoPendiente: sql<string>`(
+      select ${schema.reserva.montoTotal} - coalesce(sum(p2.monto), 0)
+      from ${schema.pago} p2
+      where p2.id_reserva = ${schema.reserva.idReserva}
+        and p2.estado = 'validado'
+    )`,
   }
 }
 
@@ -155,7 +156,7 @@ export async function obtenerReserva(id: number): Promise<ReservaResumen | null>
  *
  * Las funciones de la base levantan excepciones con mensajes descriptivos;
  * el mensaje se usa para distinguir el cupo insuficiente de la solicitud
- * duplicada y del vencimiento.
+ * duplicada, del vencimiento y del anticipo faltante.
  */
 export function codigoErrorReserva(error: unknown): string {
   const base = causaBase(error)
@@ -177,6 +178,7 @@ export function codigoErrorReserva(error: unknown): string {
     return 'solicitud_pendiente'
   }
   if (mensaje.includes('venció sin confirmarse')) return 'solicitud_vencida'
+  if (mensaje.includes('anticipo mínimo validado')) return 'anticipo_requerido'
   if (mensaje.includes('Solo una solicitud pendiente')) {
     return 'transicion_invalida'
   }
@@ -202,7 +204,7 @@ export function codigoErrorReserva(error: unknown): string {
 function causaBase(
   error: unknown,
 ): { code?: string; message?: string } {
-  const envuelto = error as { code?: string; cause?: { code?: string } }
+  const envuelto = error as { code?: string; message?: string; cause?: { code?: string; message?: string } }
   if (envuelto.code === undefined && envuelto.cause?.code) {
     return envuelto.cause
   }
@@ -235,21 +237,4 @@ export async function validarCotizacionOrigen(
   ) {
     throw createError({ statusCode: 400, statusMessage: 'cotizacion_incoherente' })
   }
-}
-
-/** Busca la ficha del cliente por documento, sin alterar la búsqueda. */
-export async function buscarClientePorDocumento(
-  tipoDocumento: string,
-  numeroDocumento: string,
-): Promise<number | null> {
-  const [fila] = await useDb()
-    .select({ idCliente: schema.cliente.idCliente })
-    .from(schema.cliente)
-    .where(
-      sql`${schema.cliente.tipoDocumento} = ${tipoDocumento}
-          and upper(${schema.cliente.numeroDocumento}) = ${numeroDocumento.toUpperCase()}`,
-    )
-    .limit(1)
-
-  return fila?.idCliente ?? null
 }

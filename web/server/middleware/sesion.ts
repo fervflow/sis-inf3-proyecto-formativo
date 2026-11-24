@@ -22,7 +22,29 @@ export default defineEventHandler(async (event) => {
 
   const cookie = getSessionCookie(event.headers)
   if (!cookie) {
-    return
+    // Visitante anónimo: las páginas que exigen sesión van a ingresar,
+    // con retorno a la vista que pidió. Las API siguen con su 401 o 403.
+    const rutaSinSesion = (event.path.split('?')[0] ?? '/') || '/'
+    const exigencia = [
+      '/mis-reservas',
+      '/solicitudes',
+      '/clientes',
+      '/cotizaciones',
+      '/admin',
+    ]
+
+    if (
+      !exigencia.some((prefijo) => rutaSinSesion.startsWith(prefijo)) ||
+      rutaSinSesion.startsWith('/api/') ||
+      esRecurso(rutaSinSesion)
+    ) {
+      return
+    }
+
+    return sendRedirect(
+      event,
+      `/ingresar?volver=${encodeURIComponent(rutaSinSesion)}`,
+    )
   }
 
   try {
@@ -86,8 +108,19 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  if (ruta === '/ingresar') {
+  if (ruta === '/ingresar' || ruta === '/crear-cuenta') {
     return sendRedirect(event, '/')
+  }
+
+  // La vista de reservas propias es del cliente; el personal tiene la
+  // suya en «Solicitudes».
+  if (ruta.startsWith('/mis-reservas')) {
+    if (sesion.user.idRol === ROL_ADMIN || sesion.user.idRol === ROL_PERSONAL) {
+      if (esApi) {
+        throw createError({ statusCode: 403, statusMessage: 'sin_permiso' })
+      }
+      return sendRedirect(event, '/')
+    }
   }
 
   // El panel de administración exige el rol en el servidor, no solo en

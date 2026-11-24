@@ -1,7 +1,9 @@
 @startuml
 title HU-14 · Registro y validación de anticipos y saldos de una reserva
-' El cliente puede registrar su pago en el acceso directo; el personal lo
-' valida. El pago no confirma la reserva por sí solo.
+' El cliente paga desde la web con la pasarela simulada (banca móvil o
+' QR); el pago nace 'registrado' y el personal lo valida. El pago no
+' confirma la reserva por sí solo, pero la confirmación exige el
+' anticipo validado (RN-RES-18).
 hide footbox
 autonumber
 skinparam maxMessageSize 175
@@ -10,6 +12,7 @@ actor "Cliente" as TUR
 actor "Personal" as PER
 boundary "IU-14 · Registrar pago" as UI <<interfaz>>
 control "ControlPagos" as CTRL <<control>>
+control "PasarelaSimulada" as GATEWAY <<control>>
 entity "Reserva" as E_RESERVA <<entidad>>
 entity "Pago" as E_PAGO <<entidad>>
 database "reserva" as T_RESERVA <<tabla>>
@@ -22,7 +25,7 @@ alt Credenciales no válidas
     CTRL --> UI : error «Acceso denegado»
     UI --> TUR : volver a intentarlo
 else Sesión iniciada
-    TUR -> UI : registra monto, tipo, método y referencia
+    TUR -> UI : elige anticipo o saldo, monto y método\n(banca móvil o código QR)
     UI -> CTRL : registrarPago(datos)
 
     group Transacción de pago
@@ -31,15 +34,19 @@ else Sesión iniciada
         T_RESERVA --> E_RESERVA : reserva actual
         E_RESERVA --> CTRL : estado y monto total
 
-        alt Reserva cancelada o vencida, o monto inválido
+        alt Reserva no pagable, monto o tipo inválido
             CTRL --> UI : error «No se puede registrar el pago»
             UI --> TUR : mostrar el motivo
+        else Anticipo menor al 30% del total
+            CTRL --> UI : error «El anticipo no alcanza el mínimo»
+            UI --> TUR : ajustar el monto
+        else Saldo sin anticipo previo, parcial o excedido
+            CTRL --> UI : error «El saldo paga el resto completo»
+            UI --> TUR : ajustar el monto
         else Pago válido
-            CTRL -> E_PAGO : validarTipoYMonto(tipo, monto)
-            E_PAGO -> E_PAGO : solo un anticipo y un saldo por reserva
-            E_PAGO -> E_PAGO : monto no supera el saldo pendiente
-            E_PAGO --> CTRL : validación correcta
-            CTRL -> E_PAGO : crear(pago, estado = 'registrado')
+            CTRL -> GATEWAY : cobrarSimulado(tipo, monto, método)
+            GATEWAY --> CTRL : cobro simulado aceptado,\nreferencia generada
+            CTRL -> E_PAGO : crear(pago, estado = 'registrado',\nreferencia de la simulación)
             E_PAGO -> T_PAGO : INSERT ...
             T_PAGO --> E_PAGO : id_pago
             E_PAGO --> CTRL : pago registrado
@@ -49,13 +56,13 @@ else Sesión iniciada
             T_PAGO --> E_RESERVA : total validado
             E_RESERVA --> CTRL : saldo pendiente
 
-            CTRL --> UI : comprobante y saldo pendiente
+            CTRL --> UI : comprobante con la referencia y saldo pendiente
             UI --> TUR : pago registrado, pendiente de validación
         end
     end
 end
 
-PER -> UI : revisa los pagos registrados por el cliente
+PER -> UI : revisa los pagos registrados por los clientes
 UI -> CTRL : listarPagosPorValidar(idReserva)
 CTRL -> E_PAGO : obtenerPagos(idReserva)
 E_PAGO -> T_PAGO : SELECT ... WHERE estado = 'registrado'
@@ -80,14 +87,26 @@ UI --> PER : confirmación
 UI --> TUR : su pago quedó validado
 
 note right of CTRL
-    Solo se permite un anticipo y un saldo por
-    reserva; la restricción UNIQUE lo garantiza.
+    La oficina registra el pago directamente,
+    y nace 'validado' con su usuario y fecha:
+    efectivo, transferencia o tarjeta.
+    Pagar la totalidad de una vez se registra
+    como un anticipo por el monto completo.
 end note
 
 note right of E_PAGO
     El pago registrado no confirma la reserva.
     La confirmación corresponde al personal
-    (HU-17) y el saldo pendiente se calcula
+    (HU-17) y exige el anticipo validado
+    (RN-RES-18); el saldo pendiente se calcula
     sobre los pagos validados.
+end note
+
+note right of GATEWAY
+    La pasarela es una simulación: genera la
+    referencia (p. ej. MOCK-QR-...) y no mueve
+    dinero real. La devolución se gestiona
+    fuera del sistema con los tramos de
+    RN-PAG-07.
 end note
 @enduml

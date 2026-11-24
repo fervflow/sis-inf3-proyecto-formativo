@@ -71,6 +71,23 @@ const CODIGOS: Record<string, ClaveMensaje> = {
   reserva_inexistente: 'errores.reservaInexistente',
   cotizacion_incoherente: 'errores.cotizacionIncoherente',
   sistema_faltante: 'errores.sistemaFaltante',
+  sesion_requerida: 'errores.sesionRequerida',
+  sesion_activa: 'errores.sesionActiva',
+  sin_ficha: 'errores.sinFicha',
+  correo_en_uso: 'errores.correoEnUso',
+  correo_invalido: 'errores.correoInvalido',
+  correo_reservado: 'errores.correoReservado',
+  correo_duplicado: 'errores.correoDuplicado',
+  contrasena_corta: 'errores.contrasenaCorta',
+  documento_vinculado: 'errores.documentoVinculado',
+  documento_duplicado: 'errores.documentoDuplicado',
+  anticipo_requerido: 'errores.anticipoRequerido',
+  anticipo_minimo: 'errores.anticipoMinimo',
+  saldo_incompleto: 'errores.saldoIncompleto',
+  saldo_sin_anticipo: 'errores.saldoSinAnticipo',
+  monto_excedido: 'errores.montoExcedido',
+  reserva_no_pagable: 'errores.reservaNoPagable',
+  pago_duplicado: 'errores.pagoDuplicado',
 }
 
 /** Devuelve el texto de un fallo de la API. */

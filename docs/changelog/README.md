@@ -82,3 +82,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-23 18:15 | `2026-11-23T181551_proveedores-multitipo-y-vinculo-seleccionable.md` | Proveedores con varios tipos de servicio, vínculo que usa un tipo declarado con detalle opcional, y pruebas de la FK compuesta. |
 | 2026-11-23 18:25 | `2026-11-23T182513_correccion-casillas-de-verificacion.md` | Corrección de la asociación de etiquetas: el clic sobre el texto ya conmuta la casilla propia en proveedores y paquetes. |
 | 2026-11-24 01:21 | `2026-11-24T012148_barra-navegacion-salidas-fusionadas-tema.md` | Barra de navegación reorganizada, salidas fusionadas con «Próximas salidas», selector de tema y banderas de idioma. |
+| 2026-11-24 12:52 | `2026-11-24T125224_cuentas-de-cliente-pagos-simulados-y-reserva-con-cuenta.md` | Registro público de cuentas de cliente con ficha, fin de la solicitud anónima, pagos con pasarela simulada, anticipo del 30% y vencimiento de 24 horas. |
