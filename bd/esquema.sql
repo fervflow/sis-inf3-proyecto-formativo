@@ -321,6 +321,10 @@ CREATE TABLE paquete_proveedor (
 
 CREATE TABLE salida (
     id_salida           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    -- El código distingue las salidas de un mismo paquete: se deriva del
+    -- código del paquete con un ordinal por paquete (RN-SAL-22). Lo
+    -- asigna el disparador tr_salida_codigo y no se edita después.
+    codigo              VARCHAR(30) NOT NULL UNIQUE,
     id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE RESTRICT,
     fecha_salida        DATE NOT NULL,
     fecha_retorno       DATE NOT NULL,
@@ -586,6 +590,41 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_reserva_codigo
     BEFORE INSERT ON reserva
     FOR EACH ROW EXECUTE FUNCTION fn_asignar_codigo_reserva();
+
+-- El código de la salida se deriva del código del paquete con un
+-- ordinal por paquete, de modo que las salidas de un mismo paquete
+-- queden distinguibles: PAQUETE-NNN. Es único e inmutable; la salida
+-- nunca cambia de paquete (RN-SAL-20), de modo que el prefijo se
+-- conserva. El bloqueo del paquete serializa la asignación entre
+-- inserciones simultáneas del mismo paquete.
+CREATE OR REPLACE FUNCTION fn_asignar_codigo_salida()
+RETURNS TRIGGER
+SET search_path = turismo, public
+AS $$
+DECLARE
+    v_codigo_paquete VARCHAR(20);
+    v_ordinal        INT;
+BEGIN
+    IF NEW.codigo IS NULL OR NEW.codigo = '' THEN
+        SELECT p.codigo INTO v_codigo_paquete
+        FROM paquete p
+        WHERE p.id_paquete = NEW.id_paquete
+        FOR UPDATE;
+
+        SELECT COALESCE(MAX(substring(s.codigo FROM '-(\d+)$')::INT), 0) + 1
+        INTO v_ordinal
+        FROM salida s
+        WHERE s.id_paquete = NEW.id_paquete;
+
+        NEW.codigo := v_codigo_paquete || '-' || lpad(v_ordinal::TEXT, 3, '0');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_salida_codigo
+    BEFORE INSERT ON salida
+    FOR EACH ROW EXECUTE FUNCTION fn_asignar_codigo_salida();
 
 -- El código del paquete se genera al crear: prefijo del lugar, año y una
 -- secuencia global. Es inmutable y único.
@@ -1831,7 +1870,8 @@ SELECT
         FILTER (WHERE r.estado = 'confirmada'), 0))::INT AS cupo_disponible_sin_pendientes,
     s.precio,
     s.estado,
-    p.estado AS estado_paquete
+    p.estado AS estado_paquete,
+    s.codigo AS codigo_salida
 FROM salida s
 JOIN paquete p ON p.id_paquete = s.id_paquete
 LEFT JOIN reserva r ON r.id_salida = s.id_salida

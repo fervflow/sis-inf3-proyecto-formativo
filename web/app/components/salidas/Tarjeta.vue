@@ -56,7 +56,7 @@ const desglose = computed(() =>
 </script>
 
 <template>
-  <BaseTarjeta :titulo="salida.paquete" :descripcion="salida.codigoPaquete">
+  <BaseTarjeta :titulo="salida.paquete" :descripcion="salida.codigoSalida">
     <template #acciones>
       <div class="flex flex-wrap items-center justify-end gap-2">
         <UBadge

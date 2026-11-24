@@ -12,7 +12,6 @@ kanban-plugin: basic
 
 ## Listo para producción (WIP 1)
 
-
 ## Hecho
 
 - [ ] **T-HU-06.4** · EV · HU-06 \
@@ -97,9 +96,6 @@ kanban-plugin: basic
 - [ ] **T-HU-06.2** · EV · HU-06 \
   Verificar los cupos antes de guardar y rechazar las reservas que excedan la capacidad.
   [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-08.1** · EV · HU-08 \
-  Crear el inicio de sesión y validar las credenciales.
-  [Inicio:: 12/11/2026] [Fin:: 17/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
 - [ ] **T-HU-06.1** · EV · HU-06 \
   Crear una reserva desde la atención del personal o como solicitud del cliente, con su origen, el cliente, la salida y la cantidad de pasajeros.
   [Inicio:: 23/11/2026] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
@@ -148,6 +144,9 @@ kanban-plugin: basic
 - [ ] **T-HU-04.2** · RE · HU-04 \
   Consultar y actualizar la información de los clientes.
   [Inicio:: 12/11/2026] [Fin:: 18/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-08.1** · EV · HU-08 \
+    Crear el inicio de sesión y validar las credenciales.
+    [Inicio:: 12/11/2026] [Fin:: 17/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
 
 %% kanban:settings
 {

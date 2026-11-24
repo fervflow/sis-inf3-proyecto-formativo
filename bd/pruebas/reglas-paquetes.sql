@@ -373,4 +373,68 @@ BEGIN
 END;
 $$;
 
+-- 13. Código de la salida (RN-SAL-22): se deriva del código del paquete
+--     con un ordinal por paquete, distingue las salidas de un mismo
+--     paquete y no se edita después.
+DO $$
+DECLARE
+    v_paquete  BIGINT;
+    v_primera  BIGINT;
+    v_segunda  BIGINT;
+    v_codigo_a VARCHAR(30);
+    v_codigo_b VARCHAR(30);
+    v_ordinal  INT;
+BEGIN
+    -- El paquete de pruebas ya trae una salida del test 5; es la
+    -- primera en el tiempo y lleva el ordinal 001.
+    SELECT id_paquete INTO v_paquete
+    FROM paquete WHERE codigo = 'PRB-04';
+
+    SELECT id_salida, codigo INTO v_primera, v_codigo_a
+    FROM salida
+    WHERE id_paquete = v_paquete
+    ORDER BY fecha_salida, id_salida
+    LIMIT 1;
+
+    IF right(v_codigo_a, 3) <> '001' THEN
+        RAISE EXCEPTION 'FALLO: la primera salida no terminó en 001 (%)', v_codigo_a;
+    END IF;
+
+    -- La salida nueva lleva el ordinal siguiente del paquete.
+    SELECT count(*) INTO v_ordinal
+    FROM salida WHERE id_paquete = v_paquete;
+
+    v_segunda := fn_crear_salida(
+        v_paquete,
+        CURRENT_DATE + 60,
+        CURRENT_DATE + 62,
+        10,
+        100,
+        'u-prueba'
+    );
+
+    SELECT codigo INTO v_codigo_b FROM salida WHERE id_salida = v_segunda;
+
+    IF right(v_codigo_b, 3) <> lpad((v_ordinal + 1)::TEXT, 3, '0')
+       OR v_codigo_b = v_codigo_a THEN
+        RAISE EXCEPTION 'FALLO: la salida nueva no llevó el ordinal siguiente (% / %)',
+            v_codigo_a, v_codigo_b;
+    END IF;
+
+    -- El código no se edita: cambiar la salida no la renombra.
+    PERFORM fn_actualizar_salida(
+        v_segunda, 'u-prueba',
+        p_capacidad => 12,
+        p_motivo => 'Ajuste de cupo.'
+    );
+
+    SELECT codigo INTO v_codigo_b FROM salida WHERE id_salida = v_segunda;
+    IF right(v_codigo_b, 3) <> lpad((v_ordinal + 1)::TEXT, 3, '0') THEN
+        RAISE EXCEPTION 'FALLO: la edición cambió el código de la salida (%)', v_codigo_b;
+    END IF;
+
+    RAISE NOTICE 'OK: las salidas llevan código propio con ordinal por paquete';
+END;
+$$;
+
 ROLLBACK;

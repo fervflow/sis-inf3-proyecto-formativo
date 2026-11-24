@@ -328,6 +328,9 @@ export const salida = turismo.table(
   'salida',
   {
     idSalida: bigint('id_salida', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+    // Código propio de la salida: código del paquete más un ordinal por
+    // paquete (RN-SAL-22). Lo asigna el disparador y no se edita.
+    codigo: varchar('codigo', { length: 30 }).notNull().unique(),
     idPaquete: bigint('id_paquete', { mode: 'number' })
       .notNull()
       .references(() => paquete.idPaquete, { onDelete: 'restrict' }),

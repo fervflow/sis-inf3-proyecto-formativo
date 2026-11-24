@@ -61,7 +61,7 @@ const precioDistinto = computed(
 </script>
 
 <template>
-  <BaseTarjeta :titulo="salida.paquete" :descripcion="salida.codigo_paquete">
+  <BaseTarjeta :titulo="salida.paquete" :descripcion="salida.codigo_salida">
     <template #acciones>
       <UBadge
         :color="estadoColor"

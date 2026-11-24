@@ -17,6 +17,7 @@ export default defineEventHandler(async (event): Promise<RespuestaSalidas> => {
       idSalida: schema.salida.idSalida,
       idPaquete: schema.salida.idPaquete,
       codigoPaquete: schema.paquete.codigo,
+      codigoSalida: schema.salida.codigo,
       paquete: schema.paquete.nombre,
       destino: schema.lugar.nombre,
       duracionDias: schema.paquete.duracionDias,

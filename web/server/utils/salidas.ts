@@ -49,6 +49,7 @@ export interface FilaSalida {
   idSalida: number
   idPaquete: number
   codigoPaquete: string
+  codigoSalida: string
   paquete: string
   destino: string | null
   duracionDias: number
@@ -81,6 +82,7 @@ export function aSalidaAdmin(
     idSalida: fila.idSalida,
     idPaquete: fila.idPaquete,
     codigoPaquete: fila.codigoPaquete,
+    codigoSalida: fila.codigoSalida,
     paquete: fila.paquete,
     destino: fila.destino,
     duracionDias: fila.duracionDias,
@@ -108,6 +110,7 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
       idSalida: schema.salida.idSalida,
       idPaquete: schema.salida.idPaquete,
       codigoPaquete: schema.paquete.codigo,
+      codigoSalida: schema.salida.codigo,
       paquete: schema.paquete.nombre,
       destino: schema.lugar.nombre,
       duracionDias: schema.paquete.duracionDias,

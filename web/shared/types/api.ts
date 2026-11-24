@@ -40,6 +40,8 @@ export interface SalidaDisponible {
   id_salida: number
   id_paquete: number
   codigo_paquete: string
+  /** Código propio de la salida: paquete más ordinal (RN-SAL-22). */
+  codigo_salida: string
   paquete: string
   estado_paquete: string
   /** Destino principal comercial del paquete, si lo tiene. */
@@ -378,6 +380,8 @@ export interface SalidaAdmin {
   idSalida: number
   idPaquete: number
   codigoPaquete: string
+  /** Código propio de la salida: paquete más ordinal (RN-SAL-22). */
+  codigoSalida: string
   paquete: string
   destino: string | null
   duracionDias: number

@@ -26,7 +26,8 @@ import { consultar } from '../utils/db'
  */
 export default defineEventHandler(async (event) => {
   const salidas = await consultar<SalidaDisponible>(sql`
-    SELECT v.id_salida, v.id_paquete, v.codigo_paquete, v.paquete,
+    SELECT v.id_salida, v.id_paquete, v.codigo_paquete, v.codigo_salida,
+           v.paquete,
            v.estado_paquete, v.fecha_salida, v.fecha_retorno, v.cupo_maximo,
            v.pasajeros_ocupados, v.pasajeros_pendientes,
            v.pasajeros_confirmados, v.cupo_disponible, v.precio, v.estado,

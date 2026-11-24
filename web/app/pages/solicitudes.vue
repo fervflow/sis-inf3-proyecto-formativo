@@ -237,7 +237,7 @@
             <p class="font-(--vt-texto-peso-medio)">
               {{ salidaSeleccionada.paquete }}
               <span class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
-                · {{ salidaSeleccionada.codigo_paquete }}
+                · {{ salidaSeleccionada.codigo_salida }}
               </span>
             </p>
             <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">

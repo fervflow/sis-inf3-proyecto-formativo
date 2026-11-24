@@ -154,6 +154,7 @@ bebidas y actividades recreativas.
 | RN-SAL-06 | La capacidad es un entero mayor que cero. | HU-02 | `ck_salida_cupo` y `fn_crear_salida` | Vigente |
 | RN-SAL-07 | El precio de la salida es mayor que cero. | HU-02 | `ck_salida_precio` y `fn_crear_salida` | Vigente |
 | RN-SAL-08 | Toda salida nace en estado `programada` y deja su creación auditada. | HU-02 | `fn_crear_salida` | Vigente |
+| RN-SAL-22 | El código de la salida es único, se genera al crear con el código del paquete y un ordinal por paquete (`PAQUETE-NNN`), y no se edita después. Distingue las salidas de un mismo paquete en la consulta de disponibilidad. | Decisión del proyecto | Disparador `tr_salida_codigo`, `uq_salida_codigo` y `vista_disponibilidad_salida` | Vigente |
 
 ### 7.2 Modificación y estados
 
@@ -213,7 +214,7 @@ programada ──▶ confirmada ──▶ realizada
 | Historia | Reglas |
 |---|---|
 | HU-01 · Gestión de paquetes | RN-LUG-01 a RN-LUG-03, RN-PAQ-01 a RN-PAQ-17, RN-SER-01 a RN-SER-05 |
-| HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08 y RN-SAL-21 |
+| HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08, RN-SAL-21 y RN-SAL-22 |
 | HU-03 · Consulta de disponibilidad | RN-SAL-17 a RN-SAL-19 |
 | HU-09 · Modificar fechas o capacidad | RN-SAL-09 a RN-SAL-16 |
 | HU-08 · Acceso por rol | RN-USU-01, RN-USU-02 |

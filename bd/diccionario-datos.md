@@ -51,7 +51,7 @@ CREATE SCHEMA turismo;
 | `servicio` | Catálogo fijo de servicios que un paquete puede incluir. | `codigo` único en minúsculas; se amplía con la semilla, no desde la interfaz. |
 | `paquete_servicio` | Servicios incluidos en el precio de un paquete. | PK compuesta (`id_paquete`, `id_servicio`). |
 | `paquete_proveedor` | Servicio y costo de un proveedor en un paquete. | PK compuesta (`id_paquete`, `id_proveedor`); `servicio` es uno de los tipos declarados del proveedor (FK compuesta a `proveedor_tipo`); `detalle` opcional y `costo >= 0`. |
-| `salida` | Fecha, cupo y precio de una salida concreta. | `id_paquete` → `paquete`; `cupo_maximo > 0`; `precio > 0` y puede diferir del precio base del paquete; única por paquete y fecha. |
+| `salida` | Fecha, cupo y precio de una salida concreta. | `codigo` propio y único, derivado del código del paquete con un ordinal por paquete (RN-SAL-22); `id_paquete` → `paquete`; `cupo_maximo > 0`; `precio > 0` y puede diferir del precio base del paquete; única por paquete y fecha. |
 | `cotizacion` | Propuesta económica para un cliente y una salida. | `id_cliente`, `id_salida`, `id_usuario`; `numero` único; `subtotal` y `total` generados; `condiciones` y `observaciones` opcionales. |
 | `reserva` | Reserva de cupos para una salida. | `id_cliente`, `id_salida`; `id_cotizacion` opcional y único. |
 | `reserva_pasajero` | Pasajeros incluidos en cada reserva. | PK compuesta (`id_reserva`, `id_pasajero`). |
