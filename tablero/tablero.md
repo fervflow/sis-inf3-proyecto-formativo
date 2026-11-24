@@ -6,45 +6,6 @@ kanban-plugin: basic
 
 ## Por hacer
 
-- [ ] **T-HU-12.1** · RE · HU-12 \
-  Registrar los pasajeros asociados a cada reserva, incluido el cliente si viaja.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-12.2** · RE · HU-12 \
-  Validar los datos y que la cantidad de pasajeros coincida con la reserva.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-07.1** · EV · HU-07 \
-  Consultar las reservas de ambos canales, su estado y su fecha de vencimiento.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-07.2** · EV · HU-07 \
-  Confirmar o modificar reservas y volver a verificar los cupos.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-07.3** · EV · HU-07 \
-  Conservar los cambios realizados para su seguimiento.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-09.1** · EV · HU-09 \
-  Editar la fecha o capacidad e identificar las reservas asociadas.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-09.2** · EV · HU-09 \
-  Advertir excesos de cupos y marcar reservas afectadas sin borrarlas.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-11.1** · RE · HU-11 \
-  Consultar el reporte filtrado por fecha o periodo.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
-- [ ] **T-HU-11.2** · RE · HU-11 \
-  Mostrar capacidad, ocupación, cupos libres y cantidad de reservas por estado.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
-- [ ] **T-HU-13.1** · RE · HU-13 \
-  Registrar la solicitud de cancelación del cliente y conservar su historial, sin cambiar el estado de la reserva.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-13.2** · RE · HU-13 \
-  Ejecutar la cancelación indicando el motivo y la fecha, liberar el cupo una sola vez y verificar la nueva disponibilidad.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
-- [ ] **T-HU-16.1** · RE · HU-16 \
-  Generar el aviso al cliente afectado cuando cambia la fecha o la capacidad de una salida.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
-- [ ] **T-HU-16.2** · RE · HU-16 \
-  Mostrar el aviso con el valor anterior y el nuevo, y comprobar que solo lo vea el cliente afectado.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
 
 ## En curso (WIP 4)
 
@@ -55,6 +16,45 @@ kanban-plugin: basic
 
 ## Hecho
 
+- [ ] **T-HU-12.1** · RE · HU-12 \
+  Registrar los pasajeros asociados a cada reserva, incluido el cliente si viaja.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-12.2** · RE · HU-12 \
+  Validar los datos y que la cantidad de pasajeros coincida con la reserva.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-07.1** · EV · HU-07 \
+  Consultar las reservas de ambos canales, su estado y su fecha de vencimiento.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-07.2** · EV · HU-07 \
+  Confirmar o modificar reservas y volver a verificar los cupos.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-07.3** · EV · HU-07 \
+  Conservar los cambios realizados para su seguimiento.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-09.1** · EV · HU-09 \
+  Editar la fecha o capacidad e identificar las reservas asociadas.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
+- [ ] **T-HU-09.2** · EV · HU-09 \
+  Advertir excesos de cupos y marcar reservas afectadas sin borrarlas.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
+- [ ] **T-HU-11.1** · RE · HU-11 \
+  Consultar el reporte filtrado por fecha o periodo.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
+- [ ] **T-HU-11.2** · RE · HU-11 \
+  Mostrar capacidad, ocupación, cupos libres y cantidad de reservas por estado.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
+- [ ] **T-HU-13.1** · RE · HU-13 \
+  Registrar la solicitud de cancelación del cliente y conservar su historial, sin cambiar el estado de la reserva.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
+- [ ] **T-HU-13.2** · RE · HU-13 \
+  Ejecutar la cancelación indicando el motivo y la fecha, liberar el cupo una sola vez y verificar la nueva disponibilidad.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Alto] #prio-media
+- [ ] **T-HU-16.1** · RE · HU-16 \
+  Generar el aviso al cliente afectado cuando cambia la fecha o la capacidad de una salida.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
+- [ ] **T-HU-16.2** · RE · HU-16 \
+  Mostrar el aviso con el valor anterior y el nuevo, y comprobar que solo lo vea el cliente afectado.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
 - [ ] **T-HU-14.2** · RE · HU-14 \
   Validar o anular el pago y calcular el total abonado, el saldo pendiente y el historial de pagos.
   [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
