@@ -62,6 +62,8 @@ export interface FilaReserva {
   estado: string
   fechaExpiracion: Date | null
   fechaReserva: Date
+  /** Marca de la solicitud de cancelación del cliente (HU-13). */
+  fechaSolicitudCancelacion: Date | null
   /** Estado del anticipo de la reserva, si tiene pago. */
   anticipo: string | null
   /** Total menos lo abonado validado. */
@@ -87,6 +89,7 @@ export function aReservaResumen(fila: FilaReserva): ReservaResumen {
     estado: fila.estado as EstadoReserva,
     fechaExpiracion: fila.fechaExpiracion?.toISOString() ?? null,
     fechaReserva: fila.fechaReserva.toISOString(),
+    fechaSolicitudCancelacion: fila.fechaSolicitudCancelacion?.toISOString() ?? null,
     anticipo: (fila.anticipo as EstadoPago | null) ?? null,
     saldoPendiente: fila.saldoPendiente,
   }
@@ -113,6 +116,7 @@ export function seleccionReserva() {
     estado: schema.reserva.estado,
     fechaExpiracion: schema.reserva.fechaExpiracion,
     fechaReserva: schema.reserva.fechaReserva,
+    fechaSolicitudCancelacion: schema.reserva.fechaSolicitudCancelacion,
     // El estado del anticipo lo resuelve una subconsulta: la reserva no
     // guarda pagos, pero la vista del personal y la del cliente muestran
     // si el respaldo existe (RN-RES-18).
@@ -179,6 +183,13 @@ export function codigoErrorReserva(error: unknown): string {
   }
   if (mensaje.includes('venció sin confirmarse')) return 'solicitud_vencida'
   if (mensaje.includes('anticipo mínimo validado')) return 'anticipo_requerido'
+  if (mensaje.includes('manifiesto incompleto')) return 'manifiesto_incompleto'
+  if (mensaje.includes('pagos comprometidos superan')) return 'pagos_excedidos'
+  if (mensaje.includes('no admite su manifiesto')) return 'reserva_no_editable'
+  if (mensaje.includes('se modifica; el estado')) return 'reserva_no_editable'
+  if (mensaje.includes('ficha de otro cliente')) return 'pasajero_ajeno'
+  if (mensaje.includes('no admite cancelación')) return 'reserva_no_cancelable'
+  if (mensaje.includes('ya está cancelada')) return 'reserva_no_cancelable'
   if (mensaje.includes('Solo una solicitud pendiente')) {
     return 'transicion_invalida'
   }
@@ -188,6 +199,9 @@ export function codigoErrorReserva(error: unknown): string {
   if (mensaje.includes('debe ser mayor que cero')) return 'datos_invalidos'
 
   if (codigo === '23505') {
+    if (mensaje.includes('reserva_pasajero') || mensaje.includes('pasajero')) {
+      return 'pasajero_duplicado'
+    }
     return mensaje.includes('cliente') ? 'solicitud_pendiente' : 'datos_invalidos'
   }
   if (codigo === 'P0002') return 'reserva_inexistente'

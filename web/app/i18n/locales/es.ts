@@ -28,6 +28,7 @@ export const es = {
   'nav.usuarios': 'Usuarios',
   'nav.gestion': 'Gestión',
   'nav.misReservas': 'Mis reservas',
+  'nav.reportes': 'Reportes',
   'nav.principal': 'Navegación principal',
   'nav.menu': 'Abrir el menú',
   'nav.cuenta': 'Mi cuenta',
@@ -129,6 +130,21 @@ export const es = {
   'solicitudes.columnas.acciones': 'Acciones',
   'solicitudes.sinAnticipo': 'Sin anticipo',
   'solicitudes.pagos.abrir': 'Pagos',
+  'solicitudes.filtroCanal': 'Filtrar por canal',
+  'solicitudes.filtroCanalTodo': 'Ambos canales',
+  'solicitudes.filtroCanalPersonal': 'Personal',
+  'solicitudes.filtroCanalWeb': 'Web',
+  'solicitudes.filtroDesde': 'Salidas desde',
+  'solicitudes.filtroHasta': 'Salidas hasta',
+  'solicitudes.cancelacionSolicitada': 'Cancelación solicitada',
+  'solicitudes.ejecutarCancelacion': 'Ejecutar cancelación',
+  'solicitudes.cancelacionAviso':
+    'El cliente pidió la cancelación de esta reserva.',
+  'solicitudes.cancelacionLibera':
+    'La cancelación es lógica: la reserva conserva su historial y el cupo se libera por cálculo.',
+  'solicitudes.motivo': 'Motivo de la cancelación',
+  'solicitudes.cancelarDefinitivo': 'Cancelar la reserva',
+  'solicitudes.cancelada': 'Reserva cancelada: {codigo}.',
   'solicitudes.origenes.personal': 'Personal',
   'solicitudes.origenes.web': 'Web',
   'solicitudes.estados.pendiente': 'Pendiente',
@@ -152,6 +168,58 @@ export const es = {
     'Por la web hasta 4 pasajeros y sin superar el cupo disponible; los grupos mayores se atienden en la agencia.',
   'solicitudes.ayudaVencimiento':
     'La solicitud queda pendiente y vence a las 24 horas si no se confirma.',
+
+  'pasajeros.titulo': 'Manifiesto de pasajeros',
+  'pasajeros.conteoSobre': 'Pasajeros: {registrados} de {declarada}',
+  'pasajeros.editable':
+    'Al guardar, la cantidad declarada pasa a ser la del manifiesto y se revalidan cupos y monto.',
+  'pasajeros.noEditable':
+    'Solo una reserva pendiente o confirmada admite manifiesto.',
+  'pasajeros.vacio': 'Sin pasajeros registrados: el manifiesto debe llenarse antes de confirmar.',
+  'pasajeros.agregar': 'Agregar pasajero',
+  'pasajeros.quitar': 'Quitar',
+  'pasajeros.guardar': 'Guardar manifiesto',
+  'pasajeros.columnas.tipo': 'Tipo',
+  'pasajeros.columnas.documento': 'Documento',
+  'pasajeros.columnas.nombres': 'Nombres',
+  'pasajeros.columnas.apellidos': 'Apellidos',
+
+  'historial.titulo': 'Historial',
+  'historial.vacio': 'Sin movimientos registrados.',
+  'historial.deA': '{anterior} → {nuevo}',
+  'historial.editar': 'Cambiar salida',
+  'historial.modificada': 'Reserva {codigo} movida a {salida}.',
+  'historial.cantidadActual': 'Cantidad: {cantidad} pasajeros',
+  'historial.montoActual': 'monto actual {monto}',
+  'historial.montoNuevo': 'Con la salida {salida} el monto pasa a {monto} (precio vigente por la cantidad declarada).',
+  'historial.ayudaSalida':
+    'La salida se revalida con el cupo del momento; la cantidad la ajusta el manifiesto.',
+  'historial.sinCambio': 'Elige otra salida para mover la reserva.',
+  'historial.guardar': 'Mover la reserva',
+
+  'avisos.titulo': 'Cambio en tu salida {salida}',
+  'avisos.detalle': '{campo}: {anterior} → {nuevo} · avisado el {fecha}.',
+  'avisos.campos.fechaSalida': 'Fecha de salida',
+  'avisos.campos.fechaRetorno': 'Fecha de retorno',
+  'avisos.campos.cupo': 'Capacidad',
+
+  'reportes.titulo': 'Reportes de ocupación y reservas',
+  'reportes.introduccion':
+    'Mismas cifras que la disponibilidad, con las vencidas y canceladas informadas sin ocupar cupo y el conteo por canal.',
+  'reportes.desde': 'Desde',
+  'reportes.hasta': 'Hasta',
+  'reportes.paquete': 'Filtrar por paquete',
+  'reportes.todoPaquete': 'Todos los paquetes',
+  'reportes.vacia': 'No hay salidas en ese periodo.',
+  'reportes.columnas.salida': 'Salida',
+  'reportes.columnas.capacidad': 'Capacidad',
+  'reportes.columnas.pendientes': 'Pendientes',
+  'reportes.columnas.confirmados': 'Confirmados',
+  'reportes.columnas.libres': 'Libres',
+  'reportes.columnas.web': 'Web',
+  'reportes.columnas.personal': 'Personal',
+  'reportes.columnas.vencidas': 'Vencidas',
+  'reportes.columnas.canceladas': 'Canceladas',
 
   'ingreso.titulo': 'Ingresar al sistema',
   'ingreso.introduccion':
@@ -595,6 +663,9 @@ export const es = {
   'misreservas.columnas.acciones': 'Acciones',
   'misreservas.pagar': 'Pagar',
   'misreservas.pagos': 'Pagos',
+  'misreservas.solicitarCancelacion': 'Solicitar cancelación',
+  'misreservas.cancelacionSolicitada':
+    'Tu solicitud de cancelación quedó registrada; la agencia la ejecutará con su motivo y fecha.',
 
   'clientes.titulo': 'Clientes',
   'clientes.introduccion':
@@ -755,4 +826,17 @@ export const es = {
   'errores.reservaNoPagable':
     'Solo una reserva pendiente o confirmada admite pagos.',
   'errores.pagoDuplicado': 'La reserva ya tiene un pago de ese tipo.',
+  'errores.manifiestoIncompleto':
+    'El manifiesto está incompleto: registra los pasajeros antes de confirmar.',
+  'errores.manifiestoVacio': 'El manifiesto necesita al menos un pasajero.',
+  'errores.manifiestoGrande': 'El manifiesto admite hasta 60 pasajeros.',
+  'errores.reservaNoEditable':
+    'Solo una reserva pendiente o confirmada se modifica.',
+  'errores.pasajeroDuplicado': 'Ese pasajero ya está en el manifiesto.',
+  'errores.pasajeroAjeno':
+    'Ese pasajero ya está registrado en la ficha de otro cliente.',
+  'errores.pagosExcedidos':
+    'Los pagos comprometidos superan el nuevo monto: anula pagos antes de reducir la reserva.',
+  'errores.reservaNoCancelable':
+    'Una reserva cancelada, vencida o finalizada no admite cancelación.',
 } as const

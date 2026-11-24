@@ -22,6 +22,7 @@ export const en: Mensajes = {
   'nav.usuarios': 'Users',
   'nav.gestion': 'Management',
   'nav.misReservas': 'My bookings',
+  'nav.reportes': 'Reports',
   'nav.principal': 'Main navigation',
   'nav.menu': 'Open menu',
   'nav.cuenta': 'My account',
@@ -118,6 +119,21 @@ export const en: Mensajes = {
   'solicitudes.columnas.acciones': 'Actions',
   'solicitudes.sinAnticipo': 'No deposit',
   'solicitudes.pagos.abrir': 'Payments',
+  'solicitudes.filtroCanal': 'Filter by channel',
+  'solicitudes.filtroCanalTodo': 'Both channels',
+  'solicitudes.filtroCanalPersonal': 'Staff',
+  'solicitudes.filtroCanalWeb': 'Web',
+  'solicitudes.filtroDesde': 'Departures from',
+  'solicitudes.filtroHasta': 'Departures until',
+  'solicitudes.cancelacionSolicitada': 'Cancellation requested',
+  'solicitudes.ejecutarCancelacion': 'Execute cancellation',
+  'solicitudes.cancelacionAviso':
+    'The client requested the cancellation of this booking.',
+  'solicitudes.cancelacionLibera':
+    'The cancellation is logical: the booking keeps its history and the quota is released by calculation.',
+  'solicitudes.motivo': 'Reason for cancellation',
+  'solicitudes.cancelarDefinitivo': 'Cancel the booking',
+  'solicitudes.cancelada': 'Booking cancelled: {codigo}.',
   'solicitudes.origenes.personal': 'Staff',
   'solicitudes.origenes.web': 'Web',
   'solicitudes.estados.pendiente': 'Pending',
@@ -140,6 +156,58 @@ export const en: Mensajes = {
     'Up to 4 passengers on the web and never above the available quota; larger groups are served at the agency.',
   'solicitudes.ayudaVencimiento':
     'The request stays pending and expires after 24 hours if not confirmed.',
+
+  'pasajeros.titulo': 'Passenger manifest',
+  'pasajeros.conteoSobre': 'Passengers: {registrados} of {declarada}',
+  'pasajeros.editable':
+    'When saved, the declared count becomes the manifest count, and quota and amount are re-validated.',
+  'pasajeros.noEditable':
+    'Only a pending or confirmed booking accepts a manifest.',
+  'pasajeros.vacio': 'No passengers registered: the manifest must be filled before confirming.',
+  'pasajeros.agregar': 'Add passenger',
+  'pasajeros.quitar': 'Remove',
+  'pasajeros.guardar': 'Save manifest',
+  'pasajeros.columnas.tipo': 'Type',
+  'pasajeros.columnas.documento': 'Document',
+  'pasajeros.columnas.nombres': 'First names',
+  'pasajeros.columnas.apellidos': 'Last names',
+
+  'historial.titulo': 'History',
+  'historial.vacio': 'No movements recorded.',
+  'historial.deA': '{anterior} → {nuevo}',
+  'historial.editar': 'Change departure',
+  'historial.modificada': 'Booking {codigo} moved to {salida}.',
+  'historial.cantidadActual': 'Count: {cantidad} passengers',
+  'historial.montoActual': 'current amount {monto}',
+  'historial.montoNuevo': 'With departure {salida} the amount becomes {monto} (current price by the declared count).',
+  'historial.ayudaSalida':
+    'The departure is re-validated against the current quota; the count is adjusted by the manifest.',
+  'historial.sinCambio': 'Choose another departure to move the booking.',
+  'historial.guardar': 'Move the booking',
+
+  'avisos.titulo': 'Change on your departure {salida}',
+  'avisos.detalle': '{campo}: {anterior} → {nuevo} · notified on {fecha}.',
+  'avisos.campos.fechaSalida': 'Departure date',
+  'avisos.campos.fechaRetorno': 'Return date',
+  'avisos.campos.cupo': 'Capacity',
+
+  'reportes.titulo': 'Occupancy and booking reports',
+  'reportes.introduccion':
+    'Same figures as the availability, with expired and cancelled ones reported without occupying quota, and a count by channel.',
+  'reportes.desde': 'From',
+  'reportes.hasta': 'Until',
+  'reportes.paquete': 'Filter by package',
+  'reportes.todoPaquete': 'All packages',
+  'reportes.vacia': 'No departures in that period.',
+  'reportes.columnas.salida': 'Departure',
+  'reportes.columnas.capacidad': 'Capacity',
+  'reportes.columnas.pendientes': 'Pending',
+  'reportes.columnas.confirmados': 'Confirmed',
+  'reportes.columnas.libres': 'Free',
+  'reportes.columnas.web': 'Web',
+  'reportes.columnas.personal': 'Staff',
+  'reportes.columnas.vencidas': 'Expired',
+  'reportes.columnas.canceladas': 'Cancelled',
 
   'ingreso.titulo': 'Sign in',
   'ingreso.introduccion':
@@ -581,6 +649,9 @@ export const en: Mensajes = {
   'misreservas.columnas.acciones': 'Actions',
   'misreservas.pagar': 'Pay',
   'misreservas.pagos': 'Payments',
+  'misreservas.solicitarCancelacion': 'Request cancellation',
+  'misreservas.cancelacionSolicitada':
+    'Your cancellation request was recorded; the agency will execute it with its reason and date.',
 
   'clientes.titulo': 'Clients',
   'clientes.introduccion':
@@ -741,4 +812,17 @@ export const en: Mensajes = {
   'errores.reservaNoPagable':
     'Only a pending or confirmed booking accepts payments.',
   'errores.pagoDuplicado': 'The booking already has a payment of that type.',
+  'errores.manifiestoIncompleto':
+    'The manifest is incomplete: register the passengers before confirming.',
+  'errores.manifiestoVacio': 'The manifest needs at least one passenger.',
+  'errores.manifiestoGrande': 'The manifest accepts up to 60 passengers.',
+  'errores.reservaNoEditable':
+    'Only a pending or confirmed booking can be modified.',
+  'errores.pasajeroDuplicado': 'That passenger is already in the manifest.',
+  'errores.pasajeroAjeno':
+    'That passenger is already registered under another client record.',
+  'errores.pagosExcedidos':
+    'Committed payments exceed the new amount: void payments before reducing the booking.',
+  'errores.reservaNoCancelable':
+    'A cancelled, expired or finished booking cannot be cancelled.',
 }

@@ -17,11 +17,31 @@
     <UAlert v-if="error" color="error" variant="soft" :title="error" />
 
     <BaseTarjeta>
-      <div class="mb-3 flex items-center justify-end gap-2">
+      <div class="mb-3 flex flex-wrap items-center justify-end gap-2">
+        <UInput
+          v-model="filtroDesde"
+          type="date"
+          size="sm"
+          class="w-40"
+          :aria-label="t('solicitudes.filtroDesde')"
+        />
+        <UInput
+          v-model="filtroHasta"
+          type="date"
+          size="sm"
+          class="w-40"
+          :aria-label="t('solicitudes.filtroHasta')"
+        />
+        <USelect
+          v-model="canalFiltro"
+          :items="canalesFiltro"
+          class="w-36"
+          :aria-label="t('solicitudes.filtroCanal')"
+        />
         <USelect
           v-model="estadoFiltro"
           :items="estadosFiltro"
-          class="w-48"
+          class="w-36"
           :aria-label="t('solicitudes.filtro')"
         />
       </div>
@@ -31,7 +51,7 @@
         class="overflow-x-auto"
       >
         <BaseTablaDatos
-          class="min-w-[78rem]"
+          class="min-w-[80rem]"
           :columnas="columnas"
           :filas="reservas"
           :cargando="pendiente"
@@ -45,6 +65,14 @@
                 :color="fila.origen === 'web' ? 'info' : 'neutral'"
                 variant="subtle"
                 :label="t(`solicitudes.origenes.${fila.origen}` as ClaveMensaje)"
+              />
+              <UBadge
+                v-if="fila.fechaSolicitudCancelacion && fila.estado !== 'cancelada'"
+                class="ml-2"
+                color="error"
+                variant="subtle"
+                icon="i-lucide-undo-2"
+                :label="t('solicitudes.cancelacionSolicitada')"
               />
             </span>
 
@@ -96,25 +124,54 @@
               <span v-else class="text-(--vt-color-texto-suave)">—</span>
             </span>
 
-            <span v-else-if="columna.clave === 'acciones'">
-              <div class="flex justify-end gap-1.5">
-                <UButton
-                  v-if="fila.estado === 'pendiente'"
-                  size="xs"
-                  color="primary"
-                  variant="soft"
-                  :label="t('solicitudes.confirmar')"
-                  :loading="confirmando === fila.idReserva"
-                  @click="confirmar(fila.idReserva)"
-                />
-                <UButton
-                  size="xs"
-                  color="neutral"
-                  variant="soft"
-                  :label="t('solicitudes.pagos.abrir')"
-                  @click="abrirPagos(fila)"
-                />
-              </div>
+            <span v-else-if="columna.clave === 'acciones'" class="flex flex-wrap justify-end gap-1.5">
+              <UButton
+                v-if="fila.estado === 'pendiente'"
+                size="xs"
+                color="primary"
+                variant="soft"
+                :label="t('solicitudes.confirmar')"
+                :loading="confirmando === fila.idReserva"
+                @click="confirmar(fila.idReserva)"
+              />
+              <UButton
+                v-if="['pendiente', 'confirmada'].includes(fila.estado)"
+                size="xs"
+                color="neutral"
+                variant="soft"
+                :label="t('pasajeros.titulo')"
+                @click="abrirManifiesto(fila)"
+              />
+              <UButton
+                v-if="['pendiente', 'confirmada'].includes(fila.estado)"
+                size="xs"
+                color="neutral"
+                variant="soft"
+                :label="t('historial.editar')"
+                @click="abrirModificacion(fila)"
+              />
+              <UButton
+                v-if="fila.fechaSolicitudCancelacion && fila.estado !== 'cancelada'"
+                size="xs"
+                color="error"
+                variant="soft"
+                :label="t('solicitudes.ejecutarCancelacion')"
+                @click="abrirCancelacion(fila)"
+              />
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :label="t('historial.titulo')"
+                @click="abrirHistorial(fila)"
+              />
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="soft"
+                :label="t('solicitudes.pagos.abrir')"
+                @click="abrirPagos(fila)"
+              />
             </span>
 
             <span v-else class="tabular-nums">{{ valor }}</span>
@@ -223,6 +280,93 @@
     </UModal>
 
     <!--
+      Manifiesto, historial, modificación y cancelación de una reserva
+      (HU-07, HU-12, HU-13).
+    -->
+    <UModal
+      v-model:open="manifiestoAbierto"
+      :title="t('pasajeros.titulo')"
+      :ui="{ content: 'max-w-3xl' }"
+    >
+      <template #body>
+        <PasajerosManifiesto
+          v-if="consultando"
+          :reserva="consultando"
+          @cambio="recargar()"
+          @cancelar="manifiestoAbierto = false"
+        />
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="historialAbierto"
+      :title="t('historial.titulo')"
+      :ui="{ content: 'max-w-2xl' }"
+    >
+      <template #body>
+        <SolicitudesHistorial v-if="consultando" :id-reserva="consultando.idReserva" />
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="modificacionAbierta"
+      :title="t('historial.editar')"
+      :ui="{ content: 'max-w-2xl' }"
+    >
+      <template #body>
+        <SolicitudesModificar
+          v-if="consultando"
+          :reserva="consultando"
+          @guardada="modificada"
+          @cancelar="modificacionAbierta = false"
+        />
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="cancelacionAbierta"
+      :title="t('solicitudes.ejecutarCancelacion')"
+      :ui="{ content: 'max-w-lg' }"
+    >
+      <template #body>
+        <form id="form-cancelacion" class="space-y-4" @submit.prevent="ejecutarCancelacion">
+          <UAlert
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-undo-2"
+            :title="t('solicitudes.cancelacionAviso')"
+            :description="t('solicitudes.cancelacionLibera')"
+          />
+          <UFormField :label="t('solicitudes.motivo')" name="motivo">
+            <UTextarea
+              v-model="motivoCancelacion"
+              :rows="3"
+              class="w-full"
+              required
+              minlength="3"
+              maxlength="200"
+            />
+          </UFormField>
+          <div class="flex justify-end gap-2">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              :label="t('comun.cancelar')"
+              @click="cancelacionAbierta = false"
+            />
+            <UButton
+              color="error"
+              type="submit"
+              form="form-cancelacion"
+              :label="t('solicitudes.cancelarDefinitivo')"
+              :loading="cancelando"
+            />
+          </div>
+        </form>
+      </template>
+    </UModal>
+
+    <!--
       Pagos de una reserva (HU-14): resumen del saldo, historial con
       validar y anular, y el registro de un pago de oficina. La
       confirmación exige el anticipo validado (RN-RES-18).
@@ -318,7 +462,7 @@ import type {
   ReservaResumen,
 } from '#shared/types/api'
 import type { ColumnaTabla } from '#shared/types/ui'
-import type { TipoPago } from '#shared/types/domain'
+import type { MetodoPago, TipoPago } from '#shared/types/domain'
 import {
   ANTICIPO_MINIMO_PORCENTAJE,
   METODOS_OFICINA,
@@ -332,23 +476,40 @@ const { moneda, fecha, fechaHora } = useFormato()
 const peticion = useRequestFetch()
 
 const estadoFiltro = ref<'pendiente' | 'todas'>('pendiente')
+const canalFiltro = ref<'todo' | 'personal' | 'web'>('todo')
+const filtroDesde = ref('')
+const filtroHasta = ref('')
 
-// La consulta depende de `estadoFiltro`: al cambiar el filtro se vuelve a
-// pedir la lista.
+// La consulta depende de los filtros: al cambiar uno se vuelve a pedir
+// la lista (HU-07: filtros por fecha, estado y canal).
 const {
   data,
   pending: pendiente,
   error: errorConsulta,
   refresh: recargar,
-} = useAsyncData<RespuestaReservas>('solicitudes', () =>
-  peticion<RespuestaReservas>('/api/reservas', {
-    query: { estado: estadoFiltro.value },
-  }),
+} = useAsyncData<RespuestaReservas>(
+  'solicitudes',
+  () =>
+    peticion<RespuestaReservas>('/api/reservas', {
+      query: {
+        estado: estadoFiltro.value,
+        canal: canalFiltro.value,
+        desde: filtroDesde.value || undefined,
+        hasta: filtroHasta.value || undefined,
+      },
+    }),
+  { watch: [estadoFiltro, canalFiltro, filtroDesde, filtroHasta] },
 )
 
 const estadosFiltro = computed(() => [
   { label: t('solicitudes.filtroPendientes'), value: 'pendiente' },
   { label: t('solicitudes.filtroTodas'), value: 'todas' },
+])
+
+const canalesFiltro = computed(() => [
+  { label: t('solicitudes.filtroCanalTodo'), value: 'todo' },
+  { label: t('solicitudes.filtroCanalPersonal'), value: 'personal' },
+  { label: t('solicitudes.filtroCanalWeb'), value: 'web' },
 ])
 
 const reservas = computed<FilaSolicitud[]>(() =>
@@ -436,10 +597,75 @@ async function confirmar(idReserva: number) {
   }
 }
 
+// --- Manifiesto, historial, modificación y cancelación ------------------
+
+const consultando = ref<ReservaResumen | null>(null)
+const manifiestoAbierto = ref(false)
+const historialAbierto = ref(false)
+const modificacionAbierta = ref(false)
+const cancelacionAbierta = ref(false)
+const cancelando = ref(false)
+const motivoCancelacion = ref('')
+
+function abrirManifiesto(reserva: ReservaResumen) {
+  errorOperacion.value = null
+  consultando.value = reserva
+  manifiestoAbierto.value = true
+}
+
+function abrirHistorial(reserva: ReservaResumen) {
+  errorOperacion.value = null
+  consultando.value = reserva
+  historialAbierto.value = true
+}
+
+function abrirModificacion(reserva: ReservaResumen) {
+  errorOperacion.value = null
+  consultando.value = reserva
+  modificacionAbierta.value = true
+}
+
+function abrirCancelacion(reserva: ReservaResumen) {
+  errorOperacion.value = null
+  consultando.value = reserva
+  motivoCancelacion.value = ''
+  cancelacionAbierta.value = true
+}
+
+async function ejecutarCancelacion() {
+  if (!consultando.value) return
+  cancelando.value = true
+  errorOperacion.value = null
+  try {
+    const reserva = await peticion<ReservaResumen>(
+      `/api/reservas/${consultando.value.idReserva}/ejecutar-cancelacion`,
+      {
+        method: 'POST',
+        body: { motivo: motivoCancelacion.value.trim() },
+      },
+    )
+    cancelacionAbierta.value = false
+    aviso.value = t('solicitudes.cancelada', { codigo: reserva.codigo })
+  } catch (fallo) {
+    errorOperacion.value = mensajeDeError(fallo)
+  } finally {
+    cancelando.value = false
+    await recargar()
+  }
+}
+
+async function modificada(reserva: ReservaResumen) {
+  modificacionAbierta.value = false
+  aviso.value = t('historial.modificada', {
+    codigo: reserva.codigo,
+    salida: reserva.paquete,
+  })
+  await recargar()
+}
+
 // --- Pagos de una reserva ----------------------------------------------
 
 const pagosAbierto = ref(false)
-const consultando = ref<ReservaResumen | null>(null)
 const registrandoPago = ref(false)
 const panelPagos = useTemplateRef<{ recargar: () => Promise<void> }>('panel-pagos')
 

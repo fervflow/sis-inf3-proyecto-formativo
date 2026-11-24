@@ -1,0 +1,44 @@
+@startuml
+title HU-11 · Consultar reportes de ocupación y reservas por fecha
+' Cifras de la misma vista que la disponibilidad: las vencidas y las
+' canceladas se informan sin ocupar cupo, y el conteo distingue la
+' solicitud del cliente de la venta de oficina (RN-REP-02 y RN-REP-03).
+' Solo el personal las consulta (RN-REP-04).
+hide footbox
+autonumber
+skinparam maxMessageSize 175
+
+actor "Personal" as PER
+actor "Cliente" as TUR
+boundary "IU-11 · Reportes" as UI <<interfaz>>
+control "ControlReportes" as CTRL <<control>>
+entity "Reporte" as E_REPORTE <<entidad>>
+database "vista_reservas_por_fecha" as T_VISTA <<tabla>>
+
+PER -> UI : inicia sesión (HU-08)
+TUR -> UI : intenta abrir el reporte
+UI --> TUR : redirección a ingresar (RN-REP-04)
+
+PER -> UI : abre el reporte
+UI -> CTRL : reporte(desde, hasta, paquete)
+CTRL -> E_REPORTE : consultar(periodo, paquete)
+E_REPORTE -> T_VISTA : SELECT ... WHERE fecha_salida\nBETWEEN desde AND hasta
+T_VISTA --> E_REPORTE : filas por salida
+E_REPORTE --> CTRL : capacidad, pendientes, confirmados,\nlibres, reservas por estado y canal
+CTRL --> UI : reporte
+UI --> PER : tabla filtrable por periodo y paquete
+
+alt Sin sesión o cliente
+    UI --> PER : redirección a ingresar
+    UI --> TUR : error «sin permiso»
+end
+
+note right of CTRL
+  Las vencidas y las canceladas se
+  informan sin ocupar cupo; los conteos
+  web y personal distinguen la solicitud
+  del cliente de la venta de oficina.
+  Las cifras provienen de la misma base
+  de cálculo que la disponibilidad.
+end note
+@enduml

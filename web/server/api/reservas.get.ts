@@ -1,4 +1,4 @@
-import { asc, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, lte, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import * as schema from '../../db/schema'
 import type { RespuestaReservas } from '#shared/types/api'
@@ -24,6 +24,11 @@ const consulta = z.object({
   estado: z
     .enum(['pendiente', 'confirmada', 'vencida', 'cancelada', 'finalizada', 'todas'])
     .default('pendiente'),
+  /** Filtro por canal: todo, la atención del personal o la solicitud web. */
+  canal: z.enum(['todo', 'personal', 'web']).default('todo'),
+  /** Rango de fecha de salida (HU-07: filtros por fecha, estado y canal). */
+  desde: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'datos_invalidos').optional(),
+  hasta: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'datos_invalidos').optional(),
 })
 
 export default defineEventHandler(async (event): Promise<RespuestaReservas> => {
@@ -36,16 +41,16 @@ export default defineEventHandler(async (event): Promise<RespuestaReservas> => {
     throw createError({ statusCode: 401, statusMessage: 'sesion_requerida' })
   }
 
-  const consultaReserva = useDb()
-    .select(seleccionReserva())
-    .from(schema.reserva)
-    .innerJoin(
-      schema.cliente,
-      eq(schema.cliente.idCliente, schema.reserva.idCliente),
-    )
-    .innerJoin(schema.salida, eq(schema.salida.idSalida, schema.reserva.idSalida))
-    .innerJoin(schema.paquete, eq(schema.paquete.idPaquete, schema.salida.idPaquete))
-    .orderBy(asc(sql`coalesce(${schema.reserva.fechaExpiracion}, 'infinity')`))
+  const { canal, desde, hasta, estado } = leerConsulta(event, consulta)
+
+  // Todas las condiciones van en un solo where: el constructor de
+  // consultas de Drizzle no lo encadena dos veces.
+  const condiciones = [
+    canal === 'todo' ? undefined : eq(schema.reserva.origen, canal),
+    estado === 'todas' ? undefined : eq(schema.reserva.estado, estado),
+    desde ? gte(schema.salida.fechaSalida, desde) : undefined,
+    hasta ? lte(schema.salida.fechaSalida, hasta) : undefined,
+  ]
 
   // El cliente ve solo lo suyo: la ficha de su cuenta es el filtro.
   if (!esPersonal) {
@@ -59,18 +64,20 @@ export default defineEventHandler(async (event): Promise<RespuestaReservas> => {
       return { reservas: [] }
     }
 
-    const filas = await consultaReserva.where(
-      eq(schema.reserva.idCliente, ficha.idCliente),
-    )
-    return { reservas: filas.map(aReservaResumen) }
+    condiciones.push(eq(schema.reserva.idCliente, ficha.idCliente))
   }
 
-  const { estado } = leerConsulta(event, consulta)
-
-  const filas =
-    estado === 'todas'
-      ? await consultaReserva
-      : await consultaReserva.where(eq(schema.reserva.estado, estado))
+  const filas = await useDb()
+    .select(seleccionReserva())
+    .from(schema.reserva)
+    .innerJoin(
+      schema.cliente,
+      eq(schema.cliente.idCliente, schema.reserva.idCliente),
+    )
+    .innerJoin(schema.salida, eq(schema.salida.idSalida, schema.reserva.idSalida))
+    .innerJoin(schema.paquete, eq(schema.paquete.idPaquete, schema.salida.idPaquete))
+    .where(and(...condiciones))
+    .orderBy(asc(sql`coalesce(${schema.reserva.fechaExpiracion}, 'infinity')`))
 
   return { reservas: filas.map(aReservaResumen) }
 })

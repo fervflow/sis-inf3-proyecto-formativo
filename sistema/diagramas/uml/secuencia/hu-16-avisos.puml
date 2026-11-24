@@ -1,0 +1,47 @@
+@startuml
+title HU-16 · Avisos de cambios de fecha y capacidad de una salida
+' El aviso se deriva del historial de la salida: cada reserva pendiente o
+' confirmada del cliente ve los cambios ocurridos después de crearla
+' (RN-RES-22). Sin correo en el MVP: el aviso vive en las pantallas del
+' cliente.
+hide footbox
+autonumber
+skinparam maxMessageSize 175
+
+actor "Administrador" as ADM
+actor "Cliente" as TUR
+boundary "IU-16 · Mis reservas" as UI <<interfaz>>
+control "ControlAvisos" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "HistorialSalida" as E_HISTORIAL <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "historial_salida" as T_HISTORIAL <<tabla>>
+
+' El cambio lo registra la modificación de la salida (HU-09).
+ADM -> UI : modifica la fecha o la capacidad\n(HU-09)
+UI -> E_HISTORIAL : registrar cambio\ncon valor anterior y nuevo
+E_HISTORIAL -> T_HISTORIAL : INSERT ...
+T_HISTORIAL --> E_HISTORIAL : cambio auditado
+E_HISTORIAL --> ADM : cambio registrado
+
+TUR -> UI : inicia sesión (HU-08)
+UI -> CTRL : avisos(cuenta)
+CTRL -> E_RESERVA : reservasVigentes(ficha)
+E_RESERVA -> T_RESERVA : SELECT ... WHERE estado\nIN ('pendiente', 'confirmada')
+T_RESERVA --> E_RESERVA : salidas de sus reservas vigentes
+CTRL -> E_HISTORIAL : cambios(fecha_salida, fecha_retorno,\ncupo_maximo) posteriores a cada reserva
+E_HISTORIAL -> T_HISTORIAL : SELECT ... JOIN salida
+T_HISTORIAL --> E_HISTORIAL : cambios con valor anterior y nuevo
+E_HISTORIAL --> CTRL : avisos
+CTRL --> UI : avisos ordenados por fecha
+UI --> TUR : «Cambio en tu salida {paquete}»\ncon el valor anterior, el nuevo y la fecha
+
+note right of CTRL
+  Solo el cliente afectado los ve: la ficha
+  de su cuenta es el filtro. Las reservas
+  vencidas y canceladas no generan aviso,
+  y el aviso no cambia el estado de la
+  reserva. Sin correo en el MVP: se muestra
+  en las pantallas del cliente (HU-16).
+end note
+@enduml

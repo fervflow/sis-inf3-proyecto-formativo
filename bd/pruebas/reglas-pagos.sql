@@ -247,6 +247,21 @@ BEGIN
 
     v_reserva := fn_crear_reserva(v_cliente, v_salida, 3, 'personal', 'u-prueba');
 
+    -- El manifiesto completo también condiciona la confirmación
+    -- (RN-RES-19): se registran los tres pasajeros.
+    PERFORM fn_guardar_manifiesto(
+        v_reserva,
+        jsonb_build_array(
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'PAS-001', 'nombres', 'Prueba', 'apellidos', 'Uno'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'PAS-002', 'nombres', 'Prueba', 'apellidos', 'Dos'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'PAS-003', 'nombres', 'Prueba', 'apellidos', 'Tres')
+        ),
+        'u-prueba'
+    );
+
     v_id_pago := fn_registrar_pago(
         v_reserva, 'anticipo', 90, 'qr', 'u-prueba', 'MOCK-QR-06', NULL, false
     );

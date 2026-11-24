@@ -172,11 +172,29 @@ BEGIN
     ORDER BY id_reserva
     LIMIT 1;
 
-    -- La confirmación exige el anticipo validado (RN-RES-18): la prueba
-    -- registra el pago completo como lo haría la oficina.
+    -- La confirmación exige el anticipo validado (RN-RES-18) y el
+    -- manifiesto completo (RN-RES-19): la prueba llena ambos como lo
+    -- haría la oficina.
     PERFORM fn_registrar_pago(
         v_id_reserva, 'anticipo', 150, 'efectivo', 'u-prueba',
         NULL, 'Pago completo en la oficina.', true
+    );
+
+    PERFORM fn_guardar_manifiesto(
+        v_id_reserva,
+        jsonb_build_array(
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'RES-001', 'nombres', 'Prueba', 'apellidos', 'Uno'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'RES-002', 'nombres', 'Prueba', 'apellidos', 'Dos'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'RES-003', 'nombres', 'Prueba', 'apellidos', 'Tres'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'RES-004', 'nombres', 'Prueba', 'apellidos', 'Cuatro'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'RES-005', 'nombres', 'Prueba', 'apellidos', 'Cinco')
+        ),
+        'u-prueba'
     );
 
     PERFORM fn_confirmar_reserva(v_id_reserva, 'u-prueba');
@@ -354,5 +372,279 @@ BEGIN
     END;
 END;
 $$;
+
+
+-- 10. Manifiesto (HU-12, RN-RES-19 y RN-RES-21): confirmar sin manifiesto
+--     se rechaza; al guardarlo, la cantidad declarada se ajusta a los
+--     pasajeros registrados y el monto se recalcula. El test usa su
+--     propia salida, porque las anteriores quedan ya realizadas.
+DO $$
+DECLARE
+    v_salida  BIGINT;
+    v_cliente BIGINT;
+    v_reserva BIGINT;
+    v_cantidad SMALLINT;
+    v_monto   NUMERIC(12, 2);
+BEGIN
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 15, CURRENT_DATE + 16, 20, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 15;
+    SELECT id_cliente INTO v_cliente FROM cliente
+    WHERE numero_documento = 'PRB-0002';
+
+    v_reserva := fn_crear_reserva(v_cliente, v_salida, 3, 'personal', 'u-prueba');
+
+    -- El anticipo se valida primero, para que el intento de confirmación
+    -- quede bloqueado solo por el manifiesto (RN-RES-19).
+    PERFORM fn_registrar_pago(
+        v_reserva, 'anticipo', 90, 'efectivo', 'u-prueba', NULL, NULL, true
+    );
+
+    BEGIN
+        PERFORM fn_confirmar_reserva(v_reserva, 'u-prueba');
+        RAISE EXCEPTION 'FALLO: se confirmó sin manifiesto';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: la confirmación sin manifiesto se rechaza';
+    END;
+
+    -- Dos pasajeros: la cantidad declarada pasa de 3 a 2 y el monto a 200.
+    PERFORM fn_guardar_manifiesto(
+        v_reserva,
+        jsonb_build_array(
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'MAN-001', 'nombres', 'Prueba', 'apellidos', 'Uno'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'MAN-002', 'nombres', 'Prueba', 'apellidos', 'Dos')
+        ),
+        'u-prueba'
+    );
+
+    SELECT cantidad_pasajeros, monto_total INTO v_cantidad, v_monto
+    FROM reserva WHERE id_reserva = v_reserva;
+
+    IF v_cantidad <> 2 OR v_monto <> 200 THEN
+        RAISE EXCEPTION 'FALLO: el manifiesto no ajustó cantidad y monto (% / %)',
+            v_cantidad, v_monto;
+    END IF;
+
+    -- El pasajero repetido se rechaza (documento único en el manifiesto).
+    BEGIN
+        PERFORM fn_guardar_manifiesto(
+            v_reserva,
+            jsonb_build_array(
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                                   'MAN-001', 'nombres', 'Prueba', 'apellidos', 'Uno'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                                   'MAN-001', 'nombres', 'Prueba', 'apellidos', 'Uno Repetido')
+            ),
+            'u-prueba'
+        );
+        RAISE EXCEPTION 'FALLO: se aceptó un pasajero repetido';
+    EXCEPTION
+        WHEN unique_violation THEN
+            RAISE NOTICE 'OK: el pasajero repetido en el manifiesto se rechaza';
+    END;
+
+    RAISE NOTICE 'OK: el manifiesto ajusta la cantidad declarada y recalcula el monto';
+END;
+$$;
+
+-- 11. Modificar la salida de una reserva (HU-07, RN-RES-20): revalida el
+--     cupo, recalcula el monto con el precio vigente y audita.
+DO $$
+DECLARE
+    v_origen  BIGINT;
+    v_destino BIGINT;
+    v_cliente BIGINT;
+    v_reserva BIGINT;
+    v_salida  BIGINT;
+    v_monto   NUMERIC(12, 2);
+    v_libres  INT;
+BEGIN
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 25, CURRENT_DATE + 26, 20, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 20, CURRENT_DATE + 21, 4, 200, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_origen FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 25;
+    SELECT id_salida INTO v_destino FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 20;
+
+    SELECT id_cliente INTO v_cliente FROM cliente
+    WHERE numero_documento = 'PRB-0003';
+
+    v_reserva := fn_crear_reserva(v_cliente, v_origen, 2, 'personal', 'u-prueba');
+
+    PERFORM fn_actualizar_reserva(v_reserva, v_destino, 'u-prueba');
+
+    SELECT id_salida, monto_total INTO v_salida, v_monto
+    FROM reserva WHERE id_reserva = v_reserva;
+
+    IF v_salida <> v_destino OR v_monto <> 400 THEN
+        RAISE EXCEPTION 'FALLO: la modificación no movió la reserva ni recalculó (% / %)',
+            v_salida, v_monto;
+    END IF;
+
+    -- En la salida original quedan 20 cupos libres: la movida liberó.
+    SELECT cupo_disponible INTO v_libres
+    FROM vista_disponibilidad_salida WHERE id_salida = v_origen;
+    IF v_libres <> 20 THEN
+        RAISE EXCEPTION 'FALLO: la salida original no liberó su cupo (%)', v_libres;
+    END IF;
+
+    -- El cupo de la salida destino no alcanza: pedir más que sus 4.
+    BEGIN
+        PERFORM fn_guardar_manifiesto(
+            v_reserva,
+            jsonb_build_array(
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'MOV-001',
+                                   'nombres', 'Movimiento', 'apellidos', 'Uno'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'MOV-002',
+                                   'nombres', 'Movimiento', 'apellidos', 'Dos'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'MOV-003',
+                                   'nombres', 'Movimiento', 'apellidos', 'Tres'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'MOV-004',
+                                   'nombres', 'Movimiento', 'apellidos', 'Cuatro'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'MOV-005',
+                                   'nombres', 'Movimiento', 'apellidos', 'Cinco')
+            ),
+            'u-prueba'
+        );
+        RAISE EXCEPTION 'FALLO: se aceptó un manifiesto que excede el cupo';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: ajustar la reserva más allá del cupo se rechaza';
+    END;
+
+    SELECT count(*) INTO v_libres
+    FROM historial_reserva
+    WHERE id_reserva = v_reserva
+      AND observacion LIKE 'Salida %';
+    IF v_libres < 1 THEN
+        RAISE EXCEPTION 'FALLO: la modificación no quedó auditada';
+    END IF;
+
+    RAISE NOTICE 'OK: la modificación de salida revalida, recalcula y audita';
+END;
+$$;
+
+-- 12. Los pagos comprometidos no pueden quedar por encima del nuevo
+--     monto al reducir la reserva (RN-RES-20).
+DO $$
+DECLARE
+    v_salida  BIGINT;
+    v_cliente BIGINT;
+    v_reserva BIGINT;
+BEGIN
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 30, CURRENT_DATE + 31, 20, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 30;
+    SELECT id_cliente INTO v_cliente FROM cliente
+    WHERE numero_documento = 'PRB-0004';
+
+    v_reserva := fn_crear_reserva(v_cliente, v_salida, 5, 'personal', 'u-prueba');
+
+    PERFORM fn_registrar_pago(
+        v_reserva, 'anticipo', 150, 'efectivo', 'u-prueba', NULL, NULL, true
+    );
+
+    BEGIN
+        PERFORM fn_guardar_manifiesto(
+            v_reserva,
+            jsonb_build_array(
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'PAG-001',
+                                   'nombres', 'Pago', 'apellidos', 'Uno')
+            ),
+            'u-prueba'
+        );
+        RAISE EXCEPTION 'FALLO: se redujo la reserva por debajo de sus pagos';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: reducir por debajo de los pagos comprometidos se rechaza';
+    END;
+END;
+$$;
+
+-- 13. Cancelaciones (HU-13, RN-RES-14): el cliente solicita y el
+--     personal ejecuta con motivo; el cupo se libera por cálculo.
+DO $$
+DECLARE
+    v_salida  BIGINT;
+    v_cliente BIGINT;
+    v_reserva BIGINT;
+    v_estado  VARCHAR(15);
+    v_marcada BOOLEAN;
+    v_libres  INT;
+BEGIN
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 35, CURRENT_DATE + 36, 20, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 35;
+    SELECT id_cliente INTO v_cliente FROM cliente
+    WHERE numero_documento = 'PRB-0005';
+
+    v_reserva := fn_crear_reserva(v_cliente, v_salida, 1, 'personal', 'u-prueba');
+
+    PERFORM fn_solicitar_cancelacion(v_reserva, 'u-prueba');
+
+    SELECT (fecha_solicitud_cancelacion IS NOT NULL) INTO v_marcada
+    FROM reserva WHERE id_reserva = v_reserva;
+    IF NOT v_marcada THEN
+        RAISE EXCEPTION 'FALLO: la solicitud de cancelación no quedó marcada';
+    END IF;
+
+    PERFORM fn_ejecutar_cancelacion(v_reserva, 'El cliente ya no viaja', 'u-prueba');
+
+    SELECT estado INTO v_estado FROM reserva WHERE id_reserva = v_reserva;
+    IF v_estado <> 'cancelada' THEN
+        RAISE EXCEPTION 'FALLO: la cancelación no dejó el estado cancelada (%)', v_estado;
+    END IF;
+
+    -- La cancelada ya no ocupa cupo en la vista.
+    SELECT cupo_disponible INTO v_libres
+    FROM vista_disponibilidad_salida WHERE id_salida = v_salida;
+    IF v_libres <> 20 THEN
+        RAISE EXCEPTION 'FALLO: la reserva cancelada sigue ocupando cupo (%)', v_libres;
+    END IF;
+
+    BEGIN
+        PERFORM fn_solicitar_cancelacion(v_reserva, 'u-prueba');
+        RAISE EXCEPTION 'FALLO: se solicitó la cancelación de una cancelada';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: una reserva cancelada no admite nueva cancelación';
+    END;
+
+    RAISE NOTICE 'OK: la cancelación se solicita, se ejecuta y libera el cupo';
+END;
+$$;
+
 
 ROLLBACK;

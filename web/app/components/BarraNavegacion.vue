@@ -177,6 +177,11 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         icon: 'i-lucide-inbox',
         to: '/solicitudes',
       },
+      {
+        label: t('nav.reportes'),
+        icon: 'i-lucide-chart-bar',
+        to: '/reportes',
+      },
     )
   }
   if (esAdmin.value) {
@@ -282,6 +287,12 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
             :variant="variante('/solicitudes')"
             :color="colorDe('/solicitudes')"
             :label="t('nav.solicitudes')"
+          />
+          <UButton
+            to="/reportes"
+            :variant="variante('/reportes')"
+            :color="colorDe('/reportes')"
+            :label="t('nav.reportes')"
           />
         </template>
 

@@ -209,6 +209,9 @@ Neon.
 | `fn_actualizar_salida(salida, usuario [, fecha_salida, fecha_retorno, capacidad, precio, motivo, punto_encuentro, estado])` | Bloquea la salida, impide bajar la capacidad por debajo de lo reservado, valida la transición de estado y audita cada campo modificado con su valor anterior y el nuevo. |
 | `fn_solicitar_cancelacion(reserva, usuario)` | Registra la petición del cliente sin cambiar el estado de la reserva. |
 | `fn_ejecutar_cancelacion(reserva, motivo, usuario)` | Ejecuta la cancelación del personal: estado `cancelada`, motivo y fecha, con auditoría. |
+| `fn_revalidar_reserva(reserva, salida, cantidad, usuario)` | Revalida cupos sin contar la reserva propia, recalcula el monto con el precio vigente y rechaza que los pagos comprometidos queden por encima. Audita los valores anterior y nuevo. |
+| `fn_actualizar_reserva(reserva, salida, usuario)` | Mueve una reserva pendiente o confirmada a otra salida; la cantidad la manda el manifiesto. |
+| `fn_guardar_manifiesto(reserva, pasajeros JSONB, usuario)` | Reemplaza el manifiesto, reutiliza al pasajero por documento dentro de la ficha del cliente, ajusta la cantidad declarada y revalida cupos, monto y pagos. |
 | `fn_registrar_pago(reserva, tipo, monto, metodo, usuario [, referencia, observacion, validado])` | Registra el pago: `registrado` o, si `validado`, `validado` con su usuario y fecha. Aplica el anticipo mínimo del 30%, exige anticipo previo para el saldo y respeta el saldo pendiente. |
 | `fn_validar_pago(pago, usuario [, anular])` | Valida o anula el pago y deja quién lo hizo y cuándo. |
 | `fn_vencer_solicitudes_pendientes()` | Barrido: pasa a `vencida` las solicitudes cuyo plazo venció y las audita. |

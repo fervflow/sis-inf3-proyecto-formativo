@@ -1,0 +1,105 @@
+@startuml
+title HU-12 · Registro de pasajeros y vinculación a una reserva
+' El manifiesto reemplaza la lista completa: la cantidad declarada pasa a
+' ser la del manifiesto y la base revalida cupos, monto y pagos
+' comprometidos (RN-RES-21). La confirmación exige el manifiesto completo
+' (RN-RES-19).
+hide footbox
+autonumber
+skinparam maxMessageSize 175
+
+actor "Cliente" as TUR
+actor "Personal" as PER
+boundary "IU-12 · Manifiesto" as UI <<interfaz>>
+control "ControlPasajeros" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "Pasajero" as E_PASAJERO <<entidad>>
+entity "ReservaPasajero" as E_VINCULO <<entidad>>
+entity "Salida" as E_SALIDA <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "pasajero" as T_PASAJERO <<tabla>>
+database "reserva_pasajero" as T_VINCULO_TABLA <<tabla>>
+database "salida" as T_SALIDA <<tabla>>
+database "historial_reserva" as T_HISTORIAL <<tabla>>
+
+TUR -> UI : inicia sesión (HU-08)
+PER -> UI : abre el manifiesto de una reserva
+
+alt Sin sesión o reserva ajena
+    UI --> TUR : redirección a ingresar (RN-RES-17)
+    UI --> PER : error «sin permiso»
+else Reserva propia (cliente) o elegida (personal)
+    UI -> CTRL : manifiesto(idReserva)
+    CTRL -> E_RESERVA : cargar(idReserva)
+    E_RESERVA -> T_RESERVA : SELECT ...
+    T_RESERVA --> E_RESERVA : reserva y cantidad declarada
+    CTRL -> E_PASAJERO : listar(idReserva)
+    E_PASAJERO -> T_VINCULO_TABLA : SELECT ... JOIN pasajero
+    T_VINCULO_TABLA --> E_PASAJERO : manifiesto actual
+    E_PASAJERO --> CTRL : pasajeros
+    CTRL --> UI : pasajeros y cantidad declarada
+    UI --> TUR : lista editable, si la reserva lo admite
+    UI --> PER : lista editable, si la reserva lo admite
+
+    TUR -> UI : agrega, edita o quita pasajeros\n(documento y nombres)
+    PER -> UI : agrega, edita o quita pasajeros
+    UI -> CTRL : guardarManifiesto(idReserva, lista)
+
+    group Transacción de manifiesto
+        CTRL -> E_RESERVA : bloquear(idReserva)
+        E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+        T_RESERVA --> E_RESERVA : estado y cliente
+
+        alt Estado vencido, cancelado o finalizado
+            E_RESERVA --> CTRL : no editable
+            CTRL --> UI : error «Solo una reserva pendiente\no confirmada admite manifiesto»
+        else Estado válido
+            CTRL -> E_VINCULO : vaciar(idReserva)
+            E_VINCULO -> T_VINCULO_TABLA : DELETE ...
+
+            loop Por cada pasajero del manifiesto
+                CTRL -> E_PASAJERO : reutilizarOCrear(cliente, documento)
+                E_PASAJERO -> T_PASAJERO : SELECT ... por documento
+                alt Existe en la ficha de otro cliente
+                    E_PASAJERO --> CTRL : pasajero ajeno
+                    CTRL --> UI : error «...registrado en la ficha\nde otro cliente»
+                else Reutilizable o nuevo
+                    E_PASAJERO -> T_PASAJERO : INSERT si no existe
+                    T_PASAJERO --> E_PASAJERO : id_pasajero
+                    CTRL -> E_VINCULO : vincular(idReserva, idPasajero)
+                    E_VINCULO -> T_VINCULO_TABLA : INSERT ...
+                    T_VINCULO_TABLA --> E_VINCULO : vínculo creado
+                end
+            end
+
+            CTRL -> E_SALIDA : revalidar(idReserva, salida, cantidad)
+            E_SALIDA -> T_SALIDA : SELECT ... FOR UPDATE
+            T_SALIDA --> E_SALIDA : cupo y precio vigentes
+
+            alt Cupo insuficiente o pagos por encima
+                E_SALIDA --> CTRL : rechazo
+                CTRL --> UI : error, y el manifiesto queda sin cambios
+            else Revalidación correcta
+                E_SALIDA -> E_RESERVA : actualizar cantidad y monto
+                E_RESERVA -> T_RESERVA : UPDATE ...
+                E_RESERVA -> T_HISTORIAL : auditar con anterior y nuevo
+                T_HISTORIAL --> E_RESERVA : cambio auditado
+                E_RESERVA --> CTRL : cantidad declarada nueva
+                CTRL --> UI : manifiesto guardado
+                UI --> TUR : la cantidad quedó ajustada
+                UI --> PER : la cantidad quedó ajustada
+            end
+        end
+    end
+end
+
+note right of CTRL
+    La confirmación exige el manifiesto
+    completo (RN-RES-19): los pasajeros
+    registrados igualan la cantidad
+    declarada. Un pasajero repetido en la
+    lista se rechaza por su documento, y
+    el pasajero se reutiliza por documento
+    dentro de la ficha del cliente.
+end note
+@enduml

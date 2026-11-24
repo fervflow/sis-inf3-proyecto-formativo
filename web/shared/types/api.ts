@@ -96,10 +96,91 @@ export interface ReservaResumen {
   estado: EstadoReserva
   fechaExpiracion: string | null
   fechaReserva: string
+  /** Marca de la solicitud de cancelación del cliente (HU-13). */
+  fechaSolicitudCancelacion: string | null
   /** Estado del anticipo de la reserva: nulo cuando no hay pago. */
   anticipo: EstadoPago | null
   /** Total menos lo abonado validado. */
   saldoPendiente: string
+}
+
+/** Un pasajero del manifiesto de una reserva (HU-12). */
+export interface PasajeroResumen {
+  idPasajero: number
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
+  nombres: string
+  apellidos: string
+  fechaNacimiento: string | null
+}
+
+/** Respuesta del manifiesto de una reserva. */
+export interface RespuestaPasajeros {
+  pasajeros: PasajeroResumen[]
+  /** Cantidad declarada de la reserva: el manifiesto debe igualarla. */
+  cantidadDeclarada: number
+}
+
+/** Una entrada del historial de una reserva (HU-07). */
+export interface HistorialResumen {
+  idHistorial: number
+  estadoAnterior: string | null
+  estadoNuevo: string
+  fechaCambio: string
+  /** Nombre de la cuenta que hizo el cambio, si se conserva. */
+  usuario: string | null
+  observacion: string | null
+}
+
+/** Respuesta del historial de una reserva. */
+export interface RespuestaHistorial {
+  historial: HistorialResumen[]
+}
+
+/** Un aviso de cambio de salida para el cliente (HU-16). */
+export interface AvisoResumen {
+  idReserva: number
+  codigo: string
+  codigoPaquete: string
+  paquete: string
+  fechaSalida: string
+  /** Campo modificado: fecha_salida, fecha_retorno o cupo_maximo. */
+  campo: string
+  valorAnterior: string | null
+  valorNuevo: string | null
+  motivo: string | null
+  fechaCambio: string
+}
+
+/** Respuesta de los avisos del cliente. */
+export interface RespuestaAvisos {
+  avisos: AvisoResumen[]
+}
+
+/** Una fila del reporte de ocupación y reservas (HU-11). */
+export interface ReporteResumen {
+  idSalida: number
+  idPaquete: number
+  codigoPaquete: string
+  paquete: string
+  fechaSalida: string
+  cupoMaximo: number
+  pasajerosPendientes: number
+  pasajerosConfirmados: number
+  cupoDisponible: number
+  reservasPendientes: number
+  reservasConfirmadas: number
+  reservasActivas: number
+  reservasVencidas: number
+  reservasCanceladas: number
+  /** Reservas activas de cada canal (RN-REP-03). */
+  reservasWeb: number
+  reservasPersonal: number
+}
+
+/** Respuesta del reporte por fecha. */
+export interface RespuestaReportes {
+  salidas: ReporteResumen[]
 }
 
 /** Respuesta de la consulta de reservas. */

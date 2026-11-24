@@ -288,14 +288,26 @@ BEGIN
         'MOCK-QR-8F3K2L', 'Pago simulado por banca móvil (QR).', false
     );
 
-    -- B) Reserva de oficina de Juan: un pasajero, paga el total en
-    --    efectivo (anticipo por el monto completo) y queda confirmada.
+    -- B) Reserva de oficina de Juan: un pasajero (él mismo), paga el
+    --    total en efectivo (anticipo por el monto completo) y queda
+    --    confirmada. El manifiesto se llena antes de confirmar
+    --    (RN-RES-19).
     v_id_reserva := fn_crear_reserva(
         v_juan, v_cerro, 1, 'personal', v_usuario
     );
     PERFORM fn_registrar_pago(
         v_id_reserva, 'anticipo', 480.00, 'efectivo', v_usuario,
         NULL, 'Pago completo en la oficina.', true
+    );
+    PERFORM fn_guardar_manifiesto(
+        v_id_reserva,
+        jsonb_build_array(jsonb_build_object(
+            'tipo_documento', 'CI',
+            'numero_documento', '6677889 PBO',
+            'nombres', 'Juan Carlos',
+            'apellidos', 'Flores Mendoza'
+        )),
+        v_usuario
     );
     PERFORM fn_confirmar_reserva(v_id_reserva, v_usuario);
 

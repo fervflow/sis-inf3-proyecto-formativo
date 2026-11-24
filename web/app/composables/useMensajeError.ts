@@ -88,6 +88,14 @@ const CODIGOS: Record<string, ClaveMensaje> = {
   monto_excedido: 'errores.montoExcedido',
   reserva_no_pagable: 'errores.reservaNoPagable',
   pago_duplicado: 'errores.pagoDuplicado',
+  manifiesto_incompleto: 'errores.manifiestoIncompleto',
+  manifiesto_vacio: 'errores.manifiestoVacio',
+  manifiesto_grande: 'errores.manifiestoGrande',
+  reserva_no_editable: 'errores.reservaNoEditable',
+  pasajero_duplicado: 'errores.pasajeroDuplicado',
+  pasajero_ajeno: 'errores.pasajeroAjeno',
+  pagos_excedidos: 'errores.pagosExcedidos',
+  reserva_no_cancelable: 'errores.reservaNoCancelable',
 }
 
 /** Devuelve el texto de un fallo de la API. */

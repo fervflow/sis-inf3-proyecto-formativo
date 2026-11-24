@@ -5,11 +5,13 @@ paquetes turísticos y reservas de Vizcacha Tours. **No forma parte de
 `main.tex`**: es documentación de trabajo.
 
 - **Alcance de esta versión:** catálogo, paquetes turísticos, salidas,
-  proveedores, cotizaciones, reservas con su confirmación y vencimiento,
-  cuentas de cliente (RN-USU-02 a RN-USU-05) y pagos con pasarela
-  simulada (RN-PAG-01 a RN-PAG-08).
-- **Fuera de alcance por ahora:** pasajeros, cancelaciones, reportes y
-  avisos. Cada módulo tendrá su propia ampliación del catálogo.
+  proveedores, cotizaciones, reservas con confirmación, vencimiento,
+  manifiesto, modificación y cancelación (RN-RES-14 a RN-RES-22), avisos
+  derivados del historial, cuentas de cliente (RN-USU-02 a RN-USU-05),
+  pagos con pasarela simulada (RN-PAG-01 a RN-PAG-08) y reportes
+  (RN-REP-01 a RN-REP-04).
+- **Fuera de alcance por ahora:** la transición a `finalizada` y el envío
+  real de correos. Cada módulo tendrá su propia ampliación del catálogo.
 - **Fuente del esquema físico:** `bd/esquema.sql` y `bd/diccionario-datos.md`.
 - **Implementación web:** `web/db/schema.ts`, `web/server/` y `web/app/`.
 
@@ -220,7 +222,12 @@ programada ──▶ confirmada ──▶ realizada
 | HU-15 · Cuenta de cliente | RN-USU-02 a RN-USU-05 |
 | HU-06 · Registro de reservas | RN-GEN-04, RN-GEN-05, RN-SAL-14, RN-SAL-18, RN-COT-08 y RN-RES-01 a RN-RES-06, RN-RES-11, RN-RES-12, RN-RES-17 |
 | HU-14 · Anticipos y saldos | RN-PAG-01 a RN-PAG-08 |
-| HU-17 · Confirmación y vencimiento de solicitudes | RN-GEN-03, RN-GEN-05, RN-SAL-19 y RN-RES-01, RN-RES-05, RN-RES-07 a RN-RES-10, RN-RES-13, RN-RES-18 |
+| HU-12 · Pasajeros y manifiesto | RN-RES-19, RN-RES-21 |
+| HU-07 · Seguimiento y actualización | RN-GEN-03, RN-GEN-05, RN-RES-14, RN-RES-20, RN-RES-21 |
+| HU-13 · Cancelaciones | RN-RES-14 |
+| HU-16 · Avisos de cambios | RN-RES-22 |
+| HU-11 · Reportes | RN-REP-01 a RN-REP-04 |
+| HU-17 · Confirmación y vencimiento de solicitudes | RN-GEN-03, RN-GEN-05, RN-SAL-19 y RN-RES-01, RN-RES-05, RN-RES-07 a RN-RES-10, RN-RES-13, RN-RES-18, RN-RES-19 |
 
 ## 10. Reglas de usuarios y roles del alcance
 
@@ -281,11 +288,15 @@ ninguna capa la reimplementa.
 | RN-RES-11 | El canal web no crea fichas: la solicitud usa la ficha vinculada a la cuenta del cliente, y el registro de la ficha corresponde al registro de la cuenta (RN-USU-03). | HU-06, HU-15 | API de reservas | Vigente |
 | RN-RES-12 | Solo una cotización aceptada del mismo cliente y de la misma salida puede originar una reserva, y el vínculo es único. | HU-06 | API de reservas y `reserva.id_cotizacion` | Vigente |
 | RN-RES-13 | La consulta del personal muestra las solicitudes de ambos canales con su cliente, su salida, su monto, su vencimiento y el estado de su anticipo, con filtro por estado. | HU-17 | API `GET /api/reservas` e interfaz «Solicitudes» | Vigente |
-| RN-RES-14 | La reserva no se elimina nunca: la cancelación la ejecuta el personal con motivo y fecha, y las reservas vencidas, canceladas y finalizadas no se modifican. | HU-13, HU-07 | Pendiente: módulo de cancelaciones | Propuesta |
+| RN-RES-14 | La reserva no se elimina nunca: el cliente solicita la cancelación de una reserva `pendiente` o `confirmada` y el personal la ejecuta con motivo y fecha; las reservas `vencida`, `cancelada` y `finalizada` no se modifican. | HU-13, HU-07 | `fn_solicitar_cancelacion` y `fn_ejecutar_cancelacion` | Vigente |
 | RN-RES-15 | Una solicitud del canal web admite como máximo 4 pasajeros; los grupos mayores se atienden por la oficina, en el canal personal, que no tiene ese tope. | Decisión del proyecto | `fn_crear_reserva`, Zod e interfaz | Vigente |
 | RN-RES-16 | Las solicitudes web pendientes vigentes de una misma salida no retienen en conjunto más de la mitad del cupo máximo; alcanzado el tope, nuevas solicitudes web se rechazan hasta que el personal confirme o venza alguna. Las pendientes del canal personal no cuentan para el tope. | Decisión del proyecto | `fn_crear_reserva` | Vigente |
 | RN-RES-17 | Reservar por el canal web exige una sesión de `CLIENTE` con ficha activa vinculada. Sin sesión, la interfaz redirige a ingresar o crear cuenta; la API responde 401. | HU-15, HU-06 | API de reservas, middleware e interfaz | Vigente |
 | RN-RES-18 | Confirmar una solicitud exige un anticipo validado que cumpla el mínimo (RN-PAG-01); la base lo exige en `fn_confirmar_reserva` y no admite confirmar sin pago. | HU-17, HU-14 | `fn_confirmar_reserva` | Vigente |
+| RN-RES-19 | Confirmar una reserva exige el manifiesto completo: los pasajeros registrados en ella igualan su cantidad declarada. El manifiesto se llena antes de confirmar. | HU-12, HU-17 | `fn_confirmar_reserva` e `historial_reserva` | Vigente |
+| RN-RES-20 | Solo una reserva `pendiente` o `confirmada` se modifica. Cambiar la salida o la cantidad vuelve a verificar los cupos dentro de una transacción que bloquea la salida; el monto se recalcula con el precio vigente de la salida por la cantidad nueva, y los pagos no anulados no pueden quedar por encima del nuevo total. Cada cambio queda en el historial con los valores anterior y nuevo. | HU-07 | `fn_actualizar_reserva` y `fn_guardar_manifiesto` | Vigente |
+| RN-RES-21 | El manifiesto es la lista de pasajeros de la reserva, con documento único por persona. Al guardarlo, la cantidad declarada pasa a ser la cantidad de pasajeros registrados, con la misma verificación de cupos. | HU-12 | `fn_guardar_manifiesto` | Vigente |
+| RN-RES-22 | Cuando cambia la fecha o la capacidad de una salida, cada cliente con reserva `pendiente` o `confirmada` en ella ve un aviso con el valor anterior, el nuevo y la fecha del cambio, derivado del historial de la salida. El aviso no cambia el estado de la reserva y no lo ve nadie más. | HU-16 | `historial_salida` y API de avisos | Vigente |
 
 ### 13.1 Máquina de estados de la reserva
 
@@ -339,21 +350,26 @@ registrado ──▶ validado
 Se documentan aquí para que no se pierdan, pero no se implementan en esta
 iteración:
 
-- **Reservas:** manifiesto completo al confirmar; modificación de cantidad
-  y salida con nueva verificación de cupos (HU-07); transición a
-  `finalizada`; cancelaciones con motivo (HU-13); reportes por fecha (HU-11).
+- **Reservas:** transición a `finalizada` (con la salida `realizada`);
+  reutilizar un pasajero entre fichas de clientes distintos (hoy el
+  manifiesto se arma dentro de la ficha del cliente de la reserva).
 - **Pagos:** ejecución y registro de las devoluciones del catálogo (RN-PAG-07);
   pasarela real en lugar de la simulada.
-- **Pasajeros:** pasajero reutilizable entre reservas; conteo exacto al
-  confirmar; el registro debe coincidir con la cantidad declarada.
 - **Proveedores:** permitir varios tipos del mismo proveedor en un mismo
   paquete; hoy el vínculo guarda un solo tipo y su costo.
-- **Avisos:** cambios de fecha o capacidad de una salida (HU-16), por
-  correo y en las pantallas del cliente.
 - **Roles:** resolver `ADMIN`, `PERSONAL` y `CLIENTE` por `codigo` en lugar
   de depender de los identificadores fijos de la semilla.
 
-## 16. Gobierno del catálogo
+## 16. Reportes
+
+| ID | Regla | Fuente | Aplicación | Estado |
+|---|---|---|---|---|
+| RN-REP-01 | El reporte se filtra por periodo de fecha de salida y, de forma opcional, por paquete. | HU-11 | API de reportes e interfaz «Reportes» | Vigente |
+| RN-REP-02 | Por salida muestra la capacidad, los pasajeros pendientes y confirmados, los cupos libres y la cantidad de reservas por estado; las vencidas y las canceladas se informan sin ocupar cupo. | HU-11 | `vista_reservas_por_fecha` | Vigente |
+| RN-REP-03 | El reporte distingue las reservas de la atención del personal de las solicitudes del cliente, con conteos por canal. | HU-11 | `vista_reservas_por_fecha` | Vigente |
+| RN-REP-04 | Solo el personal y el administrador consultan el reporte. | HU-11 | API e interfaz | Vigente |
+
+## 17. Gobierno del catálogo
 
 1. Una regla nueva se propone aquí con su ID y su fuente.
 2. Se decide si se implementa en la base, en la API, en la interfaz o en un
@@ -364,7 +380,7 @@ iteración:
 5. Se actualiza la historia de usuario y la trazabilidad.
 6. Se registra el trabajo aceptado en `docs/changelog/`.
 
-## 17. Decisiones abiertas
+## 18. Decisiones abiertas
 
 - ¿El catálogo de servicios y el de lugares se podrán editar desde la
   administración o seguirán siendo una semilla fija?

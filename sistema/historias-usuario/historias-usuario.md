@@ -240,8 +240,9 @@ sistema no pueda cumplir.
 - Un mismo pasajero no se registra dos veces en la misma reserva, aunque sí
   puede viajar en reservas distintas.
 - El cliente solo registra pasajeros en sus propias reservas.
-- Los cambios en la lista de pasajeros se reflejan de inmediato en la
-  cantidad declarada de la reserva.
+- Al guardar el manifiesto, la cantidad declarada pasa a ser la cantidad de
+  pasajeros registrados, con la misma verificación de cupos; una reserva no
+  se confirma con el manifiesto incompleto.
 
 ### HU-07 · Seguimiento y actualización de reservas
 
@@ -613,6 +614,13 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
     horas y el anticipo mínimo quedó en el 30% del monto; la totalidad
     también puede pagarse por la web. El panel de usuarios dejó de crear
     cuentas de cliente y el correo es obligatorio en toda ficha.
+20. El ciclo de la reserva se completó: el manifiesto de pasajeros se
+    guarda como lista completa y ajusta la cantidad declarada (la
+    confirmación exige manifiesto completo), la reserva se modifica de
+    salida con revalidación de cupos y monto recalculado sin dejar pagos
+    por encima, la cancelación se solicita desde la cuenta y la ejecuta el
+    personal con motivo, los avisos se derivan del historial de la salida,
+    y los reportes usan la misma vista de cálculo con conteo por canal.
 
 ## Pendientes para la próxima revisión
 
@@ -620,5 +628,5 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
   plan de entrega.
 - Revisar la estimación de HU-06, que concentra 5 de los 47 puntos y tres
   tareas, por ser la historia de mayor riesgo y alcance.
-- Elaborar los diagramas de secuencia de HU-15, HU-16 y HU-17, que no tienen
+- Elaborar el diagrama de secuencia de HU-17, que no tiene
   representación propia en `sistema/diagramas/uml/secuencia/`.

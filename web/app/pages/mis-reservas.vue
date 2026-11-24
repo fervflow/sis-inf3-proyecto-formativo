@@ -4,12 +4,12 @@
  *
  * El cliente ve solo lo suyo: el servidor filtra por la ficha de su
  * cuenta (RN-RES-17). Desde aquí paga su anticipo o su saldo con la
- * pasarela simulada si dejó el pago pendiente, y consulta el estado de
- * sus pagos.
+ * pasarela simulada, llena el manifiesto de su reserva, solicita la
+ * cancelación y recibe los avisos de cambios de su salida (HU-16).
  */
-import type { ColumnaTabla } from '#shared/types/ui'
 import type { ClaveMensaje } from '~/i18n'
 import type {
+  RespuestaAvisos,
   RespuestaPagos,
   RespuestaReservas,
   ReservaResumen,
@@ -37,6 +37,26 @@ const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
 )
 
+// --- Avisos de cambios de salida (HU-16) --------------------------------
+
+const {
+  data: avisos,
+  error: errorAvisos,
+} = useAsyncData<RespuestaAvisos>('avisos', () =>
+  peticion<RespuestaAvisos>('/api/avisos'),
+)
+
+const listaAvisos = computed(() => avisos.value?.avisos ?? [])
+
+function textoCampo(campo: string): string {
+  const clave = {
+    fecha_salida: 'avisos.campos.fechaSalida',
+    fecha_retorno: 'avisos.campos.fechaRetorno',
+    cupo_maximo: 'avisos.campos.cupo',
+  }[campo]
+  return clave ? t(clave as ClaveMensaje) : campo
+}
+
 const columnas = computed<ColumnaTabla<FilaReserva>[]>(() => [
   { clave: 'codigo', etiqueta: t('misreservas.columnas.codigo') },
   { clave: 'paquete', etiqueta: t('misreservas.columnas.paquete') },
@@ -61,7 +81,11 @@ const columnas = computed<ColumnaTabla<FilaReserva>[]>(() => [
   { clave: 'acciones', etiqueta: t('misreservas.columnas.acciones') },
 ])
 
-type FilaReserva = ReservaResumen & { salida: string; vencimiento: string | null; acciones: number }
+type FilaReserva = ReservaResumen & {
+  salida: string
+  vencimiento: string | null
+  acciones: number
+}
 
 const filas = computed<FilaReserva[]>(() =>
   reservas.value.map((reserva) => ({
@@ -99,14 +123,21 @@ function puedePagar(reserva: ReservaResumen): boolean {
   )
 }
 
-// --- Pago y consulta de pagos -------------------------------------------
+/** La reserva admite manifiesto y cancelación: pendiente o confirmada. */
+function activa(reserva: ReservaResumen): boolean {
+  return reserva.estado === 'pendiente' || reserva.estado === 'confirmada'
+}
+
+// --- Pago, manifiesto y cancelación -------------------------------------
 
 const pagoAbierto = ref(false)
 const pagosAbierto = ref(false)
+const manifiestoAbierto = ref(false)
 const pagando = ref<ReservaResumen | null>(null)
 const consultando = ref<ReservaResumen | null>(null)
 const aviso = ref<string | null>(null)
 const errorOperacion = ref<string | null>(null)
+const solicitandoCancelacion = ref<number | null>(null)
 
 function abrirPago(reserva: ReservaResumen) {
   aviso.value = null
@@ -122,6 +153,13 @@ function abrirPagos(reserva: ReservaResumen) {
   pagosAbierto.value = true
 }
 
+function abrirManifiesto(reserva: ReservaResumen) {
+  aviso.value = null
+  errorOperacion.value = null
+  consultando.value = reserva
+  manifiestoAbierto.value = true
+}
+
 /** El pago quedó registrado: se muestra la referencia de la simulación. */
 function pagado(respuesta: RespuestaPagos) {
   pagoAbierto.value = false
@@ -132,6 +170,24 @@ function pagado(respuesta: RespuestaPagos) {
   })
   pagando.value = null
   recargar()
+}
+
+/** El cliente pide la cancelación; el personal la ejecuta (HU-13). */
+async function solicitarCancelacion(reserva: ReservaResumen) {
+  solicitandoCancelacion.value = reserva.idReserva
+  errorOperacion.value = null
+  try {
+    await peticion(
+      `/api/reservas/${reserva.idReserva}/solicitar-cancelacion`,
+      { method: 'POST' },
+    )
+    aviso.value = t('misreservas.cancelacionSolicitada')
+  } catch (fallo) {
+    errorOperacion.value = mensajeDeError(fallo)
+  } finally {
+    solicitandoCancelacion.value = null
+    await recargar()
+  }
 }
 </script>
 
@@ -145,6 +201,24 @@ function pagado(respuesta: RespuestaPagos) {
     <UAlert v-if="aviso" color="success" variant="soft" :title="aviso" />
     <UAlert v-if="errorOperacion" color="error" variant="soft" :title="errorOperacion" />
     <UAlert v-if="error" color="error" variant="soft" :title="error" />
+
+    <!-- Avisos de cambios de la salida (HU-16): solo los del cliente. -->
+    <UAlert
+      v-for="avisoSalida in listaAvisos"
+      :key="`${avisoSalida.idReserva}-${avisoSalida.fechaCambio}`"
+      color="info"
+      variant="soft"
+      icon="i-lucide-bell-ring"
+      :title="t('avisos.titulo', {
+        salida: `${avisoSalida.paquete} (${fecha(avisoSalida.fechaSalida)})`,
+      })"
+      :description="t('avisos.detalle', {
+        campo: textoCampo(avisoSalida.campo),
+        anterior: avisoSalida.valorAnterior ?? '—',
+        nuevo: avisoSalida.valorNuevo ?? '—',
+        fecha: fechaHora(avisoSalida.fechaCambio),
+      })"
+    />
 
     <BaseTarjeta>
       <div v-if="pendiente || filas.length > 0" class="overflow-x-auto">
@@ -163,6 +237,13 @@ function pagado(respuesta: RespuestaPagos) {
                 :color="fila.origen === 'web' ? 'info' : 'neutral'"
                 variant="subtle"
                 :label="t(`solicitudes.origenes.${fila.origen}` as ClaveMensaje)"
+              />
+              <UBadge
+                v-if="fila.fechaSolicitudCancelacion && fila.estado !== 'cancelada'"
+                class="ml-2"
+                color="error"
+                variant="subtle"
+                :label="t('solicitudes.cancelacionSolicitada')"
               />
             </span>
 
@@ -190,7 +271,7 @@ function pagado(respuesta: RespuestaPagos) {
               <span v-else class="text-(--vt-color-texto-suave)">—</span>
             </span>
 
-            <span v-else-if="columna.clave === 'acciones'" class="flex justify-end gap-1.5">
+            <span v-else-if="columna.clave === 'acciones'" class="flex flex-wrap justify-end gap-1.5">
               <UButton
                 v-if="puedePagar(fila)"
                 size="xs"
@@ -201,9 +282,26 @@ function pagado(respuesta: RespuestaPagos) {
                 @click="abrirPago(fila)"
               />
               <UButton
+                v-if="activa(fila)"
                 size="xs"
                 color="neutral"
                 variant="soft"
+                :label="t('pasajeros.titulo')"
+                @click="abrirManifiesto(fila)"
+              />
+              <UButton
+                v-if="activa(fila) && !fila.fechaSolicitudCancelacion"
+                size="xs"
+                color="error"
+                variant="soft"
+                :loading="solicitandoCancelacion === fila.idReserva"
+                :label="t('misreservas.solicitarCancelacion')"
+                @click="solicitarCancelacion(fila)"
+              />
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
                 :label="t('misreservas.pagos')"
                 @click="abrirPagos(fila)"
               />
@@ -247,6 +345,21 @@ function pagado(respuesta: RespuestaPagos) {
           :reserva="pagando"
           @pagado="pagado"
           @cancelar="pagoAbierto = false"
+        />
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="manifiestoAbierto"
+      :title="t('pasajeros.titulo')"
+      :ui="{ content: 'max-w-3xl' }"
+    >
+      <template #body>
+        <PasajerosManifiesto
+          v-if="consultando"
+          :reserva="consultando"
+          @cambio="recargar()"
+          @cancelar="manifiestoAbierto = false"
         />
       </template>
     </UModal>
