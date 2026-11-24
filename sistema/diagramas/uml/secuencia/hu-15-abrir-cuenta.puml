@@ -1,0 +1,73 @@
+@startuml
+title HU-15 · Abrir una cuenta de cliente y acceder a su información
+' El registro público crea la cuenta y la ficha en un solo paso (RN-USU-03).
+' Si el documento ya tiene ficha, la cuenta se vincula a ella (RN-USU-02).
+hide footbox
+autonumber
+skinparam maxMessageSize 175
+
+actor "Cliente" as TUR
+boundary "IU-15 · Crear cuenta" as UI <<interfaz>>
+control "ControlRegistro" as CTRL <<control>>
+control "BetterAuth" as AUTH <<control>>
+entity "Cliente" as E_CLIENTE <<entidad>>
+database "usuario" as T_USUARIO <<tabla>>
+database "cliente" as T_CLIENTE <<tabla>>
+
+TUR -> UI : completa correo, contraseña,\ndocumento, nombre y teléfono
+UI -> CTRL : registrarCuenta(datos)
+
+CTRL -> CTRL : validarCorreo(datos.correo)
+
+alt Correo interno reservado al personal
+    CTRL --> UI : error «Correo reservado»
+    UI --> TUR : pedir un correo propio
+else Correo válido
+    CTRL -> E_CLIENTE : buscarFichaPorDocumento(documento)
+    E_CLIENTE -> T_CLIENTE : SELECT ...
+    T_CLIENTE --> E_CLIENTE : ficha encontrada o vacía
+
+    alt El documento ya tiene ficha con cuenta
+        E_CLIENTE --> CTRL : documento vinculado
+        CTRL --> UI : error «Ya existe una cuenta\npara ese documento»
+        UI --> TUR : ofrecer ingresar con ella
+    else El documento ya tiene ficha sin cuenta
+        E_CLIENTE --> CTRL : ficha sin cuenta
+        CTRL -> AUTH : signUpEmail(correo, contraseña,\nnombre y teléfono)
+        AUTH -> T_USUARIO : INSERT ... rol CLIENTE,\ncorreo real, sin cambio forzado
+        T_USUARIO --> AUTH : id de la cuenta
+        AUTH --> CTRL : sesión abierta por cookie
+
+        CTRL -> E_CLIENTE : vincular(idCuenta, idFicha)
+        E_CLIENTE -> T_CLIENTE : UPDATE cliente\nSET id_usuario = cuenta,\ncorreo = correo real
+        T_CLIENTE --> E_CLIENTE : ficha vinculada
+        CTRL --> UI : cuenta y ficha creadas
+        UI --> TUR : sesión iniciada, vuelve a su destino
+    else El documento no tiene ficha
+        CTRL -> AUTH : signUpEmail(correo, contraseña,\nnombre y teléfono)
+        AUTH -> T_USUARIO : INSERT ... rol CLIENTE,\ncorreo real, sin cambio forzado
+        T_USUARIO --> AUTH : id de la cuenta
+        AUTH --> CTRL : sesión abierta por cookie
+
+        CTRL -> E_CLIENTE : crearFicha(idCuenta, datos)
+        E_CLIENTE -> T_CLIENTE : INSERT cliente\ncon correo y documento únicos
+        T_CLIENTE --> E_CLIENTE : id_ficha
+        CTRL --> UI : cuenta y ficha creadas
+        UI --> TUR : sesión iniciada, vuelve a su destino
+    end
+end
+
+note right of CTRL
+    La ficha conserva su historial cuando la
+    cuenta se vincula: no se duplica el documento
+    (RN-USU-02). El correo es obligatorio y único
+    en toda ficha (RN-USU-05).
+end note
+
+note right of AUTH
+    El sign-up de la biblioteca sigue cerrado:
+    el registro propio va por la ruta de la
+    aplicación, que fija el rol CLIENTE y crea
+    o vincula la ficha (RN-USU-03).
+end note
+@enduml

@@ -1,0 +1,62 @@
+@startuml
+title Diagrama de componentes · Sistema web de gestión de paquetes turísticos y reservas
+' Estructura del software: la interfaz llama a la API de Nitro; la API
+' usa los servicios del dominio y Better Auth; las reglas críticas (cupos,
+' anticipo, confirmación) viven en las funciones PL/pgSQL de la base y la
+' aplicación las llama, no las reimplementa.
+hide circle
+skinparam componentStyle rectangle
+
+package "Interfaz (web/app)" {
+  component "Vistas y componentes\n(vistas, base/ y módulos)" as UI_VISTAS
+  component "Composables y textos\n(useTexto, useFormato, i18n)" as UI_COMPOSABLES
+}
+
+package "Código compartido (web/shared)" {
+  component "Tipos, límites y\ncódigos de error" as SHARED
+}
+
+package "Servidor (web/server)" {
+  component "Middleware de sesión\ny permisos por rol" as MW
+  component "Rutas de la API (Nitro)" as API
+  component "Servicios del dominio\n(utils por módulo)" as SERV
+  component "Validación de entrada\n(Zod y tipos)" as ZOD
+  component "Better Auth\n(cuentas y sesiones)" as AUTH
+  component "Acceso a datos\n(Drizzle ORM)" as DRIZZLE
+}
+
+package "Base de datos (Neon)" {
+  database "PostgreSQL\nesquema turismo" as PG
+  component "Tablas y vistas\ndel esquema" as VISTAS
+  component "Funciones PL/pgSQL\nde las reglas críticas" as FNS
+}
+
+UI_VISTAS -down-> API
+UI_VISTAS .right.> UI_COMPOSABLES
+API .right.> MW
+MW .right.> AUTH
+API -down-> SERV
+SERV .right.> ZOD
+SERV ..> SHARED
+SERV -down-> DRIZZLE
+SERV -down-> FNS
+AUTH -down-> PG
+DRIZZLE -down-> VISTAS
+FNS -right-> VISTAS
+UI_VISTAS ..> SHARED
+
+note bottom of FNS
+  Cupos con bloqueo de fila,
+  anticipo mínimo del 30%,
+  saldo exacto y confirmación
+  condicionada, dentro de una
+  transacción. La aplicación
+  las llama y no las reimplementa.
+end note
+
+note bottom of SHARED
+  Lo usan la interfaz y el
+  servidor: los mismos límites
+  en los dos lados.
+end note
+@enduml

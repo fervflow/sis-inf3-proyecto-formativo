@@ -1,0 +1,90 @@
+@startuml
+title Diagrama de despliegue · Sistema web de gestión de paquetes turísticos y reservas
+' Estructura física del MVP: la web vive en Vercel y la base en Neon,
+' con el rol de aplicación de menos privilegios y el barrido diario por
+' el planificador de Vercel. El proveedor de correo está pendiente: los
+' avisos de HU-16 se muestran en las pantallas del cliente.
+hide circle
+
+node "Dispositivo del cliente" {
+  component "Navegador\nNuxt 4 (SPA)" as BROWSER_CLI
+}
+
+node "Dispositivo del personal\ny del administrador" {
+  component "Navegador" as BROWSER_PER
+}
+
+node "Vercel" {
+  artifact "web .output\nNuxt 4 + Nitro" as ART_APP
+  queue "Planificador\nde tareas" as CRON
+}
+
+node "Neon\n(AWS São Paulo)" {
+  database "PostgreSQL 18\nrama production\nesquema turismo" as DB
+}
+
+node "Equipo de desarrollo" {
+  artifact "repositorio\ndel proyecto" as ART_SQL
+}
+
+cloud "Photon\n(OpenStreetMap)" as PHOTON
+
+node "Proveedor de correo\n(pendiente)" as MAIL
+
+BROWSER_CLI -down-> ART_APP
+BROWSER_PER -down-> ART_APP
+CRON -left-> ART_APP
+ART_APP -down-> DB
+ART_SQL -down-> DB
+ART_APP -right-> PHOTON
+ART_APP -right-> MAIL
+
+note right of ART_APP
+  Nitro sirve la API, Better Auth y la
+  pasarela simulada de pagos: genera la
+  referencia y no mueve dinero real. La
+  devolución se ejecuta fuera del sistema,
+  con los tramos de RN-PAG-07.
+end note
+
+note bottom of CRON
+  Barrido diario: invoca
+  POST /api/vencer-solicitudes
+  con CRON_SECRET en la cabecera.
+end note
+
+note bottom of BROWSER_CLI
+  Ambos navegadores entran por HTTPS
+  con la cookie de sesión de Better Auth.
+end note
+
+note bottom of ART_SQL
+  Migraciones y datos por la conexión
+  directa (neondb_owner). El rol de la
+  aplicación (vizcacha_app, lector-escritor)
+  solo consulta y modifica datos.
+end note
+
+note right of MAIL
+  Sin integración en el MVP: no hay
+  proveedor contratado ni envío real.
+  El correo del cliente queda registrado
+  como dato obligatorio y único para
+  conectar el servicio más adelante.
+  Los avisos de HU-16 hoy se muestran en
+  las pantallas del cliente.
+end note
+
+note bottom of PHOTON
+  Autocompletar lugares, solo en la
+  administración de paquetes.
+end note
+
+note bottom of DB
+  Las tablas de sesión de Better Auth
+  viven en la misma base. El rol
+  vizcacha_app no crea esquema: los
+  cambios pasan por la conexión
+  directa del equipo.
+end note
+@enduml
