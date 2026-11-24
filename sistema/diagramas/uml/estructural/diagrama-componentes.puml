@@ -1,19 +1,21 @@
 @startuml
 title Diagrama de componentes · Sistema web de gestión de paquetes turísticos y reservas
-' Estructura del software: la interfaz llama a la API de Nitro; la API
-' usa los servicios del dominio y Better Auth; las reglas críticas (cupos,
-' anticipo, confirmación) viven en las funciones PL/pgSQL de la base y la
-' aplicación las llama, no las reimplementa.
+' Estructura del software verificada contra el código: la interfaz llama a
+' la API de Nitro y a Better Auth; las reglas críticas (cupos, anticipo,
+' confirmación) viven en las funciones PL/pgSQL de la base, y TODO el
+' acceso a datos pasa por utils/db.ts (Drizzle y consultar sobre un pool
+' pg): la aplicación las llama con una sola sentencia y no las
+' reimplementa.
 hide circle
 skinparam componentStyle rectangle
 
 package "Interfaz (web/app)" {
   component "Vistas y componentes\n(vistas, base/ y módulos)" as UI_VISTAS
-  component "Composables y textos\n(useTexto, useFormato, i18n)" as UI_COMPOSABLES
+  component "Composables y textos\n(useTexto, useFormato,\nuseMensajeError, i18n)" as UI_COMPOSABLES
 }
 
 package "Código compartido (web/shared)" {
-  component "Tipos, límites y\ncódigos de error" as SHARED
+  component "Tipos y límites del dominio\n(anticipo 30%, topes web,\nusuario interno)" as SHARED
 }
 
 package "Servidor (web/server)" {
@@ -22,41 +24,42 @@ package "Servidor (web/server)" {
   component "Servicios del dominio\n(utils por módulo)" as SERV
   component "Validación de entrada\n(Zod y tipos)" as ZOD
   component "Better Auth\n(cuentas y sesiones)" as AUTH
-  component "Acceso a datos\n(Drizzle ORM)" as DRIZZLE
+  component "Acceso a datos\n(utils/db.ts):\nDrizzle, useDb y consultar" as DBACC
 }
 
 package "Base de datos (Neon)" {
   database "PostgreSQL\nesquema turismo" as PG
   component "Tablas y vistas\ndel esquema" as VISTAS
-  component "Funciones PL/pgSQL\nde las reglas críticas" as FNS
+  component "Funciones PL/pgSQL\n(cupos, pagos, salidas,\ncódigos, vencimientos)" as FNS
 }
 
 UI_VISTAS -down-> API
 UI_VISTAS .right.> UI_COMPOSABLES
-API .right.> MW
-MW .right.> AUTH
+UI_VISTAS ..> SHARED
+UI_VISTAS ..> AUTH : ingreso y salida\n(/api/auth/*)
+API .left.> MW : sesión adjunta\na la petición
+MW -down-> AUTH : lee y corta sesiones
 API -down-> SERV
+API ..> DBACC : useDb y consultar\ndirectos
+SERV -down-> DBACC
 SERV .right.> ZOD
 SERV ..> SHARED
-SERV -down-> DRIZZLE
-SERV -down-> FNS
-AUTH -down-> PG
-DRIZZLE -down-> VISTAS
-FNS -right-> VISTAS
-UI_VISTAS ..> SHARED
+MW ..> DBACC : sesiones en la base
+AUTH ..> DBACC : adaptador y accesos
+DBACC -down-> VISTAS
+DBACC -down-> FNS : ejecuta fn_* una\nsentencia por regla
+DBACC -down-> PG
 
 note bottom of FNS
-  Cupos con bloqueo de fila,
-  anticipo mínimo del 30%,
-  saldo exacto y confirmación
-  condicionada, dentro de una
-  transacción. La aplicación
-  las llama y no las reimplementa.
+  Las reglas críticas viven aquí dentro de
+  una transacción: bloqueo de fila para los
+  cupos, anticipo mínimo del 30%, saldo
+  exacto y confirmación condicionada. La
+  aplicación las llama y no las reimplementa.
 end note
 
 note bottom of SHARED
-  Lo usan la interfaz y el
-  servidor: los mismos límites
-  en los dos lados.
+  Lo usan la interfaz y el servidor:
+  los mismos límites en los dos lados.
 end note
 @enduml

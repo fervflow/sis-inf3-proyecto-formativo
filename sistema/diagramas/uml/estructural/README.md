@@ -115,12 +115,18 @@ saldo ni confirma la reserva.
 
 Estos dos describen el software construido, no el dominio:
 
-- **`diagrama-componentes.puml`** muestra las capas de la web: la interfaz
-  (vistas y composables), el servidor (middleware de sesión, rutas de la
-  API, servicios del dominio, Zod, Better Auth y Drizzle), el código
-  compartido de tipos y límites, y la base con sus vistas y funciones
-  PL/pgSQL. La regla que retrata: **las reglas críticas viven en la base**
-  y la aplicación las llama con una sola sentencia.
+- **`diagrama-componentes.puml`** muestra las capas de la web, verificadas
+  contra el código: la interfaz (vistas, componentes y composables) llama
+  a la API de Nitro y también directo a Better Auth para el ingreso y la
+  salida de sesión; el middleware de sesión envuelve cada petición y
+  corta las cuentas bloqueadas; los servicios del dominio y la validación
+  con Zod viven en `server/utils/`; y **todo el acceso a datos pasa por
+  `utils/db.ts`** (Drizzle, `useDb` y `consultar` sobre un pool `pg`),
+  puerta única hacia las tablas, las vistas y las funciones PL/pgSQL. La
+  regla que retrata: **las reglas críticas viven en la base** y la
+  aplicación las llama con una sola sentencia. Los servicios externos
+  (Photon, el correo pendiente) quedan fuera a propósito: los cubre el
+  diagrama de despliegue.
 - **`diagrama-despliegue.puml`** muestra los nodos físicos con sus
   artefactos desplegados y estereotipos («device», «execution
   environment»): los navegadores del cliente y del personal, que cargan
