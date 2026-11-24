@@ -138,7 +138,7 @@ object "Reserva · RES-2026-0117" as RES_0117 {
   cantidadPasajeros = 2
   montoTotal = 1780.00
   estado = "pendiente"
-  fechaExpiracion = "2026-11-12 10:30"
+  fechaExpiracion = "2026-11-11 10:30"
   fechaReserva = "2026-11-10 10:30"
 }
 

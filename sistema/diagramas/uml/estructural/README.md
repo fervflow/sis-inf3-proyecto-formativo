@@ -1,8 +1,8 @@
 # Diagramas estructurales
 
-Diagramas de clases y de objetos del sistema. No son casos de uso:
-describen **cómo está estructurado** el modelo, no el diálogo con el
-usuario.
+Diagramas de clases, de objetos, de componentes y de despliegue del
+sistema. No son casos de uso: describen **cómo está estructurado** el
+modelo y el software, no el diálogo con el usuario.
 
 | Archivo | Contenido | Tamaño |
 |---|---|---|
@@ -10,6 +10,8 @@ usuario.
 | `diagrama-clases-simplificado.puml` | Versión publicable: 11 clases, 2 estados y una vista | 1120 × 1136 pt |
 | `diagrama-objetos.puml` | Instantánea completa: 22 objetos con sus valores | 1871 × 1432 pt |
 | `diagrama-objetos-simplificado.puml` | La misma instantánea con 15 objetos | 1064 × 944 pt |
+| `diagrama-componentes.puml` | Capas del software: interfaz, API, dominio compartido y base | — |
+| `diagrama-despliegue.puml` | Nodos físicos: navegadores, Vercel, Neon, geocodificación y correo pendiente | — |
 
 ## Cuál usar
 
@@ -77,9 +79,7 @@ diagramas de `../secuencia/`.
 
 Un diagrama de clases describe el tipo; uno de objetos describe un ejemplar
 concreto en un momento concreto. El de este proyecto es una instantánea
-coherente del modelo.
-
-> El 10 de noviembre de 2026, a las 10:30, el cliente Luis Mamani acepta la
+coherente del modelo.> El 10 de noviembre de 2026, a las 10:30, el cliente Luis Mamani acepta la
 > cotización `COT-2026-0041` y solicita la reserva `RES-2026-0117` para dos
 > personas en la salida del Uros del Titicaca del 12 de diciembre. La
 > reserva nace `pendiente`, con vencimiento el 12 de noviembre a las 10:30.
@@ -91,7 +91,7 @@ coherente del modelo.
 |---|---|
 | HU-15 | `Usuario` vinculado a `Cliente` |
 | HU-05 | Cotización emitida y aceptada |
-| HU-06 | Reserva pendiente con vencimiento a 48 h |
+| HU-06 | Reserva pendiente con vencimiento a 24 h |
 | HU-12 | Dos pasajeros vinculados |
 | HU-14 | Anticipo de 500 Bs registrado y sin validar |
 | HU-17 | Espera de confirmación con `fechaExpiracion` |
@@ -101,7 +101,7 @@ coherente del modelo.
 
 | Comprobación | Resultado |
 |---|---|
-| `fechaExpiracion` − `fechaReserva` | 48 horas |
+| `fechaExpiracion` − `fechaReserva` | 24 horas |
 | `cantidadPasajeros` | 2, con 2 vínculos en `ReservaPasajero` |
 | `cupoDisponible` | 12 − 2 = 10 |
 | `cupoDisponibleSinPendientes` | 12, porque sigue pendiente |
@@ -110,6 +110,29 @@ coherente del modelo.
 
 El anticipo existe, pero mientras el personal no lo valide no reduce el
 saldo ni confirma la reserva.
+
+## Diagramas de componentes y de despliegue
+
+Estos dos describen el software construido, no el dominio:
+
+- **`diagrama-componentes.puml`** muestra las capas de la web: la interfaz
+  (vistas y composables), el servidor (middleware de sesión, rutas de la
+  API, servicios del dominio, Zod, Better Auth y Drizzle), el código
+  compartido de tipos y límites, y la base con sus vistas y funciones
+  PL/pgSQL. La regla que retrata: **las reglas críticas viven en la base**
+  y la aplicación las llama con una sola sentencia.
+- **`diagrama-despliegue.puml`** muestra los nodos físicos: los navegadores
+  del cliente y del personal, Vercel (el artefacto `web .output` de Nuxt 4
+  con Nitro, y el planificador que invoca el barrido diario), Neon en
+  São Paulo con el esquema `turismo`, el equipo de desarrollo que aplica
+  las migraciones por conexión directa, y los dos servicios externos:
+  Photon para los lugares y el **proveedor de correo, dibujado como
+  pendiente** (relación punteada) hasta contratarlo; hoy los avisos se
+  muestran en las pantallas del cliente. La pasarela de pagos también es
+  simulada, y así se indica en la nota del artefacto.
+
+Ambos llevan el título en la forma `Tipo · Descripción` y se compilan con
+el mismo `make diagramas` que el resto, porque viven bajo `uml/`.
 
 ## Qué se quita en los simplificados
 
@@ -126,7 +149,7 @@ Lo que se quita sigue en `bd/esquema.sql` y en el diagrama completo.
 
 ## Título y generación
 
-Los cuatro llevan su título con `title` justo después de `@startuml`:
+Los seis llevan su título con `title` justo después de `@startuml`:
 
 ```plantuml
 @startuml

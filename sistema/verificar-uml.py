@@ -35,17 +35,22 @@ CARPETAS = ['secuencia', 'secuencia-light', 'secuencia-comunes',
             'secuencia-fusionados']
 
 # --- Diagramas estructurales -------------------------------------------
-# Declaracion: class|enum|object|usecase|actor|state|rectangle, con etiqueta
-# opcional y alias opcional.
+# Declaracion: class|enum|object|interface|abstract|usecase|actor|state
+# |rectangle|component|node|database|cloud|queue, con etiqueta opcional y
+# alias opcional.
 DECL_ESTRUCT = re.compile(
     r'^\s*(?:class|enum|object|interface|abstract|usecase|actor|state'
-    r'|rectangle)\s+(?:"[^"]+"\s+as\s+)?(\w+)')
+    r'|rectangle|component|node|database|cloud|queue|artifact)\s+'
+    r'(?:"[^"]+"\s+as\s+)?(\w+)')
 # Relacion: A [multiplicidad] operador [multiplicidad] B [: etiqueta]
-# Se admiten <--, --, *--, --> y ..> (dependencia).
+# Se admiten <--, --, *--, --> y ..> (dependencia), con o sin calificador
+# de direccion: -down->, -left->, .right.> y variantes.
 REL_ESTRUCT = re.compile(
     r'^\s*(\w+)\s*(?:"[^"]*"\s*)?'
-    r'(?:<--|\*--|-->|\.\.>|--)\s*'
-    r'(?:"[^"]*"\s*)?(\w+)\s*(?::.*)?$')
+    r'(?:<--|\*--|-->|\.\.>|--'
+    r'|<[ox+]*[-.]+(?:down|up|left|right)?[-.]*>?'
+    r'|[-.]+(?:down|up|left|right)?[-.]*>?)'
+    r'\s*(?:"[^"]*"\s*)?(\w+)\s*(?::.*)?$')
 
 CARPETAS_ESTRUCT = ['estructural', 'procesos', 'casos-uso']
 

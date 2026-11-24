@@ -15,7 +15,7 @@ editarlos hay que respetar el modelo de este documento.
 | `uml/secuencia-light/` | Versiones resumidas de esos 10 |
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables, sin actor ni interfaz |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan historias |
-| `uml/estructural/` | Diagramas de clases y de objetos, completos y simplificados |
+| `uml/estructural/` | Clases, objetos, componentes y despliegue, completos y simplificados |
 | `uml/casos-uso/` | Casos de uso con sus `include` y `extend` |
 | `uml/procesos/` | Mapa de actividades, flujo del tablero y proceso de estimación |
 | `tikz/` | Árbol de problemas del Anexo A |
@@ -70,7 +70,7 @@ estructurales y el de casos de uso usan «Tipo · Descripción».
 
 `make verificar` ejecuta dos comprobaciones:
 
-- `sistema/verificar-uml.py` revisa los 34 `.puml` de `uml/` y detecta participantes
+- `sistema/verificar-uml.py` revisa los 36 `.puml` de `uml/` y detecta participantes
   usados sin declarar, declarados sin mensajes, entidades o tablas con una
   sola línea de vida, y clases u objetos fuera de toda relación.
 - `sistema/verificar-rutas.py` comprueba que las rutas citadas existan y que
