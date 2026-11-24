@@ -155,6 +155,11 @@ export const es = {
   'solicitudes.confirmar': 'Confirmar',
   'solicitudes.confirmada': 'Solicitud confirmada: {codigo}.',
   'solicitudes.creada': 'Reserva creada: {codigo}.',
+  'solicitudes.barrido': 'Vencer vencidas',
+  'solicitudes.barridoOk':
+    'Barrido ejecutado: {cantidad} solicitudes pasaron a vencidas y liberaron su cupo.',
+  'solicitudes.barridoNinguna':
+    'Barrido ejecutado: no había solicitudes vencidas.',
   'solicitudes.sinClientes':
     'No hay clientes. Registra uno en Clientes para reservar.',
   'solicitudes.sinSalidas':
@@ -220,6 +225,7 @@ export const es = {
   'reportes.columnas.personal': 'Personal',
   'reportes.columnas.vencidas': 'Vencidas',
   'reportes.columnas.canceladas': 'Canceladas',
+  'reportes.columnas.finalizadas': 'Finalizadas',
 
   'ingreso.titulo': 'Ingresar al sistema',
   'ingreso.introduccion':
@@ -502,8 +508,12 @@ export const es = {
   'cotizaciones.estados.vencida': 'Vencida',
   'cotizaciones.acciones.editar': 'Editar',
   'cotizaciones.acciones.ver': 'Ver',
+  'cotizaciones.acciones.reservar': 'Originar reserva',
   'cotizaciones.tarjeta.creadaEl': 'Creada el {fecha}',
   'cotizaciones.tarjeta.precio': 'Precio',
+  'cotizaciones.tarjeta.reservaCreada': 'Reserva originada',
+  'cotizaciones.reservaCreada':
+    'Reserva creada desde la cotización {numero}: {codigo}.',
   'cotizaciones.form.numero': 'Número',
   'cotizaciones.ayudaNumero': 'Se genera al guardar',
   'cotizaciones.form.cliente': 'Cliente',

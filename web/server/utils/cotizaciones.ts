@@ -59,6 +59,8 @@ interface FilaCotizacion {
   condiciones: string | null
   observaciones: string | null
   fechaCreacion: Date
+  /** Reserva originada por la cotización, si existe (RN-COT-08). */
+  idReservaOriginada: number | null
 }
 
 /** Convierte la fila de la base en lo que consume la interfaz. */
@@ -85,6 +87,8 @@ function aCotizacionAdmin(fila: FilaCotizacion): CotizacionAdmin {
     condiciones: fila.condiciones,
     observaciones: fila.observaciones,
     fechaCreacion: fila.fechaCreacion.toISOString(),
+    idReservaOriginada:
+      fila.idReservaOriginada === null ? null : Number(fila.idReservaOriginada),
   }
 }
 
@@ -123,6 +127,15 @@ function consultaCotizaciones() {
       condiciones: schema.cotizacion.condiciones,
       observaciones: schema.cotizacion.observaciones,
       fechaCreacion: schema.cotizacion.fechaCreacion,
+      // La reserva originada por la cotización, para no repetirla desde
+      // la bandeja (RN-COT-08: el vínculo es único).
+      idReservaOriginada: sql<number | null>`(
+        select r2.id_reserva
+        from ${schema.reserva} r2
+        where r2.id_cotizacion = ${schema.cotizacion.idCotizacion}
+        order by r2.id_reserva
+        limit 1
+      )`,
     })
     .from(schema.cotizacion)
     .innerJoin(

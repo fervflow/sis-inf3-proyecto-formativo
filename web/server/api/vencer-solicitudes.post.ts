@@ -4,10 +4,14 @@ import { consultar } from '../utils/db'
 /**
  * Barrido diario de las solicitudes pendientes vencidas.
  *
- * La regla de las 48 horas no depende de este proceso: una solicitud
+ * La regla de las 24 horas no depende de este proceso: una solicitud
  * pendiente cuyo plazo venció deja de ocupar cupo en el momento en que
  * expira, porque así lo calculan las vistas. Esta rutina es la limpieza:
  * pasa las solicitudes vencidas a 'vencida' y deja la auditoría.
+ *
+ * El personal también puede ejecutar el barrido desde la bandeja de
+ * solicitudes, sin esperar al cron (T-HU-17.4): esa vía usa
+ * `POST /api/reservas/vencer`, con la sesión del personal.
  *
  * La invoca el planificador de Vercel (ver `web/vercel.json`) una vez al
  * día. Se protege con `CRON_SECRET`, que Vercel envía en la cabecera

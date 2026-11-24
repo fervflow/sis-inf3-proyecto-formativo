@@ -173,6 +173,8 @@ export interface ReporteResumen {
   reservasActivas: number
   reservasVencidas: number
   reservasCanceladas: number
+  /** Reservas confirmadas cuyo viaje ya se realizó (T-HU-07.4). */
+  reservasFinalizadas: number
   /** Reservas activas de cada canal (RN-REP-03). */
   reservasWeb: number
   reservasPersonal: number
@@ -425,6 +427,8 @@ export interface CotizacionAdmin {
   condiciones: string | null
   observaciones: string | null
   fechaCreacion: string
+  /** Reserva originada por esta cotización, si existe (RN-COT-08). */
+  idReservaOriginada: number | null
 }
 
 /** Respuesta de la lista de cotizaciones. */

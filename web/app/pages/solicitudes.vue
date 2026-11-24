@@ -6,6 +6,13 @@
     >
       <template #acciones>
         <UButton
+          color="neutral"
+          variant="soft"
+          :label="t('solicitudes.barrido')"
+          :loading="barrido"
+          @click="ejecutarBarrido"
+        />
+        <UButton
           color="primary"
           :label="t('solicitudes.crear')"
           @click="abrirAlta"
@@ -456,6 +463,7 @@
 <script setup lang="ts">
 import type { ClaveMensaje } from '~/i18n'
 import type {
+  RespuestaBarrido,
   RespuestaClientes,
   RespuestaDisponibilidad,
   RespuestaReservas,
@@ -724,6 +732,30 @@ async function registrarPago() {
     errorOperacion.value = mensajeDeError(fallo)
   } finally {
     registrandoPago.value = false
+  }
+}
+
+// --- Barrido manual de vencidas (HU-17, T-HU-17.4) -----------------------
+
+const barrido = ref(false)
+
+async function ejecutarBarrido() {
+  barrido.value = true
+  errorOperacion.value = null
+  aviso.value = null
+  try {
+    const respuesta = await peticion<RespuestaBarrido>('/api/reservas/vencer', {
+      method: 'POST',
+    })
+    aviso.value =
+      respuesta.vencidas > 0
+        ? t('solicitudes.barridoOk', { cantidad: respuesta.vencidas })
+        : t('solicitudes.barridoNinguna')
+  } catch (fallo) {
+    errorOperacion.value = mensajeDeError(fallo)
+  } finally {
+    barrido.value = false
+    await recargar()
   }
 }
 

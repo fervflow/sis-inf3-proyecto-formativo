@@ -126,7 +126,7 @@ web/
 - [x] Semilla de datos de prueba (clientes, proveedores y una cotización).
 - [ ] Solicitud pública de acceso y bandeja de aprobación (post-MVP).
 - [ ] Correo: verificación y avisos de HU-16 (post-MVP).
-- [ ] Páginas y rutas de API del resto de las historias.
+- [x] Páginas y rutas de API del resto de las historias.
 
-Las 17 historias y sus 40 tareas son el plan de desarrollo; el tablero
+Las 17 historias y sus 44 tareas son el plan de desarrollo; el tablero
 lleva el estado.

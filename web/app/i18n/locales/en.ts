@@ -144,6 +144,10 @@ export const en: Mensajes = {
   'solicitudes.confirmar': 'Confirm',
   'solicitudes.confirmada': 'Request confirmed: {codigo}.',
   'solicitudes.creada': 'Booking created: {codigo}.',
+  'solicitudes.barrido': 'Expire overdue',
+  'solicitudes.barridoOk':
+    'Sweep executed: {cantidad} requests expired and released their quota.',
+  'solicitudes.barridoNinguna': 'Sweep executed: no requests had expired.',
   'solicitudes.sinClientes': 'No clients. Register one in Clients to book.',
   'solicitudes.sinSalidas':
     'No departures with quota. Schedule a departure to book.',
@@ -208,6 +212,7 @@ export const en: Mensajes = {
   'reportes.columnas.personal': 'Staff',
   'reportes.columnas.vencidas': 'Expired',
   'reportes.columnas.canceladas': 'Cancelled',
+  'reportes.columnas.finalizadas': 'Completed',
 
   'ingreso.titulo': 'Sign in',
   'ingreso.introduccion':
@@ -488,6 +493,10 @@ export const en: Mensajes = {
   'cotizaciones.estados.vencida': 'Expired',
   'cotizaciones.acciones.editar': 'Edit',
   'cotizaciones.acciones.ver': 'View',
+  'cotizaciones.acciones.reservar': 'Create booking',
+  'cotizaciones.tarjeta.reservaCreada': 'Booking created',
+  'cotizaciones.reservaCreada':
+    'Booking created from quote {numero}: {codigo}.',
   'cotizaciones.tarjeta.creadaEl': 'Created on {fecha}',
   'cotizaciones.tarjeta.precio': 'Price',
   'cotizaciones.form.numero': 'Number',

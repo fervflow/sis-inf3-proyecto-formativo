@@ -45,6 +45,7 @@ export default defineEventHandler(async (event): Promise<RespuestaReportes> => {
            v.reservas_activas AS "reservasActivas",
            v.reservas_vencidas AS "reservasVencidas",
            v.reservas_canceladas AS "reservasCanceladas",
+           v.reservas_finalizadas AS "reservasFinalizadas",
            v.reservas_web AS "reservasWeb",
            v.reservas_personal AS "reservasPersonal"
     FROM turismo.vista_reservas_por_fecha v

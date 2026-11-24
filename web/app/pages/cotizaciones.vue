@@ -42,7 +42,9 @@
         v-for="cotizacion in cotizaciones"
         :key="cotizacion.idCotizacion"
         :cotizacion="cotizacion"
+        :originando="originando === cotizacion.idCotizacion"
         @abrir="abrirEdicion"
+        @reservar="originarReserva"
       />
     </div>
 
@@ -255,6 +257,7 @@ import type {
   RespuestaClientes,
   RespuestaCotizaciones,
   RespuestaDisponibilidad,
+  ReservaResumen,
   SalidaDisponible,
 } from '#shared/types/api'
 import type { EstadoCotizacion } from '#shared/types/domain'
@@ -294,13 +297,50 @@ const salidas = computed<SalidaDisponible[]>(
   () => dataSalidas.value?.salidas ?? [],
 )
 
-const error = computed<string | null>(() =>
-  errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
+// El error de la lista y el de las operaciones comparten el aviso superior.
+const errorOperacion = ref<string | null>(null)
+const error = computed<string | null>(
+  () =>
+    errorOperacion.value ??
+    (errorConsulta.value ? mensajeDeError(errorConsulta.value) : null),
 )
 const aviso = ref<string | null>(null)
 
 function esTerminal(estado: EstadoCotizacion): boolean {
   return ['aceptada', 'rechazada', 'vencida'].includes(estado)
+}
+
+// --- Reserva originada por una cotización aceptada (HU-05, T-HU-05.3) ----
+
+const originando = ref<number | null>(null)
+
+async function originarReserva(cotizacion: CotizacionAdmin) {
+  originando.value = cotizacion.idCotizacion
+  errorOperacion.value = null
+  aviso.value = null
+  try {
+    // La reserva nace por el mismo proceso validado de siempre: la base
+    // verifica el cupo y congela el monto (RN-RES-06); el vínculo con la
+    // cotización aceptada queda en reserva.id_cotizacion (RN-COT-08).
+    const reserva = await peticion<ReservaResumen>('/api/reservas', {
+      method: 'POST',
+      body: {
+        idCliente: cotizacion.idCliente,
+        idSalida: cotizacion.idSalida,
+        cantidadPasajeros: cotizacion.cantidadPasajeros,
+        idCotizacion: cotizacion.idCotizacion,
+      },
+    })
+    aviso.value = t('cotizaciones.reservaCreada', {
+      numero: cotizacion.numero,
+      codigo: reserva.codigo,
+    })
+    await refresh()
+  } catch (fallo) {
+    errorOperacion.value = mensajeDeError(fallo)
+  } finally {
+    originando.value = null
+  }
 }
 
 // --- Alta y edición -----------------------------------------------------
@@ -414,6 +454,7 @@ function abrirAlta() {
   formulario.observaciones = ''
   formulario.estado = 'borrador'
   errorFormulario.value = null
+  errorOperacion.value = null
   formularioAbierto.value = true
   aplicarSalida()
 }
@@ -431,6 +472,7 @@ function abrirEdicion(cotizacion: CotizacionAdmin) {
   formulario.observaciones = cotizacion.observaciones ?? ''
   formulario.estado = cotizacion.estado
   errorFormulario.value = null
+  errorOperacion.value = null
   formularioAbierto.value = true
 }
 

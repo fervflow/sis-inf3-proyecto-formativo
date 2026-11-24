@@ -3,17 +3,21 @@
  * Tarjeta de una cotización.
  *
  * Resume el cliente, la salida, los pasajeros, el total y las condiciones.
- * La apertura se delega a la vista; la tarjeta no llama a la API.
+ * La apertura y el origen de la reserva se delegan a la vista; la tarjeta
+ * no llama a la API.
  */
 import type { CotizacionAdmin } from '#shared/types/api'
 import type { ClaveMensaje } from '~/i18n'
 
 const props = defineProps<{
   cotizacion: CotizacionAdmin
+  /** La vista está originando la reserva de esta tarjeta. */
+  originando?: boolean
 }>()
 
 const emit = defineEmits<{
   abrir: [cotizacion: CotizacionAdmin]
+  reservar: [cotizacion: CotizacionAdmin]
 }>()
 
 const { t } = useTexto()
@@ -142,17 +146,35 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
             })
           }}
         </p>
-        <UButton
-          size="xs"
-          variant="soft"
-          color="neutral"
-          :label="
-            terminal
-              ? t('cotizaciones.acciones.ver')
-              : t('cotizaciones.acciones.editar')
-          "
-          @click="emit('abrir', cotizacion)"
-        />
+        <div class="flex flex-wrap items-center justify-end gap-1.5">
+          <UBadge
+            v-if="cotizacion.idReservaOriginada"
+            color="success"
+            variant="subtle"
+            icon="i-lucide-check"
+            :label="t('cotizaciones.tarjeta.reservaCreada')"
+          />
+          <UButton
+            v-else-if="cotizacion.estado === 'aceptada'"
+            size="xs"
+            variant="soft"
+            color="primary"
+            :label="t('cotizaciones.acciones.reservar')"
+            :loading="originando"
+            @click="emit('reservar', cotizacion)"
+          />
+          <UButton
+            size="xs"
+            variant="soft"
+            color="neutral"
+            :label="
+              terminal
+                ? t('cotizaciones.acciones.ver')
+                : t('cotizaciones.acciones.editar')
+            "
+            @click="emit('abrir', cotizacion)"
+          />
+        </div>
       </div>
     </template>
   </BaseTarjeta>

@@ -115,6 +115,11 @@ const columnas = computed<ColumnaTabla<FilaReporte>[]>(() => [
     etiqueta: t('reportes.columnas.canceladas'),
     alineacion: 'derecha',
   },
+  {
+    clave: 'reservasFinalizadas',
+    etiqueta: t('reportes.columnas.finalizadas'),
+    alineacion: 'derecha',
+  },
 ])
 </script>
 
