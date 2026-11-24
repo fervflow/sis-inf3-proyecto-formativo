@@ -121,15 +121,20 @@ Estos dos describen el software construido, no el dominio:
   compartido de tipos y límites, y la base con sus vistas y funciones
   PL/pgSQL. La regla que retrata: **las reglas críticas viven en la base**
   y la aplicación las llama con una sola sentencia.
-- **`diagrama-despliegue.puml`** muestra los nodos físicos: los navegadores
-  del cliente y del personal, Vercel (el artefacto `web .output` de Nuxt 4
-  con Nitro, y el planificador que invoca el barrido diario), Neon en
-  São Paulo con el esquema `turismo`, el equipo de desarrollo que aplica
-  las migraciones por conexión directa, y los dos servicios externos:
-  Photon para los lugares y el **proveedor de correo, dibujado como
-  pendiente** (relación punteada) hasta contratarlo; hoy los avisos se
-  muestran en las pantallas del cliente. La pasarela de pagos también es
-  simulada, y así se indica en la nota del artefacto.
+- **`diagrama-despliegue.puml`** muestra los nodos físicos con sus
+  artefactos desplegados y estereotipos («device», «execution
+  environment»): los navegadores del cliente y del personal, que cargan
+  los bundles de la red de borde (CDN) de Vercel; dentro de Vercel, las
+  funciones serverless con el artefacto `web .output` (API, Better Auth y
+  pasarela simulada) y el planificador del barrido diario (`cron 0 6 * *
+  *`); Neon en São Paulo con su cómputo sin servidor y su almacenamiento
+  de páginas separados; y el equipo de desarrollo, que aplica el esquema
+  por conexión directa. A la derecha, los servicios externos apilados:
+  Photon para los lugares y los dos **pendientes de integrar** (relación
+  punteada): el proveedor de correo y el almacenamiento de imágenes; hoy
+  los avisos se muestran en las pantallas del cliente. La pasarela de
+  pagos también es simulada, y así se indica en la nota del nodo de
+  funciones.
 
 Ambos llevan el título en la forma `Tipo · Descripción` y se compilan con
 el mismo `make diagramas` que el resto, porque viven bajo `uml/`.

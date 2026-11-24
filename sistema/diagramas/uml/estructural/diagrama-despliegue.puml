@@ -1,90 +1,107 @@
 @startuml
 title Diagrama de despliegue · Sistema web de gestión de paquetes turísticos y reservas
-' Estructura física del MVP: la web vive en Vercel y la base en Neon,
-' con el rol de aplicación de menos privilegios y el barrido diario por
-' el planificador de Vercel. El proveedor de correo está pendiente: los
-' avisos de HU-16 se muestran en las pantallas del cliente.
+' Estructura física del MVP: los navegadores cargan los bundles desde la
+' red de borde de Vercel, que corre las funciones serverless de Nitro;
+' la base vive en Neon con cómputo sin servidor y almacenamiento separado.
+' El equipo de desarrollo aplica el esquema por conexión directa. Correo,
+' imágenes y pasarela real están pendientes de contratar: los avisos de
+' HU-16 hoy se muestran en las pantallas del cliente.
 hide circle
+top to bottom direction
+skinparam nodesep 40
+skinparam ranksep 45
 
-node "Dispositivo del cliente" {
-  component "Navegador\nNuxt 4 (SPA)" as BROWSER_CLI
+node "Dispositivo del cliente\n«device»" {
+  node "Navegador web\n«execution environment»" as NAV_CLI
 }
 
-node "Dispositivo del personal\ny del administrador" {
-  component "Navegador" as BROWSER_PER
+node "Dispositivo del personal\ny del administrador\n«device»" {
+  node "Navegador web\n«execution environment»" as NAV_PER
 }
 
-node "Vercel" {
-  artifact "web .output\nNuxt 4 + Nitro" as ART_APP
-  queue "Planificador\nde tareas" as CRON
+node "Vercel\n«PaaS»" {
+  node "Red de borde (CDN)\n«execution environment»" as CDN {
+    artifact "Bundles del cliente\nNuxt 4: JS, CSS y SSR" as ART_WEB
+  }
+  node "Funciones serverless\n(Node.js 22)\n«execution environment»" as FN {
+    artifact "web .output\nNuxt 4 + Nitro:\nAPI, Better Auth y\npasarela simulada" as ART_APP
+  }
+  node "Planificador de tareas\n«cron 0 6 * * *»" as CRON
 }
 
 node "Neon\n(AWS São Paulo)" {
-  database "PostgreSQL 18\nrama production\nesquema turismo" as DB
+  node "Cómputo sin servidor\n«se pausa a los 5 minutos»" as COMPUTE {
+    database "PostgreSQL 18\nrama production" as DB
+  }
+  node "Almacenamiento\n«historial de 6 horas»" as STORAGE {
+    artifact "páginas del clúster" as PAGES
+  }
+  DB -right-> PAGES : persiste
 }
 
-node "Equipo de desarrollo" {
-  artifact "repositorio\ndel proyecto" as ART_SQL
+node "Equipo de desarrollo\n«device»" {
+  node "Terminal (Node.js 22,\npsql, make)\n«execution environment»" as DEV {
+    artifact "Repositorio Git\nbd/esquema.sql,\nactualizaciones y\ndatos-prueba.sql" as ART_SQL
+  }
 }
 
 cloud "Photon\n(OpenStreetMap)" as PHOTON
 
-node "Proveedor de correo\n(pendiente)" as MAIL
+node "Proveedor de correo\nResend, Postmark o Brevo\n«pendiente»" as MAIL
 
-BROWSER_CLI -down-> ART_APP
-BROWSER_PER -down-> ART_APP
-CRON -left-> ART_APP
-ART_APP -down-> DB
-ART_SQL -down-> DB
-ART_APP -right-> PHOTON
-ART_APP -right-> MAIL
+node "Almacenamiento de imágenes\nVercel Blob o Cloudflare R2\n«pendiente»" as BLOB
 
-note right of ART_APP
-  Nitro sirve la API, Better Auth y la
-  pasarela simulada de pagos: genera la
-  referencia y no mueve dinero real. La
-  devolución se ejecuta fuera del sistema,
-  con los tramos de RN-PAG-07.
+NAV_CLI -down-> ART_WEB : HTTPS
+NAV_PER -down-> ART_WEB : HTTPS
+ART_WEB -down-> ART_APP : proxy de SSR y /api
+CRON -down-> ART_APP : barrido diario
+ART_APP -down-> DB : PostgreSQL/TLS\npooler (vizcacha_app)
+ART_SQL -down-> DB : psql/TLS\ndirecta (neondb_owner)
+ART_APP -right-> PHOTON : HTTPS\ngeocodificar
+ART_APP .right.> MAIL : avisos de HU-16\n(sin integrar)
+ART_APP .right.> BLOB : imágenes\n(sin decidir)
+
+' Orden de maquetación: la columna externa se apila y el equipo de
+' desarrollo baja a su propio nivel. No dibujan nada.
+ART_APP -[hidden]down-> ART_SQL
+PHOTON -[hidden]down-> MAIL
+MAIL -[hidden]down-> BLOB
+
+note left of FN
+  Las variables de entorno (DATABASE_URL,
+  BETTER_AUTH_SECRET, CRON_SECRET) viven
+  en Vercel y no en el repositorio.
+  El pago se emula con la pasarela
+  simulada; la devolución se ejecuta
+  fuera del sistema (RN-PAG-07).
 end note
 
-note bottom of CRON
-  Barrido diario: invoca
-  POST /api/vencer-solicitudes
-  con CRON_SECRET en la cabecera.
+note right of ART_WEB
+  Dominio propio y DNS pendientes:
+  hoy la aplicación responde
+  en *.vercel.app.
 end note
 
-note bottom of BROWSER_CLI
-  Ambos navegadores entran por HTTPS
-  con la cookie de sesión de Better Auth.
+note bottom of COMPUTE
+  El mismo motor guarda las tablas
+  de sesión de Better Auth. El rol
+  vizcacha_app es lector-escritor
+  y no crea esquema: los cambios
+  pasan por la conexión directa.
 end note
 
-note bottom of ART_SQL
-  Migraciones y datos por la conexión
-  directa (neondb_owner). El rol de la
-  aplicación (vizcacha_app, lector-escritor)
-  solo consulta y modifica datos.
+note bottom of MAIL
+  Sin integración en el MVP: el correo
+  del cliente queda registrado como
+  dato obligatorio y único para conectar
+  el servicio más adelante. Los avisos
+  de HU-16 se muestran en las pantallas.
 end note
 
-note right of MAIL
-  Sin integración en el MVP: no hay
-  proveedor contratado ni envío real.
-  El correo del cliente queda registrado
-  como dato obligatorio y único para
-  conectar el servicio más adelante.
-  Los avisos de HU-16 hoy se muestran en
-  las pantallas del cliente.
-end note
-
-note bottom of PHOTON
-  Autocompletar lugares, solo en la
-  administración de paquetes.
-end note
-
-note bottom of DB
-  Las tablas de sesión de Better Auth
-  viven en la misma base. El rol
-  vizcacha_app no crea esquema: los
-  cambios pasan por la conexión
-  directa del equipo.
+note bottom of BLOB
+  Neon Object Storage no está
+  disponible en São Paulo; falta elegir
+  el destino y dar permiso de escritura
+  al rol de la aplicación.
 end note
 @enduml

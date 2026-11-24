@@ -35,11 +35,11 @@ CARPETAS = ['secuencia', 'secuencia-light', 'secuencia-comunes',
             'secuencia-fusionados']
 
 # --- Diagramas estructurales -------------------------------------------
-# Declaracion: class|enum|object|interface|abstract|usecase|actor|state
-# |rectangle|component|node|database|cloud|queue, con etiqueta opcional y
-# alias opcional.
+# Declaracion: el tipo queda en el grupo 1 y el alias en el grupo 2, con
+# etiqueta opcional. Los tipos cubren clases y despliegue (componentes,
+# nodos, artefactos).
 DECL_ESTRUCT = re.compile(
-    r'^\s*(?:class|enum|object|interface|abstract|usecase|actor|state'
+    r'^\s*(class|enum|object|interface|abstract|usecase|actor|state'
     r'|rectangle|component|node|database|cloud|queue|artifact)\s+'
     r'(?:"[^"]+"\s+as\s+)?(\w+)')
 # Relacion: A [multiplicidad] operador [multiplicidad] B [: etiqueta]
@@ -94,6 +94,9 @@ def analizar(ruta):
 def analizar_estructural(ruta):
     """Devuelve la lista de problemas de un diagrama de clases u objetos."""
     declarados, relacionados = set(), set()
+    # Los nodos de despliegue solo agrupan: un contenedor no necesita una
+    # relacion propia si sus elementos internos ya se relacionan.
+    CONTENEDORES = ('component', 'node', 'database', 'cloud', 'queue')
 
     for linea in ruta.read_text(encoding='utf-8').splitlines():
         texto = linea.strip()
@@ -104,7 +107,9 @@ def analizar_estructural(ruta):
             continue
         d = DECL_ESTRUCT.match(linea)
         if d:
-            declarados.add(d.group(1))
+            if texto.endswith('{') and d.group(1) in CONTENEDORES:
+                continue
+            declarados.add(d.group(2))
             continue
         m = REL_ESTRUCT.match(linea)
         if m:
