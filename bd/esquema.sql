@@ -929,10 +929,11 @@ $$ LANGUAGE plpgsql;
 
 -- Revalidación de una reserva existente (HU-07, RN-RES-20).
 -- La usan la modificación de salida y el manifiesto: bloquea la salida
--- destino, vuelve a verificar los cupos sin contar la propia reserva,
--- recalcula el monto con el precio vigente y rechaza que los pagos
--- comprometidos queden por encima del nuevo total. Todo queda auditado
--- en el historial con los valores anterior y nuevo.
+-- destino, vuelve a verificar los cupos y la retención del canal web
+-- (RN-RES-15 y RN-RES-16) sin contar la propia reserva, recalcula el
+-- monto con el precio vigente y rechaza que los pagos comprometidos
+-- queden por encima del nuevo total. Todo queda auditado en el
+-- historial con los valores anterior y nuevo.
 CREATE OR REPLACE FUNCTION fn_revalidar_reserva(
     p_id_reserva BIGINT,
     p_salida     BIGINT,
@@ -951,6 +952,7 @@ DECLARE
     v_cupo              INT;
     v_precio            NUMERIC(12, 2);
     v_ocupados_otros    INT;
+    v_retenidos         INT;
     v_nuevo_monto       NUMERIC(12, 2);
     v_comprometido      NUMERIC(12, 2);
 BEGIN
@@ -991,6 +993,26 @@ BEGIN
     IF v_origen = 'web' AND p_cantidad > 4 THEN
         RAISE EXCEPTION 'Una solicitud del canal web admite hasta 4 pasajeros; los grupos mayores se atienden en la agencia'
             USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Retención del canal web (RN-RES-16), revalidada al modificar la
+    -- reserva (T-HU-06.4): las solicitudes web pendientes vigentes de la
+    -- salida no retienen en conjunto más de la mitad del cupo. La propia
+    -- reserva no se cuenta, porque su cantidad nueva entra en el cálculo;
+    -- las pendientes del canal personal no cuentan para el tope.
+    IF v_origen = 'web' AND v_estado = 'pendiente' THEN
+        SELECT COALESCE(SUM(r.cantidad_pasajeros), 0)::INT INTO v_retenidos
+        FROM reserva r
+        WHERE r.id_salida = p_salida
+          AND r.id_reserva <> p_id_reserva
+          AND r.origen = 'web'
+          AND r.estado = 'pendiente'
+          AND (r.fecha_expiracion IS NULL OR r.fecha_expiracion > now());
+
+        IF v_retenidos + p_cantidad > (v_cupo + 1) / 2 THEN
+            RAISE EXCEPTION 'La salida tiene demasiadas solicitudes pendientes de confirmación; consulta con la agencia'
+                USING ERRCODE = 'check_violation';
+        END IF;
     END IF;
 
     -- Ocupación de las demás reservas en la salida destino: la propia
@@ -1452,6 +1474,26 @@ BEGIN
         );
     END IF;
 
+    -- Las reservas confirmadas de una salida que se realizó pasan a
+    -- finalizada (HU-07, T-HU-07.4): el viaje se concretó y la reserva
+    -- conserva su historial. Las pendientes no cambian: vencen por su
+    -- propio plazo con el barrido de solicitudes.
+    IF p_estado = 'realizada' AND p_estado <> v_anterior.estado THEN
+        WITH finalizadas AS (
+            UPDATE reserva
+            SET estado = 'finalizada'
+            WHERE id_salida = p_id_salida
+              AND estado = 'confirmada'
+            RETURNING id_reserva
+        )
+        INSERT INTO historial_reserva (
+            id_reserva, estado_anterior, estado_nuevo, id_usuario, observacion
+        )
+        SELECT id_reserva, 'confirmada', 'finalizada', p_id_usuario,
+               'La salida se realizó; la reserva pasó a finalizada.'
+        FROM finalizadas;
+    END IF;
+
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
@@ -1705,9 +1747,13 @@ $$ LANGUAGE plpgsql;
 --  deja de ocupar cupo en el momento en que vence, sin necesidad de
 --  ningún proceso: ese cálculo está en las vistas. Esta rutina es la
 --  limpieza: pasa las solicitudes vencidas a 'vencida' y deja el cambio
---  auditado. El personal puede ejecutarla una vez al día.
+--  auditado. La ejecuta el cron diario y también el personal desde la
+--  bandeja de solicitudes, sin esperar al cron (T-HU-17.4): en ese caso
+--  recibe la cuenta que la corrió para dejarla en la auditoría.
 
-CREATE OR REPLACE FUNCTION fn_vencer_solicitudes_pendientes()
+CREATE OR REPLACE FUNCTION fn_vencer_solicitudes_pendientes(
+    p_id_usuario TEXT DEFAULT NULL
+)
 RETURNS INT
 SET search_path = turismo, public
 AS $$
@@ -1732,8 +1778,14 @@ BEGIN
         INSERT INTO historial_reserva (
             id_reserva, estado_anterior, estado_nuevo, id_usuario, observacion
         ) VALUES (
-            r.id_reserva, 'pendiente', 'vencida', r.id_usuario,
-            'Vencimiento automático de la solicitud pendiente.'
+            r.id_reserva, 'pendiente', 'vencida',
+            COALESCE(p_id_usuario, r.id_usuario),
+            CASE
+                WHEN p_id_usuario IS NOT NULL THEN
+                    'Vencimiento ejecutado por el personal desde la bandeja.'
+                ELSE
+                    'Vencimiento automático de la solicitud pendiente.'
+            END
         );
 
         v_vencidas := v_vencidas + 1;
@@ -1861,7 +1913,9 @@ SELECT
         FILTER (WHERE r.estado IN ('pendiente', 'confirmada')
                   AND (r.estado <> 'pendiente'
                        OR r.fecha_expiracion IS NULL
-                       OR r.fecha_expiracion > now())), 0))::INT AS cupo_disponible
+                       OR r.fecha_expiracion > now())), 0))::INT AS cupo_disponible,
+    COUNT(r.id_reserva)
+        FILTER (WHERE r.estado = 'finalizada') AS reservas_finalizadas
 FROM salida s
 JOIN paquete p ON p.id_paquete = s.id_paquete
 LEFT JOIN reserva r ON r.id_salida = s.id_salida

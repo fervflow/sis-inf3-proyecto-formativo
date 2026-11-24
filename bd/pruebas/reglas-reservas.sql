@@ -647,4 +647,174 @@ END;
 $$;
 
 
+-- 14. La retención web (RN-RES-16) se revalida al modificar una reserva
+--     del canal web (T-HU-06.4): crecer el manifiesto no puede llevar la
+--     retención pendiente web más allá de la mitad del cupo. La salida
+--     tiene 10 lugares; el tope web es 5.
+DO $$
+DECLARE
+    v_salida  BIGINT;
+    v_a       BIGINT;
+    v_b       BIGINT;
+    v_cantidad SMALLINT;
+    v_estado  VARCHAR(15);
+    v_monto   NUMERIC(12, 2);
+BEGIN
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 40, CURRENT_DATE + 41, 10, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 40;
+
+    v_a := fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0001'),
+        v_salida, 2, 'web', 'u-prueba');
+    v_b := fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0002'),
+        v_salida, 2, 'web', 'u-prueba');
+
+    -- Retenidos: 4 de los 5 lugares web. Hacer crecer el manifiesto de A
+    -- a 4 pasajeros dejaría la retención en 2 + 4 = 6: se rechaza.
+    BEGIN
+        PERFORM fn_guardar_manifiesto(
+            v_a,
+            jsonb_build_array(
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'RET-001',
+                                   'nombres', 'Retención', 'apellidos', 'Uno'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'RET-002',
+                                   'nombres', 'Retención', 'apellidos', 'Dos'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'RET-003',
+                                   'nombres', 'Retención', 'apellidos', 'Tres'),
+                jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'RET-004',
+                                   'nombres', 'Retención', 'apellidos', 'Cuatro')
+            ),
+            'u-prueba'
+        );
+        RAISE EXCEPTION 'FALLO: la modificación web superó la retención del cupo';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: la retención web se revalida al modificar la solicitud';
+    END;
+
+    -- Reducir el manifiesto de A a 1 deja la retención en 2 + 1 = 3: pasa.
+    PERFORM fn_guardar_manifiesto(
+        v_a,
+        jsonb_build_array(
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'RET-001',
+                               'nombres', 'Retención', 'apellidos', 'Uno')
+        ),
+        'u-prueba'
+    );
+
+    SELECT cantidad_pasajeros, monto_total INTO v_cantidad, v_monto
+    FROM reserva WHERE id_reserva = v_a;
+
+    IF v_cantidad <> 1 OR v_monto <> 100 THEN
+        RAISE EXCEPTION 'FALLO: la modificación web no ajustó cantidad y monto (% / %)',
+            v_cantidad, v_monto;
+    END IF;
+
+    -- La reserva B sigue pendiente: la retención de B sola es 2 de 5.
+    SELECT estado INTO v_estado FROM reserva WHERE id_reserva = v_b;
+    IF v_estado <> 'pendiente' THEN
+        RAISE EXCEPTION 'FALLO: la otra solicitud web cambió de estado (%)', v_estado;
+    END IF;
+
+    RAISE NOTICE 'OK: la retención web del 50%% se respeta al modificar';
+END;
+$$;
+
+-- 15. Las reservas confirmadas de una salida que se realiza pasan a
+--     finalizada (HU-07, T-HU-07.4), con su auditoría; las pendientes
+--     siguen con su propio plazo de vencimiento.
+DO $$
+DECLARE
+    v_salida  BIGINT;
+    v_reserva BIGINT;
+    v_pend    BIGINT;
+    v_estado  VARCHAR(15);
+    v_audita  INT;
+BEGIN
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 45, CURRENT_DATE + 46, 10, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 45;
+
+    v_reserva := fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0001'),
+        v_salida, 2, 'personal', 'u-prueba');
+    v_pend := fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0002'),
+        v_salida, 1, 'web', 'u-prueba');
+
+    -- La confirmación exige anticipo validado y manifiesto completo.
+    PERFORM fn_registrar_pago(
+        v_reserva, 'anticipo', 60, 'efectivo', 'u-prueba', NULL, NULL, true
+    );
+    PERFORM fn_guardar_manifiesto(
+        v_reserva,
+        jsonb_build_array(
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'FIN-001',
+                               'nombres', 'Final', 'apellidos', 'Uno'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento', 'FIN-002',
+                               'nombres', 'Final', 'apellidos', 'Dos')
+        ),
+        'u-prueba'
+    );
+    PERFORM fn_confirmar_reserva(v_reserva, 'u-prueba');
+
+    -- La salida se confirma y se realiza: la reserva confirmada pasa a
+    -- finalizada (programada → confirmada → realizada, RN-SAL-11).
+    PERFORM fn_actualizar_salida(v_salida, 'u-prueba', p_estado => 'confirmada');
+    PERFORM fn_actualizar_salida(
+        v_salida, 'u-prueba',
+        p_estado => 'realizada',
+        p_motivo => 'La salida se realizó según el programa.'
+    );
+
+    SELECT estado INTO v_estado FROM reserva WHERE id_reserva = v_reserva;
+    IF v_estado <> 'finalizada' THEN
+        RAISE EXCEPTION 'FALLO: la reserva confirmada no quedó finalizada (%)', v_estado;
+    END IF;
+
+    SELECT count(*) INTO v_audita
+    FROM historial_reserva
+    WHERE id_reserva = v_reserva
+      AND estado_anterior = 'confirmada'
+      AND estado_nuevo = 'finalizada'
+      AND id_usuario = 'u-prueba';
+
+    IF v_audita <> 1 THEN
+        RAISE EXCEPTION 'FALLO: la finalización no quedó auditada';
+    END IF;
+
+    -- La pendiente no cambia: vence por su propio plazo.
+    SELECT estado INTO v_estado FROM reserva WHERE id_reserva = v_pend;
+    IF v_estado <> 'pendiente' THEN
+        RAISE EXCEPTION 'FALLO: la pendiente cambió con la salida realizada (%)', v_estado;
+    END IF;
+
+    -- Una reserva finalizada no se modifica (RN-RES-14).
+    BEGIN
+        PERFORM fn_actualizar_reserva(v_reserva, v_salida, 'u-prueba');
+        RAISE EXCEPTION 'FALLO: se modificó una reserva finalizada';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: la reserva finalizada no se modifica';
+    END;
+
+    RAISE NOTICE 'OK: la salida realizada finaliza sus reservas confirmadas';
+END;
+$$;
+
+
 ROLLBACK;
