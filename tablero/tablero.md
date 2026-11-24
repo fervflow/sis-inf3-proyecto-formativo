@@ -6,20 +6,6 @@ kanban-plugin: basic
 
 ## Por hacer
 
-- [ ] **T-HU-06.4** · EV · HU-06 \
-  Revalidar la retención web del 50% del cupo al modificar una reserva del canal web.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-17.4** · EV · HU-17 \
-  Ejecutar el barrido de solicitudes vencidas desde la bandeja del personal, sin esperar al cron diario.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
-- [ ] **T-HU-07.4** · EV · HU-07 \
-  Pasar a finalizada las reservas confirmadas cuando la salida se realiza.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
-- [ ] **T-HU-05.3** · RE · HU-05 \
-  Originar la reserva desde una cotización aceptada en la bandeja, guardando el vínculo con ella.
-  [Inicio:: —] [Fin:: —] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
-
-
 ## En curso (WIP 4)
 
 ## En pruebas / QA (WIP 2)
@@ -28,6 +14,19 @@ kanban-plugin: basic
 
 
 ## Hecho
+
+- [ ] **T-HU-06.4** · EV · HU-06 \
+  Revalidar la retención web del 50% del cupo al modificar una reserva del canal web.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-17.4** · EV · HU-17 \
+  Ejecutar el barrido de solicitudes vencidas desde la bandeja del personal, sin esperar al cron diario.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+- [ ] **T-HU-07.4** · EV · HU-07 \
+  Pasar a finalizada las reservas confirmadas cuando la salida se realiza.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-05.3** · RE · HU-05 \
+  Originar la reserva desde una cotización aceptada en la bandeja, guardando el vínculo con ella.
+  [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Baja/Medio] #prio-baja
 
 - [ ] **T-HU-12.1** · RE · HU-12 \
   Registrar los pasajeros asociados a cada reserva, incluido el cliente si viaja.

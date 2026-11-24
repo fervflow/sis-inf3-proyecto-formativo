@@ -6,12 +6,12 @@ paquetes turísticos y reservas de Vizcacha Tours. **No forma parte de
 
 - **Alcance de esta versión:** catálogo, paquetes turísticos, salidas,
   proveedores, cotizaciones, reservas con confirmación, vencimiento,
-  manifiesto, modificación y cancelación (RN-RES-14 a RN-RES-22), avisos
-  derivados del historial, cuentas de cliente (RN-USU-02 a RN-USU-05),
-  pagos con pasarela simulada (RN-PAG-01 a RN-PAG-08) y reportes
-  (RN-REP-01 a RN-REP-04).
-- **Fuera de alcance por ahora:** la transición a `finalizada` y el envío
-  real de correos. Cada módulo tendrá su propia ampliación del catálogo.
+  manifiesto, modificación, cancelación y finalización (RN-RES-14 a
+  RN-RES-22), avisos derivados del historial, cuentas de cliente
+  (RN-USU-02 a RN-USU-05), pagos con pasarela simulada (RN-PAG-01 a
+  RN-PAG-08) y reportes (RN-REP-01 a RN-REP-04).
+- **Fuera de alcance por ahora:** el envío real de correos y la pasarela
+  real de pagos. Cada módulo tendrá su propia ampliación del catálogo.
 - **Fuente del esquema físico:** `bd/esquema.sql` y `bd/diccionario-datos.md`.
 - **Implementación web:** `web/db/schema.ts`, `web/server/` y `web/app/`.
 
@@ -165,7 +165,7 @@ bebidas y actividades recreativas.
 | RN-SAL-12 | La cancelación de una salida exige un motivo. | HU-09, HU-13 | `fn_actualizar_salida` | Vigente |
 | RN-SAL-13 | Cada cambio de fecha, retorno, capacidad, precio, punto de encuentro o estado queda auditado con valor anterior y nuevo. | HU-09 | `historial_salida` | Vigente |
 | RN-SAL-14 | El cambio de precio no altera el monto de las reservas ya creadas; el precio se congela al reservar. | Decisión del proyecto | `reserva.monto_total` | Vigente |
-| RN-SAL-15 | Los cambios de fecha o capacidad se comunican a los clientes con reservas vigentes. | HU-16 | Pendiente: módulo de avisos | Propuesta |
+| RN-SAL-15 | Los cambios de fecha o capacidad se comunican a los clientes con reservas vigentes. | HU-16 | API de avisos derivados del `historial_salida` y «Mis reservas» | Vigente |
 | RN-SAL-16 | Cancelar una salida con reservas vigentes exige decidir si se cancelan o se reprograman. | HU-09, HU-13 | Pendiente: módulo de reservas | Propuesta |
 
 ### 7.3 Visibilidad
@@ -283,14 +283,14 @@ ninguna capa la reimplementa.
 | RN-RES-06 | El monto de la reserva se congela al crear con el precio de la salida por la cantidad de pasajeros; los cambios de precio posteriores no lo alteran. | HU-06 | `reserva.monto_total` y `fn_crear_reserva` | Vigente |
 | RN-RES-07 | Confirmar una solicitud pendiente la pasa a `confirmada`, limpia su fecha de vencimiento y deja el cambio auditado con usuario y fecha. | HU-17 | `fn_confirmar_reserva` e `historial_reserva` | Vigente |
 | RN-RES-08 | Una solicitud vencida no puede confirmarse; el intento la marca como `vencida` y audita el intento. El cliente debe registrar una nueva si la salida sigue disponible. | HU-17 | `fn_confirmar_reserva` | Vigente |
-| RN-RES-09 | El barrido diario pasa las solicitudes pendientes fuera de plazo a `vencida` y deja el cambio auditado; es limpieza, porque el cupo ya se liberó por cálculo. | HU-17 | `fn_vencer_solicitudes_pendientes` y el cron `vencer-solicitudes` | Vigente |
+| RN-RES-09 | El barrido de las solicitudes pendientes fuera de plazo las pasa a `vencida` y deja el cambio auditado con la cuenta que lo corrió; es limpieza, porque el cupo ya se liberó por cálculo. Lo ejecuta el cron diario y también el personal desde la bandeja de solicitudes, sin esperar al cron. | HU-17 | `fn_vencer_solicitudes_pendientes`, el cron `vencer-solicitudes` y `POST /api/reservas/vencer` | Vigente |
 | RN-RES-10 | La reserva nace auditada: `historial_reserva` registra la creación con su canal y el usuario que la firmó. En el canal web firma la cuenta del cliente; en el personal, la cuenta del trabajador. | HU-06, HU-17 | `historial_reserva`, API de reservas | Vigente |
 | RN-RES-11 | El canal web no crea fichas: la solicitud usa la ficha vinculada a la cuenta del cliente, y el registro de la ficha corresponde al registro de la cuenta (RN-USU-03). | HU-06, HU-15 | API de reservas | Vigente |
 | RN-RES-12 | Solo una cotización aceptada del mismo cliente y de la misma salida puede originar una reserva, y el vínculo es único. | HU-06 | API de reservas y `reserva.id_cotizacion` | Vigente |
 | RN-RES-13 | La consulta del personal muestra las solicitudes de ambos canales con su cliente, su salida, su monto, su vencimiento y el estado de su anticipo, con filtro por estado. | HU-17 | API `GET /api/reservas` e interfaz «Solicitudes» | Vigente |
 | RN-RES-14 | La reserva no se elimina nunca: el cliente solicita la cancelación de una reserva `pendiente` o `confirmada` y el personal la ejecuta con motivo y fecha; las reservas `vencida`, `cancelada` y `finalizada` no se modifican. | HU-13, HU-07 | `fn_solicitar_cancelacion` y `fn_ejecutar_cancelacion` | Vigente |
 | RN-RES-15 | Una solicitud del canal web admite como máximo 4 pasajeros; los grupos mayores se atienden por la oficina, en el canal personal, que no tiene ese tope. | Decisión del proyecto | `fn_crear_reserva`, Zod e interfaz | Vigente |
-| RN-RES-16 | Las solicitudes web pendientes vigentes de una misma salida no retienen en conjunto más de la mitad del cupo máximo; alcanzado el tope, nuevas solicitudes web se rechazan hasta que el personal confirme o venza alguna. Las pendientes del canal personal no cuentan para el tope. | Decisión del proyecto | `fn_crear_reserva` | Vigente |
+| RN-RES-16 | Las solicitudes web pendientes vigentes de una misma salida no retienen en conjunto más de la mitad del cupo máximo; alcanzado el tope, nuevas solicitudes web se rechazan hasta que el personal confirme o venza alguna. Las pendientes del canal personal no cuentan para el tope. La retención se comprueba al crear y también al modificar una reserva del canal web, con el manifiesto incluido. | Decisión del proyecto | `fn_crear_reserva` y `fn_revalidar_reserva` | Vigente |
 | RN-RES-17 | Reservar por el canal web exige una sesión de `CLIENTE` con ficha activa vinculada. Sin sesión, la interfaz redirige a ingresar o crear cuenta; la API responde 401. | HU-15, HU-06 | API de reservas, middleware e interfaz | Vigente |
 | RN-RES-18 | Confirmar una solicitud exige un anticipo validado que cumpla el mínimo (RN-PAG-01); la base lo exige en `fn_confirmar_reserva` y no admite confirmar sin pago. | HU-17, HU-14 | `fn_confirmar_reserva` | Vigente |
 | RN-RES-19 | Confirmar una reserva exige el manifiesto completo: los pasajeros registrados en ella igualan su cantidad declarada. El manifiesto se llena antes de confirmar. | HU-12, HU-17 | `fn_confirmar_reserva` e `historial_reserva` | Vigente |
@@ -301,7 +301,7 @@ ninguna capa la reimplementa.
 ### 13.1 Máquina de estados de la reserva
 
 ```text
-pendiente ──▶ confirmada
+pendiente ──▶ confirmada ──▶ finalizada
     │
     └──────▶ vencida
 ```
@@ -309,9 +309,12 @@ pendiente ──▶ confirmada
 - `pendiente → confirmada`: la hace el personal dentro del plazo, con el
   anticipo validado exigido por RN-RES-18, y audita.
 - `pendiente → vencida`: la hacen el intento de confirmación fuera de plazo
-  o el barrido diario; es la única transición automática de estado.
-- `cancelada` y `finalizada`: llegan con los módulos de cancelaciones (HU-13)
-  y seguimiento (HU-07); cualquier otro cambio de estado está rechazado.
+  o el barrido (cron o bandeja del personal); es la única transición
+  automática de estado.
+- `confirmada → finalizada`: la hace la salida que pasa a `realizada`
+  (T-HU-07.4); el viaje se concretó y la reserva queda con su historial.
+- `cancelada`: llega con el módulo de cancelaciones (HU-13); cualquier
+  otro cambio de estado está rechazado.
 
 ## 14. Pagos
 
@@ -350,19 +353,10 @@ registrado ──▶ validado
 Se documentan aquí para que no se pierdan, pero no se implementan en esta
 iteración:
 
-- **Reservas:** transición a `finalizada` (las reservas confirmadas de una
-  salida que pasa a `realizada`); revalidar la retención web (RN-RES-16)
-  al modificar una reserva del canal web, que hoy solo se comprueba al
-  crear; reutilizar un pasajero entre fichas de clientes distintos (hoy el
-  manifiesto se arma dentro de la ficha del cliente de la reserva); aviso
-  al cliente cuando el personal mueve su reserva de salida (hoy lo ve en
-  Mis reservas por el cambio de salida y fecha).
-- **Cotizaciones:** originar la reserva desde una cotización aceptada en
-  la interfaz de la bandeja; hoy el vínculo `reserva.id_cotizacion`
-  existe solo por API.
-- **Avisos:** barrido manual de vencimientos desde la bandeja del
-  personal; hoy las solicitudes solo vencen por el cron diario de Vercel
-  o por el intento de confirmación fuera de plazo.
+- **Reservas:** reutilizar un pasajero entre fichas de clientes distintos
+  (hoy el manifiesto se arma dentro de la ficha del cliente de la
+  reserva); aviso al cliente cuando el personal mueve su reserva de
+  salida (hoy lo ve en Mis reservas por el cambio de salida y fecha).
 - **Pagos:** ejecución y registro de las devoluciones del catálogo (RN-PAG-07);
   pasarela real en lugar de la simulada.
 - **Proveedores:** permitir varios tipos del mismo proveedor en un mismo
