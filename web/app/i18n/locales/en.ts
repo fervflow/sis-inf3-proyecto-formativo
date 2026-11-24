@@ -13,13 +13,11 @@ export const en: Mensajes = {
     'Web system for managing tour packages and bookings · Final project for Information Systems III · UPDS, Potosí.',
   'app.idioma': 'Language',
 
-  'nav.inicio': 'Home',
-  'nav.disponibilidad': 'Availability',
+  'nav.disponibilidad': 'Upcoming departures',
   'nav.clientes': 'Clients',
   'nav.cotizaciones': 'Quotes',
   'nav.solicitudes': 'Requests',
   'nav.paquetes': 'Packages',
-  'nav.salidas': 'Departures',
   'nav.proveedores': 'Providers',
   'nav.usuarios': 'Users',
   'nav.gestion': 'Management',
@@ -32,12 +30,17 @@ export const en: Mensajes = {
   'idioma.es': 'Spanish',
   'idioma.en': 'English',
 
+  'tema.titulo': 'Theme',
+  'tema.claro': 'Light',
+  'tema.oscuro': 'Dark',
+  'tema.sistema': 'System',
+
   'inicio.titulo': 'Tour package and booking management',
   'inicio.etiqueta': 'Vizcacha Tours · Potosí',
   'inicio.introduccion':
     'Web system for the Vizcacha Tours agency, in Potosí. It serves two channels through the same validated process: the agency staff and the customer’s direct access.',
   'inicio.ingresar': 'Sign in',
-  'inicio.verDisponibilidad': 'Check availability',
+  'inicio.verDisponibilidad': 'See upcoming departures',
   'inicio.irAlPanel': 'Go to dashboard',
   'inicio.cuentas':
     'Accounts are provided by the agency; there is no public sign-up.',
@@ -67,7 +70,9 @@ export const en: Mensajes = {
   'salud.salidas': 'Departures',
   'salud.reservas': 'Bookings',
 
-  'disponibilidad.titulo': 'Availability',
+  'disponibilidad.titulo': 'Upcoming departures',
+  'disponibilidad.vistaCliente': 'Customer view',
+  'disponibilidad.vistaGestion': 'Management',
   'disponibilidad.introduccion':
     'Scheduled departures and places left. The capacity is calculated by the database from the bookings in force.',
   'disponibilidad.vacia': 'There are no departures scheduled from today.',

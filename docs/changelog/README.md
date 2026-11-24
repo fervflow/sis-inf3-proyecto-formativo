@@ -81,3 +81,4 @@ Cada archivo debe incluir, como mínimo:
 | 2026-11-23 17:46 | `2026-11-23T174644_topes-del-canal-web-y-desglose-publico.md` | Tope de pasajeros y de retención para las solicitudes web, desglose público de confirmados y pendientes, y prueba con alcance corregido. |
 | 2026-11-23 18:15 | `2026-11-23T181551_proveedores-multitipo-y-vinculo-seleccionable.md` | Proveedores con varios tipos de servicio, vínculo que usa un tipo declarado con detalle opcional, y pruebas de la FK compuesta. |
 | 2026-11-23 18:25 | `2026-11-23T182513_correccion-casillas-de-verificacion.md` | Corrección de la asociación de etiquetas: el clic sobre el texto ya conmuta la casilla propia en proveedores y paquetes. |
+| 2026-11-24 01:21 | `2026-11-24T012148_barra-navegacion-salidas-fusionadas-tema.md` | Barra de navegación reorganizada, salidas fusionadas con «Próximas salidas», selector de tema y banderas de idioma. |

@@ -42,6 +42,12 @@ export interface SalidaDisponible {
   estado_paquete: string
   /** Destino principal comercial del paquete, si lo tiene. */
   destino: string | null
+  /** Origen del recorrido, si el paquete lo declara. */
+  origen: string | null
+  /** Nombres de las paradas del recorrido, en orden. */
+  paradas: string[] | null
+  /** Tipo de recorrido: `sencillo` o `circuito`. */
+  tipo_recorrido: string
   duracion_dias: number
   fecha_salida: string
   fecha_retorno: string
@@ -258,6 +264,10 @@ export interface SalidaAdmin {
   fechaRetorno: string
   cupoMaximo: number
   pasajerosOcupados: number
+  /** Pasajeros de reservas confirmadas. */
+  pasajerosConfirmados: number
+  /** Pasajeros de solicitudes pendientes vigentes (en revisión). */
+  pasajerosPendientes: number
   cupoDisponible: number
   precio: string
   precioBase: string

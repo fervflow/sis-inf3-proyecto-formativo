@@ -40,25 +40,18 @@ const recorridoMostrado = computed(
     t('salidas.tarjeta.sinDestino'),
 )
 
-const ocupacionPorcentaje = computed(() => {
-  if (props.salida.cupoMaximo <= 0) return 0
-  return Math.min(
-    100,
-    Math.round(
-      (props.salida.pasajerosOcupados / props.salida.cupoMaximo) * 100,
-    ),
-  )
-})
-
 const agotada = computed(() => props.salida.cupoDisponible <= 0)
-
-const colorCupo = computed<'primary' | 'warning' | 'error'>(() => {
-  if (agotada.value) return 'error'
-  return ocupacionPorcentaje.value >= 80 ? 'warning' : 'primary'
-})
 
 const precioDistinto = computed(
   () => Number(props.salida.precio) !== Number(props.salida.precioBase),
+)
+
+/** Desglose de confirmados y pendientes, igual que en la vista pública. */
+const desglose = computed(() =>
+  t('disponibilidad.desgloseLinea', {
+    confirmados: props.salida.pasajerosConfirmados,
+    pendientes: props.salida.pasajerosPendientes,
+  }),
 )
 </script>
 
@@ -128,12 +121,19 @@ const precioDistinto = computed(
             }}
           </span>
         </div>
-        <UProgress
-          :model-value="ocupacionPorcentaje"
-          :max="100"
-          :color="colorCupo"
-          size="sm"
+        <!--
+          Barra de ocupación en dos segmentos: la venta hecha y las
+          solicitudes en revisión.
+        -->
+        <BaseBarraCupo
+          :maximo="salida.cupoMaximo"
+          :confirmados="salida.pasajerosConfirmados"
+          :pendientes="salida.pasajerosPendientes"
+          :etiqueta="desglose"
         />
+        <p class="text-xs text-(--vt-color-texto-suave)">
+          {{ desglose }}
+        </p>
         <p
           class="text-xs"
           :class="

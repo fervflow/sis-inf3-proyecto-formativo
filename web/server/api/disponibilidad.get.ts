@@ -30,12 +30,17 @@ export default defineEventHandler(async (event) => {
            v.estado_paquete, v.fecha_salida, v.fecha_retorno, v.cupo_maximo,
            v.pasajeros_ocupados, v.pasajeros_pendientes,
            v.pasajeros_confirmados, v.cupo_disponible, v.precio, v.estado,
-           l.nombre AS destino, p.duracion_dias, s.punto_encuentro,
-           p.precio_base
+           l.nombre AS destino, lo.nombre AS origen, p.tipo_recorrido,
+           p.duracion_dias, s.punto_encuentro, p.precio_base,
+           (SELECT array_agg(lp.nombre ORDER BY pp.orden)
+              FROM turismo.paquete_parada pp
+              JOIN turismo.lugar lp ON lp.id_lugar = pp.id_lugar
+             WHERE pp.id_paquete = p.id_paquete) AS paradas
     FROM turismo.vista_disponibilidad_salida v
     JOIN turismo.paquete p ON p.id_paquete = v.id_paquete
     JOIN turismo.salida s ON s.id_salida = v.id_salida
     LEFT JOIN turismo.lugar l ON l.id_lugar = p.id_lugar_destino
+    LEFT JOIN turismo.lugar lo ON lo.id_lugar = p.id_lugar_origen
     WHERE v.fecha_salida >= CURRENT_DATE
       AND v.estado_paquete = 'activo'
       AND v.estado IN ('programada', 'confirmada')

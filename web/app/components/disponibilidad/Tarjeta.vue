@@ -13,6 +13,8 @@ const props = defineProps<{
   salida: SalidaDisponible
   /** Desglose de pendientes y confirmados, solo para el personal. */
   desglose?: string
+  /** Recorrido resumido del paquete, si la vista lo conoce. */
+  recorrido?: string
 }>()
 
 const emit = defineEmits<{
@@ -33,7 +35,10 @@ const estadoColor = computed<'success' | 'warning' | 'neutral' | 'error'>(() => 
 })
 
 const recorridoMostrado = computed(
-  () => props.salida.destino ?? t('salidas.tarjeta.sinDestino'),
+  () =>
+    props.recorrido ||
+    props.salida.destino ||
+    t('salidas.tarjeta.sinDestino'),
 )
 
 const ocupacionPorcentaje = computed(() => {
@@ -43,28 +48,6 @@ const ocupacionPorcentaje = computed(() => {
     Math.round(
       (props.salida.pasajeros_ocupados / props.salida.cupo_maximo) * 100,
     ),
-  )
-})
-
-/** Porcentaje del cupo que ya está vendido (confirmado). */
-const porcentajeConfirmados = computed(() => {
-  if (props.salida.cupo_maximo <= 0) return 0
-  return Math.min(
-    100,
-    (props.salida.pasajeros_confirmados / props.salida.cupo_maximo) * 100,
-  )
-})
-
-/**
- * Porcentaje del cupo retenido por solicitudes pendientes vigentes: se
- * muestra como un segundo segmento de la barra, en otro color, para que
- * se distinga la venta hecha de la que está en revisión.
- */
-const porcentajePendientes = computed(() => {
-  if (props.salida.cupo_maximo <= 0) return 0
-  return Math.min(
-    100 - porcentajeConfirmados.value,
-    (props.salida.pasajeros_pendientes / props.salida.cupo_maximo) * 100,
   )
 })
 
@@ -137,24 +120,15 @@ const precioDistinto = computed(
         </div>
 
         <!--
-          Barra de ocupación: la parte confirmada es sólida y la retenida
-          por solicitudes pendientes se muestra en otro color sobre la
-          misma barra.
+          Barra de ocupación en dos segmentos: la venta hecha y las
+          solicitudes en revisión.
         -->
-        <div
-          class="flex h-2 w-full overflow-hidden rounded-(--vt-radio-full) bg-(--vt-color-borde)"
-          role="img"
-          :aria-label="desglose || t('salidas.tarjeta.cupo')"
-        >
-          <div
-            class="h-full bg-(--vt-color-marca-600)"
-            :style="{ width: `${porcentajeConfirmados}%` }"
-          />
-          <div
-            class="h-full bg-(--vt-color-advertencia-500)"
-            :style="{ width: `${porcentajePendientes}%` }"
-          />
-        </div>
+        <BaseBarraCupo
+          :maximo="salida.cupo_maximo"
+          :confirmados="salida.pasajeros_confirmados"
+          :pendientes="salida.pasajeros_pendientes"
+          :etiqueta="desglose || t('salidas.tarjeta.cupo')"
+        />
 
         <p
           class="text-xs"

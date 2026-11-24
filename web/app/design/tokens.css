@@ -143,13 +143,13 @@
   --ui-font: var(--vt-fuente);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --vt-color-fondo: var(--vt-color-neutro-950);
-    --vt-color-superficie: var(--vt-color-neutro-900);
-    --vt-color-superficie-alterna: var(--vt-color-neutro-800);
-    --vt-color-texto: var(--vt-color-neutro-50);
-    --vt-color-texto-suave: var(--vt-color-neutro-300);
-    --vt-color-borde: var(--vt-color-neutro-700);
-  }
+/* El tema oscuro lo gobierna la clase `.dark` del interruptor de tema
+   (que también responde al sistema cuando la preferencia es la de él). */
+.dark {
+  --vt-color-fondo: var(--vt-color-neutro-950);
+  --vt-color-superficie: var(--vt-color-neutro-900);
+  --vt-color-superficie-alterna: var(--vt-color-neutro-800);
+  --vt-color-texto: var(--vt-color-neutro-50);
+  --vt-color-texto-suave: var(--vt-color-neutro-300);
+  --vt-color-borde: var(--vt-color-neutro-700);
 }

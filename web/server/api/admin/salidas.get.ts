@@ -45,9 +45,12 @@ export default defineEventHandler(async (event): Promise<RespuestaSalidas> => {
   const disponibilidad = await consultar<{
     id_salida: string | number
     pasajeros_ocupados: string | number
+    pasajeros_confirmados: string | number
+    pasajeros_pendientes: string | number
     cupo_disponible: string | number
   }>(sql`
-    select id_salida, pasajeros_ocupados, cupo_disponible
+    select id_salida, pasajeros_ocupados, pasajeros_confirmados,
+           pasajeros_pendientes, cupo_disponible
     from turismo.vista_disponibilidad_salida
   `)
 
@@ -56,6 +59,8 @@ export default defineEventHandler(async (event): Promise<RespuestaSalidas> => {
       Number(fila.id_salida),
       {
         pasajerosOcupados: Number(fila.pasajeros_ocupados),
+        pasajerosConfirmados: Number(fila.pasajeros_confirmados),
+        pasajerosPendientes: Number(fila.pasajeros_pendientes),
         cupoDisponible: Number(fila.cupo_disponible),
       },
     ]),

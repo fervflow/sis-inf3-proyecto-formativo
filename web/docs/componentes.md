@@ -67,6 +67,7 @@ En `app/components/base/`, con prefijo `Base`:
 | `BaseDato` | Indicador con etiqueta |
 | `BaseCampoMoneda` | Importe en bolivianos con formato y dos decimales |
 | `BaseMapa` | Mapa de OpenStreetMap con marcadores; solo se carga en el cliente |
+| `BaseBarraCupo` | Barra de ocupación en dos segmentos: confirmados y pendientes |
 
 Ejemplo de tabla:
 
@@ -88,8 +89,10 @@ La tabla entrega `columna`, `fila` y `valor` a la plantilla.
 
 `app/components/BarraNavegacion.vue` es la cabecera de toda la aplicación.
 Recibe la cuenta de la sesión y emite `salir`; no pide datos ni llama a la
-API. Los enlaces de gestión dependen del rol, y el menú de la cuenta
-incluye el cierre de sesión.
+API. Los enlaces de operación del personal van directos en el encabezado y
+lo exclusivamente administrativo queda en el desplegable «Gestión»; el
+menú de la cuenta incluye el cierre de sesión. El logo enlaza a la
+portada, así que no hay enlace «Inicio».
 
 ## Componentes por módulo
 
@@ -111,6 +114,9 @@ reserva del canal web: recibe la salida elegida, registra al cliente por
 documento y emite `registrada` con la reserva creada. En `disponibilidad/`
 vive `Tarjeta`, el espejo público de la tarjeta de salidas: muestra el
 paquete, fechas, ocupación y precio, y emite `solicitar` para pedir cupo.
+En `salidas/` viven `Tarjeta`, la tarjeta del panel, y `FormularioSalida`,
+el modal de alta y edición: recibe la salida a editar, o `null` para el
+alta, junto con el catálogo de paquetes, y emite `guardada`.
 
 ## Slots
 

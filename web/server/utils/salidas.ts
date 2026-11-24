@@ -67,6 +67,8 @@ export interface FilaSalida {
 /** Ocupación calculada por la vista de disponibilidad. */
 export interface OcupacionSalida {
   pasajerosOcupados: number
+  pasajerosConfirmados: number
+  pasajerosPendientes: number
   cupoDisponible: number
 }
 
@@ -86,6 +88,8 @@ export function aSalidaAdmin(
     fechaRetorno: fila.fechaRetorno,
     cupoMaximo: fila.cupoMaximo,
     pasajerosOcupados: ocupacion?.pasajerosOcupados ?? 0,
+    pasajerosConfirmados: ocupacion?.pasajerosConfirmados ?? 0,
+    pasajerosPendientes: ocupacion?.pasajerosPendientes ?? 0,
     cupoDisponible: ocupacion?.cupoDisponible ?? fila.cupoMaximo,
     precio: fila.precio,
     precioBase: fila.precioBase,
@@ -131,9 +135,12 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
 
   const [ocupacion] = await consultar<{
     pasajeros_ocupados: string | number
+    pasajeros_confirmados: string | number
+    pasajeros_pendientes: string | number
     cupo_disponible: string | number
   }>(sql`
-    select pasajeros_ocupados, cupo_disponible
+    select pasajeros_ocupados, pasajeros_confirmados, pasajeros_pendientes,
+           cupo_disponible
     from turismo.vista_disponibilidad_salida
     where id_salida = ${id}
   `)
@@ -143,6 +150,8 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
     ocupacion
       ? {
           pasajerosOcupados: Number(ocupacion.pasajeros_ocupados),
+          pasajerosConfirmados: Number(ocupacion.pasajeros_confirmados),
+          pasajerosPendientes: Number(ocupacion.pasajeros_pendientes),
           cupoDisponible: Number(ocupacion.cupo_disponible),
         }
       : undefined,

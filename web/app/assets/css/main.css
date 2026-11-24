@@ -10,7 +10,12 @@
 @import "../../design/tokens.css";
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+/* Con el tema oscuro activo, los controles nativos lo siguen. */
+.dark {
+  color-scheme: dark;
 }
 
 body {

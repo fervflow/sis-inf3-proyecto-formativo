@@ -68,6 +68,14 @@ componente base; no se modifica.
    `app/design/tema.ts` (se aplica en `app/app.config.ts`).
 4. No cambiar colores desde las plantillas: rompe el sistema.
 
+## Tema claro y oscuro
+
+El interruptor de la barra de navegación fija la preferencia (claro, oscuro
+o la del sistema) y Nuxt UI la aplica como clase `.dark` en `<html>`. Los
+tokens de superficie y texto se invierten en el bloque `.dark` de
+`tokens.css`; el resto de la paleta es única para ambos temas. No usar
+`prefers-color-scheme` en CSS: haría que el interruptor no manda.
+
 ## Accesibilidad
 
 - Los estados no dependen solo del color: llevan texto.

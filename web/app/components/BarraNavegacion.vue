@@ -33,12 +33,47 @@ const idiomaSeleccionado = computed<CodigoIdioma>({
   set: (valor) => establecerIdioma(valor),
 })
 
-const idiomasDisponibles = computed<{ label: string; value: CodigoIdioma }[]>(
+const idiomasDisponibles = computed<{ label: string; value: CodigoIdioma; icon: string }[]>(
   () => [
-    { label: t('idioma.es'), value: 'es' },
-    { label: t('idioma.en'), value: 'en' },
+    // Español latinoamericano: bandera de Bolivia, sede de la agencia.
+    { label: t('idioma.es'), value: 'es', icon: 'i-circle-flags:bo' },
+    { label: t('idioma.en'), value: 'en', icon: 'i-circle-flags:us' },
   ],
 )
+
+/** El modo de color en uso: la preferencia puede ser la del sistema. */
+const colorMode = useColorMode()
+
+/** El botón muestra un solo ícono: el del tema resuelto en pantalla. */
+const iconoTema = computed(() =>
+  colorMode.value === 'dark' ? 'i-lucide-moon' : 'i-lucide-sun',
+)
+
+const menuTema = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      label: t('tema.claro'),
+      icon: 'i-lucide-sun',
+      onSelect: () => {
+        colorMode.preference = 'light'
+      },
+    },
+    {
+      label: t('tema.oscuro'),
+      icon: 'i-lucide-moon',
+      onSelect: () => {
+        colorMode.preference = 'dark'
+      },
+    },
+    {
+      label: t('tema.sistema'),
+      icon: 'i-lucide-monitor',
+      onSelect: () => {
+        colorMode.preference = 'system'
+      },
+    },
+  ],
+])
 
 /** Resalta el enlace de la ruta en la que se está. */
 function activa(destino: string): boolean {
@@ -66,51 +101,25 @@ const etiquetaRol = computed(() =>
 )
 
 const menuGestion = computed<DropdownMenuItem[][]>(() => {
+  // La gestión de salidas vive en «Próximas salidas»; el desplegable agrupa
+  // lo exclusivamente administrativo.
   const items: DropdownMenuItem[] = [
     {
-      label: t('nav.clientes'),
-      icon: 'i-lucide-contact',
-      to: '/clientes',
+      label: t('nav.paquetes'),
+      icon: 'i-lucide-map',
+      to: '/admin/paquetes',
+    },
+    {
+      label: t('nav.proveedores'),
+      icon: 'i-lucide-handshake',
+      to: '/admin/proveedores',
+    },
+    {
+      label: t('nav.usuarios'),
+      icon: 'i-lucide-users',
+      to: '/admin/usuarios',
     },
   ]
-
-  if (esPersonal.value) {
-    items.push({
-      label: t('nav.cotizaciones'),
-      icon: 'i-lucide-file-text',
-      to: '/cotizaciones',
-    })
-    items.push({
-      label: t('nav.solicitudes'),
-      icon: 'i-lucide-inbox',
-      to: '/solicitudes',
-    })
-  }
-
-  if (esAdmin.value) {
-    items.push(
-      {
-        label: t('nav.paquetes'),
-        icon: 'i-lucide-map',
-        to: '/admin/paquetes',
-      },
-      {
-        label: t('nav.salidas'),
-        icon: 'i-lucide-calendar-plus',
-        to: '/admin/salidas',
-      },
-      {
-        label: t('nav.proveedores'),
-        icon: 'i-lucide-handshake',
-        to: '/admin/proveedores',
-      },
-      {
-        label: t('nav.usuarios'),
-        icon: 'i-lucide-users',
-        to: '/admin/usuarios',
-      },
-    )
-  }
 
   return [items]
 })
@@ -135,7 +144,6 @@ const menuCuenta = computed<DropdownMenuItem[][]>(() => [
 
 const menuMovil = computed<DropdownMenuItem[][]>(() => {
   const principal: DropdownMenuItem[] = [
-    { label: t('nav.inicio'), icon: 'i-lucide-home', to: '/' },
     {
       label: t('nav.disponibilidad'),
       icon: 'i-lucide-calendar-days',
@@ -168,11 +176,6 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         label: t('nav.paquetes'),
         icon: 'i-lucide-map',
         to: '/admin/paquetes',
-      },
-      {
-        label: t('nav.salidas'),
-        icon: 'i-lucide-calendar-plus',
-        to: '/admin/salidas',
       },
       {
         label: t('nav.proveedores'),
@@ -234,19 +237,38 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         :aria-label="t('nav.principal')"
       >
         <UButton
-          to="/"
-          :variant="variante('/')"
-          :color="colorDe('/')"
-          :label="t('nav.inicio')"
-        />
-        <UButton
           to="/disponibilidad"
           :variant="variante('/disponibilidad')"
           :color="colorDe('/disponibilidad')"
           :label="t('nav.disponibilidad')"
         />
 
-        <UDropdownMenu v-if="esPersonal" :items="menuGestion">
+        <!--
+          Los enlaces de operación del personal van directos; solo lo
+          exclusivamente administrativo queda en el desplegable «Gestión».
+        -->
+        <template v-if="esPersonal">
+          <UButton
+            to="/clientes"
+            :variant="variante('/clientes')"
+            :color="colorDe('/clientes')"
+            :label="t('nav.clientes')"
+          />
+          <UButton
+            to="/cotizaciones"
+            :variant="variante('/cotizaciones')"
+            :color="colorDe('/cotizaciones')"
+            :label="t('nav.cotizaciones')"
+          />
+          <UButton
+            to="/solicitudes"
+            :variant="variante('/solicitudes')"
+            :color="colorDe('/solicitudes')"
+            :label="t('nav.solicitudes')"
+          />
+        </template>
+
+        <UDropdownMenu v-if="esAdmin" :items="menuGestion">
           <UButton
             variant="ghost"
             color="neutral"
@@ -257,12 +279,30 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
       </nav>
 
       <div class="ml-auto flex items-center gap-1.5">
+        <UDropdownMenu :items="menuTema" :content="{ align: 'end' }">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            :icon="iconoTema"
+            :aria-label="t('tema.titulo')"
+          />
+        </UDropdownMenu>
+
         <USelect
           v-model="idiomaSeleccionado"
           :items="idiomasDisponibles"
-          class="w-28"
+          class="w-36"
           :aria-label="t('app.idioma')"
-        />
+        >
+          <!-- La bandera del idioma en uso, junto a su nombre. -->
+          <template #leading="{ item }">
+            <UIcon
+              v-if="item && 'icon' in item && item.icon"
+              :name="item.icon"
+              class="size-4 shrink-0"
+            />
+          </template>
+        </USelect>
 
         <UDropdownMenu v-if="cuenta" :items="menuCuenta">
           <UButton variant="ghost" color="neutral">

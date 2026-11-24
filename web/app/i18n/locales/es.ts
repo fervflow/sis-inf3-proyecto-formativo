@@ -19,13 +19,11 @@ export const es = {
     'Sistema web de gestión de paquetes turísticos y reservas · Proyecto formativo de Sistemas de Información III · UPDS, sede Potosí.',
   'app.idioma': 'Idioma',
 
-  'nav.inicio': 'Inicio',
-  'nav.disponibilidad': 'Disponibilidad',
+  'nav.disponibilidad': 'Próximas salidas',
   'nav.clientes': 'Clientes',
   'nav.cotizaciones': 'Cotizaciones',
   'nav.solicitudes': 'Solicitudes',
   'nav.paquetes': 'Paquetes',
-  'nav.salidas': 'Salidas',
   'nav.proveedores': 'Proveedores',
   'nav.usuarios': 'Usuarios',
   'nav.gestion': 'Gestión',
@@ -38,12 +36,17 @@ export const es = {
   'idioma.es': 'Español',
   'idioma.en': 'English',
 
+  'tema.titulo': 'Tema',
+  'tema.claro': 'Claro',
+  'tema.oscuro': 'Oscuro',
+  'tema.sistema': 'Sistema',
+
   'inicio.titulo': 'Gestión de paquetes turísticos y reservas',
   'inicio.etiqueta': 'Vizcacha Tours · Potosí',
   'inicio.introduccion':
     'Sistema web para la agencia Vizcacha Tours, en Potosí. Atiende a dos canales con el mismo proceso validado: la atención del personal de agencia y el acceso directo del cliente.',
   'inicio.ingresar': 'Ingresar al sistema',
-  'inicio.verDisponibilidad': 'Ver disponibilidad',
+  'inicio.verDisponibilidad': 'Ver próximas salidas',
   'inicio.irAlPanel': 'Ir al panel',
   'inicio.cuentas':
     'Las cuentas las entrega la agencia; no hay registro público.',
@@ -78,7 +81,9 @@ export const es = {
   'salud.salidas': 'Salidas',
   'salud.reservas': 'Reservas',
 
-  'disponibilidad.titulo': 'Disponibilidad',
+  'disponibilidad.titulo': 'Próximas salidas',
+  'disponibilidad.vistaCliente': 'Vista de cliente',
+  'disponibilidad.vistaGestion': 'Gestión',
   'disponibilidad.introduccion':
     'Salidas programadas y lugares disponibles. El cupo se calcula en la base de datos a partir de las reservas vigentes.',
   'disponibilidad.vacia': 'No hay salidas programadas desde hoy.',
