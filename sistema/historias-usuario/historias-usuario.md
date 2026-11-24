@@ -27,17 +27,17 @@ revisión.
 | HU-03 | Consulta de disponibilidad | Cliente, Personal | Web, Oficina | Alta | Medio | 2 pts | 2 tareas |
 | HU-04 | Registro y actualización de la ficha del cliente | Personal | Web, Oficina | Media | Medio | 2 pts | 2 tareas |
 | HU-10 | Registrar proveedores y vincularlos a los paquetes | Administrador | Web | Media | Bajo | 2 pts | 2 tareas |
-| HU-05 | Elaboración de cotizaciones | Personal | Web, Oficina | Baja | Medio | 3 pts | 2 tareas |
-| HU-06 | Registro de reservas con validación de cupos | Personal, Cliente | Web, Oficina | Alta | Alto | 5 pts | 3 tareas |
+| HU-05 | Elaboración de cotizaciones | Personal | Web, Oficina | Baja | Medio | 3 pts | 3 tareas |
+| HU-06 | Registro de reservas con validación de cupos | Personal, Cliente | Web, Oficina | Alta | Alto | 5 pts | 4 tareas |
 | HU-12 | Registro de pasajeros y vinculación a una reserva | Personal, Cliente | Web | Media | Medio | 3 pts | 2 tareas |
-| HU-07 | Seguimiento y actualización de reservas | Personal | Web | Media | Medio | 3 pts | 3 tareas |
-| HU-17 | Confirmación de solicitudes y control de su vencimiento | Personal | Web | Alta | Alto | 3 pts | 3 tareas |
+| HU-07 | Seguimiento y actualización de reservas | Personal | Web | Media | Medio | 3 pts | 4 tareas |
+| HU-17 | Confirmación de solicitudes y control de su vencimiento | Personal | Web | Alta | Alto | 3 pts | 4 tareas |
 | HU-09 | Modificar fechas o capacidad de una salida | Administrador | Web | Media | Alto | 3 pts | 2 tareas |
 | HU-11 | Consultar reportes de ocupación y reservas por fecha | Personal | Web | Baja | Medio | 2 pts | 2 tareas |
 | HU-13 | Solicitud y ejecución de la cancelación de una reserva | Cliente, Personal | Web, Oficina | Media | Alto | 3 pts | 2 tareas |
 | HU-14 | Registro y validación de anticipos y saldos de una reserva | Cliente, Personal | Web, Oficina | Alta | Medio | 3 pts | 2 tareas |
 | HU-16 | Avisos de cambios de fecha y capacidad de una salida | Cliente | Web | Baja | Medio | 2 pts | 2 tareas |
-| **TOTAL** | **17 historias de usuario** | | | | | **47 pts** | **40 tareas** |
+| **TOTAL** | **17 historias de usuario** | | | | | **47 pts** | **44 tareas** |
 
 ## Criterio de prioridades
 
@@ -347,10 +347,10 @@ sistema no pueda cumplir.
 
 ## Desglose de tareas
 
-Las 40 tareas se detallan por historia, en el orden del backlog. Cada tarea
+Las 44 tareas se detallan por historia, en el orden del backlog. Cada tarea
 hereda los criterios de aceptación de su historia y la prioridad y el riesgo
 de esa historia. El responsable indicado corresponde al reparto de trabajo
-entre los dos programadores: 21 tareas para el programador A y 19 para el
+entre los dos programadores: 24 tareas para el programador A y 20 para el
 programador B.
 
 En el tablero, el programador A aparece como **EV** y el programador B como
@@ -419,15 +419,17 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 ### HU-05 · Elaboración de cotizaciones
 
-**Responsable:** Programador B · **2 tareas** · **Criterios:** los de HU-05
+**Responsable:** Programador B · **3 tareas** · **Criterios:** los de HU-05
 
 - **T-HU-05.1** Seleccionar cliente y paquete y calcular el precio de la
   cotización.
 - **T-HU-05.2** Mostrar servicios, importe y condiciones, sin descontar cupos.
+- **T-HU-05.3** Originar la reserva desde una cotización aceptada en la
+  bandeja, guardando el vínculo con ella.
 
 ### HU-06 · Registro de reservas con validación de cupos
 
-**Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-06
+**Responsable:** Programador A · **4 tareas** · **Criterios:** los de HU-06
 
 - **T-HU-06.1** Crear una reserva desde la atención del personal o como
   solicitud del cliente, con su origen, el cliente, la salida y la cantidad de
@@ -436,6 +438,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
   que excedan la capacidad.
 - **T-HU-06.3** Guardar la reserva en estado pendiente con su fecha de
   vencimiento y reflejar la ocupación en la disponibilidad.
+- **T-HU-06.4** Revalidar la retención web del 50% del cupo al modificar una
+  reserva del canal web.
 
 ### HU-12 · Registro de pasajeros y vinculación a una reserva
 
@@ -448,16 +452,18 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 ### HU-07 · Seguimiento y actualización de reservas
 
-**Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-07
+**Responsable:** Programador A · **4 tareas** · **Criterios:** los de HU-07
 
 - **T-HU-07.1** Consultar las reservas de ambos canales, su estado y su fecha
   de vencimiento.
 - **T-HU-07.2** Confirmar o modificar reservas y volver a verificar los cupos.
 - **T-HU-07.3** Conservar los cambios realizados para su seguimiento.
+- **T-HU-07.4** Pasar a finalizada las reservas confirmadas cuando la salida
+  se realiza.
 
 ### HU-17 · Confirmación de solicitudes y control de su vencimiento
 
-**Responsable:** Programador A · **3 tareas** · **Criterios:** los de HU-17
+**Responsable:** Programador A · **4 tareas** · **Criterios:** los de HU-17
 
 - **T-HU-17.1** Listar las solicitudes pendientes de ambos canales con su
   fecha de vencimiento.
@@ -465,6 +471,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
   cambio.
 - **T-HU-17.3** Vencer las solicitudes fuera de plazo, liberar los cupos y
   rechazar su confirmación posterior.
+- **T-HU-17.4** Ejecutar el barrido de solicitudes vencidas desde la bandeja
+  del personal, sin esperar al cron diario.
 
 ### HU-09 · Modificar fechas o capacidad de una salida
 
@@ -539,8 +547,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 | Historias de usuario | 17 |
 | Historias con criterios de aceptación | 17 |
 | Estimación total | 47 pts |
-| Tareas totales | 40 |
-| Tareas desglosadas | 40 |
+| Tareas totales | 44 |
+| Tareas desglosadas | 44 |
 | Prioridad alta | 7 |
 | Prioridad media | 7 |
 | Prioridad baja | 3 |

@@ -350,9 +350,19 @@ registrado ──▶ validado
 Se documentan aquí para que no se pierdan, pero no se implementan en esta
 iteración:
 
-- **Reservas:** transición a `finalizada` (con la salida `realizada`);
-  reutilizar un pasajero entre fichas de clientes distintos (hoy el
-  manifiesto se arma dentro de la ficha del cliente de la reserva).
+- **Reservas:** transición a `finalizada` (las reservas confirmadas de una
+  salida que pasa a `realizada`); revalidar la retención web (RN-RES-16)
+  al modificar una reserva del canal web, que hoy solo se comprueba al
+  crear; reutilizar un pasajero entre fichas de clientes distintos (hoy el
+  manifiesto se arma dentro de la ficha del cliente de la reserva); aviso
+  al cliente cuando el personal mueve su reserva de salida (hoy lo ve en
+  Mis reservas por el cambio de salida y fecha).
+- **Cotizaciones:** originar la reserva desde una cotización aceptada en
+  la interfaz de la bandeja; hoy el vínculo `reserva.id_cotizacion`
+  existe solo por API.
+- **Avisos:** barrido manual de vencimientos desde la bandeja del
+  personal; hoy las solicitudes solo vencen por el cron diario de Vercel
+  o por el intento de confirmación fuera de plazo.
 - **Pagos:** ejecución y registro de las devoluciones del catálogo (RN-PAG-07);
   pasarela real en lugar de la simulada.
 - **Proveedores:** permitir varios tipos del mismo proveedor en un mismo
