@@ -68,6 +68,7 @@ En `app/components/base/`, con prefijo `Base`:
 | `BaseCampoMoneda` | Importe en bolivianos con formato y dos decimales |
 | `BaseMapa` | Mapa de OpenStreetMap con marcadores y línea de ruta opcional; solo se carga en el cliente |
 | `BaseBarraCupo` | Barra de ocupación en dos segmentos: confirmados y pendientes |
+| `BaseSubtitulo` | Encabezado de sección: etiqueta corta en versalitas con icono de la marca |
 
 Ejemplo de tabla:
 

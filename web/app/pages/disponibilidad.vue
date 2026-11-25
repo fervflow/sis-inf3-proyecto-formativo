@@ -148,7 +148,7 @@
     <UModal
       v-model:open="fichaAbierta"
       :title="t('salidas.ficha.titulo')"
-      :ui="{ content: 'max-w-3xl' }"
+      :ui="{ content: 'max-w-5xl' }"
     >
       <template #body>
         <div v-if="cargandoFicha" class="space-y-3">

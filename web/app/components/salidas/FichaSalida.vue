@@ -64,6 +64,13 @@ const marcadoresConNumero = computed(() =>
   })),
 )
 
+/** Línea de texto del recorrido: origen, paradas y destino en orden. */
+const textoRecorrido = computed(() =>
+  [props.ficha.origen, ...props.ficha.paradas.map((p) => p.nombre), props.ficha.destino]
+    .filter((nombre, indice, todos) => nombre && todos.indexOf(nombre) === indice)
+    .join(' → '),
+)
+
 const disponible = computed(() => props.ficha.cupoDisponible > 0)
 
 const colorEstado = computed(() => {
@@ -111,70 +118,148 @@ function detallesDe(proveedor: ProveedorFicha) {
       />
     </div>
 
-    <dl class="grid grid-cols-2 gap-3 text-(--vt-texto-sm) sm:grid-cols-4">
-      <div class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)">
-        <dt class="text-xs text-(--vt-color-texto-suave)">
-          {{ t('salidas.ficha.fechas') }}
-        </dt>
-        <dd>{{ fecha(ficha.fechaSalida) }} → {{ fecha(ficha.fechaRetorno) }}</dd>
+    <USeparator />
+
+    <!--
+      Detalles de un vistazo: fechas, duración, precio, cupo y punto de
+      encuentro, en filas compactas con icono en lugar de mini-bloques.
+    -->
+    <dl class="grid gap-x-6 gap-y-3 text-(--vt-texto-sm) sm:grid-cols-3">
+      <div class="flex items-start gap-2">
+        <UIcon
+          name="i-lucide-calendar-days"
+          class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
+        />
+        <div class="min-w-0">
+          <dt class="text-xs uppercase tracking-wide text-(--vt-color-texto-suave)">
+            {{ t('salidas.ficha.fechas') }}
+          </dt>
+          <dd class="font-(--vt-texto-peso-medio) tabular-nums">
+            {{ fecha(ficha.fechaSalida) }} → {{ fecha(ficha.fechaRetorno) }}
+          </dd>
+        </div>
       </div>
-      <div class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)">
-        <dt class="text-xs text-(--vt-color-texto-suave)">
-          {{ t('salidas.ficha.precio') }}
-        </dt>
-        <dd class="tabular-nums">
-          {{ moneda(ficha.precio) }}
-          <span
-            v-if="ficha.precioBase !== ficha.precio"
-            class="text-xs text-(--vt-color-texto-suave)"
-          >
-            {{ t('salidas.ficha.precioBase', { precio: moneda(ficha.precioBase) }) }}
-          </span>
-        </dd>
+
+      <div class="flex items-start gap-2">
+        <UIcon
+          name="i-lucide-clock"
+          class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
+        />
+        <div class="min-w-0">
+          <dt class="text-xs uppercase tracking-wide text-(--vt-color-texto-suave)">
+            {{ t('salidas.tarjeta.duracion') }}
+          </dt>
+          <dd class="font-(--vt-texto-peso-medio)">
+            {{ t('salidas.tarjeta.dias', { dias: ficha.duracionDias }) }}
+          </dd>
+        </div>
       </div>
-      <div class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)">
-        <dt class="text-xs text-(--vt-color-texto-suave)">
-          {{ t('salidas.ficha.cupo') }}
-        </dt>
-        <dd class="tabular-nums">
-          {{ ficha.cupoDisponible }}
-          {{ t('salidas.ficha.disponibles') }}
-          <span class="text-xs text-(--vt-color-texto-suave)">
+
+      <div class="flex items-start gap-2">
+        <UIcon
+          name="i-lucide-tag"
+          class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
+        />
+        <div class="min-w-0">
+          <dt class="text-xs uppercase tracking-wide text-(--vt-color-texto-suave)">
+            {{ t('salidas.ficha.precio') }}
+          </dt>
+          <dd class="font-(--vt-texto-peso-fuerte) tabular-nums">
+            {{ moneda(ficha.precio) }}
+            <span
+              v-if="ficha.precioBase !== ficha.precio"
+              class="text-xs font-(--vt-texto-peso-normal) text-(--vt-color-texto-suave)"
+            >
+              {{ t('salidas.ficha.precioBase', { precio: moneda(ficha.precioBase) }) }}
+            </span>
+          </dd>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-2">
+        <UIcon
+          name="i-lucide-users"
+          class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
+        />
+        <div class="min-w-0">
+          <dt class="text-xs uppercase tracking-wide text-(--vt-color-texto-suave)">
+            {{ t('salidas.ficha.cupo') }}
+          </dt>
+          <dd class="font-(--vt-texto-peso-medio) tabular-nums">
+            <span
+              :class="
+                disponible
+                  ? 'text-(--vt-color-exito-700) dark:text-(--vt-color-exito-400)'
+                  : 'text-(--vt-color-error-600)'
+              "
+            >
+              {{ ficha.cupoDisponible }}
+            </span>
+            {{ t('salidas.ficha.disponibles') }}
+          </dd>
+          <dd class="text-xs text-(--vt-color-texto-suave)">
             {{ t('salidas.ficha.desglose', {
               confirmados: ficha.pasajerosConfirmados,
               pendientes: ficha.pasajerosPendientes,
             }) }}
-          </span>
-        </dd>
+          </dd>
+        </div>
       </div>
-      <div class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)">
-        <dt class="text-xs text-(--vt-color-texto-suave)">
-          {{ t('salidas.ficha.punto') }}
-        </dt>
-        <dd>{{ ficha.puntoEncuentro ?? '—' }}</dd>
+
+      <div class="flex items-start gap-2 sm:col-span-2">
+        <UIcon
+          name="i-lucide-flag"
+          class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
+        />
+        <div class="min-w-0">
+          <dt class="text-xs uppercase tracking-wide text-(--vt-color-texto-suave)">
+            {{ t('salidas.ficha.punto') }}
+          </dt>
+          <dd class="font-(--vt-texto-peso-medio)">
+            {{ ficha.puntoEncuentro ?? '—' }}
+          </dd>
+        </div>
       </div>
     </dl>
 
-    <!-- Mapa del recorrido (HU-18) -->
-    <div class="space-y-2">
-      <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+    <USeparator />
+
+    <!-- Mapa del recorrido (HU-18): la ruta y las paradas al lado -->
+    <section class="space-y-2">
+      <BaseSubtitulo icono="i-lucide-map">
         {{ t('salidas.ficha.recorrido') }}
-        <span class="text-(--vt-texto-xs) font-(--vt-texto-peso-normal) text-(--vt-color-texto-suave)">
-          {{
-            t('salidas.ficha.recorridoTexto', {
-              recorrido: [ficha.origen, ...ficha.paradas.map((p) => p.nombre), ficha.destino]
-                .filter((nombre, indice, todos) => nombre && todos.indexOf(nombre) === indice)
-                .join(' → '),
-            })
-          }}
-        </span>
+      </BaseSubtitulo>
+      <p class="text-xs text-(--vt-color-texto-suave)">
+        {{ t('salidas.ficha.recorridoTexto', { recorrido: textoRecorrido }) }}
       </p>
-      <BaseMapa
-        :marcadores="marcadoresConNumero"
-        :ruta="puntosRuta"
-        altura="260px"
-      />
-      <ul class="grid gap-1 text-(--vt-texto-sm) sm:grid-cols-2">
+
+      <div v-if="puntosRuta.length > 0" class="grid gap-4 sm:grid-cols-5">
+        <BaseMapa
+          class="sm:col-span-3"
+          :marcadores="marcadoresConNumero"
+          :ruta="puntosRuta"
+          altura="280px"
+        />
+        <ol
+          class="flex flex-col justify-center gap-2 sm:col-span-2"
+          :aria-label="t('salidas.ficha.recorrido')"
+        >
+          <li
+            v-for="(parada, indice) in ficha.paradas"
+            :key="parada.idLugar"
+            class="flex items-center gap-2 text-(--vt-texto-sm)"
+          >
+            <span
+              class="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-(--vt-color-marca-100) text-xs text-(--vt-color-marca-800)"
+            >
+              {{ indice + 1 }}
+            </span>
+            {{ parada.nombre }}
+          </li>
+        </ol>
+      </div>
+
+      <ul v-else class="grid gap-1 text-(--vt-texto-sm) sm:grid-cols-2">
         <li
           v-for="(parada, indice) in ficha.paradas"
           :key="parada.idLugar"
@@ -183,13 +268,13 @@ function detallesDe(proveedor: ProveedorFicha) {
           {{ parada.nombre }}
         </li>
       </ul>
-    </div>
+    </section>
 
     <!-- Itinerario día por día (RN-PAQ-18) -->
-    <div class="space-y-2">
-      <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+    <section class="space-y-2">
+      <BaseSubtitulo icono="i-lucide-list-ordered">
         {{ t('salidas.ficha.itinerario') }}
-      </p>
+      </BaseSubtitulo>
       <ol v-if="ficha.itinerario.length > 0" class="space-y-2">
         <li
           v-for="dia in ficha.itinerario"
@@ -215,14 +300,16 @@ function detallesDe(proveedor: ProveedorFicha) {
       <p v-else class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
         {{ t('salidas.ficha.sinItinerario') }}
       </p>
-    </div>
+    </section>
+
+    <USeparator />
 
     <!-- Servicios incluidos y exclusiones (RN-SER-04) -->
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
-        <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+        <BaseSubtitulo icono="i-lucide-circle-check">
           {{ t('salidas.ficha.incluye') }}
-        </p>
+        </BaseSubtitulo>
         <div class="flex flex-wrap gap-1.5">
           <UBadge
             v-for="servicio in ficha.servicios"
@@ -240,9 +327,9 @@ function detallesDe(proveedor: ProveedorFicha) {
         </p>
       </div>
       <div class="space-y-2">
-        <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+        <BaseSubtitulo icono="i-lucide-circle-x">
           {{ t('salidas.ficha.excluye') }}
-        </p>
+        </BaseSubtitulo>
         <p
           v-if="ficha.serviciosExcluidos"
           class="whitespace-pre-line text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
@@ -257,9 +344,9 @@ function detallesDe(proveedor: ProveedorFicha) {
 
     <!-- Proveedores y sus detalles por servicio (RN-PRV-08) -->
     <div class="space-y-2">
-      <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+      <BaseSubtitulo icono="i-lucide-handshake">
         {{ t('salidas.ficha.proveedores') }}
-      </p>
+      </BaseSubtitulo>
       <div
         v-for="proveedor in ficha.proveedores"
         :key="proveedor.idProveedor"
@@ -316,9 +403,9 @@ function detallesDe(proveedor: ProveedorFicha) {
       concreta. Se muestran a todos; los costos quedan internos.
     -->
     <div v-if="ficha.asignaciones.length > 0" class="space-y-2">
-      <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+      <BaseSubtitulo icono="i-lucide-clipboard-check">
         {{ t('salidas.ficha.asignaciones') }}
-      </p>
+      </BaseSubtitulo>
       <ul class="space-y-1.5">
         <li
           v-for="asignacion in ficha.asignaciones"
