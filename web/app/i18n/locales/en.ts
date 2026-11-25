@@ -353,7 +353,15 @@ export const en: Mensajes = {
     'Generated from the destination, the year and a sequence number. It is not edited.',
   'paquetes.ayudaPrecio': 'In bolivianos, per person.',
   'paquetes.ayudaItinerario':
-    'Describe the route day by day. It is required to publish.',
+    'One row per day, with title and detail. The departure card shows them in order; it is required to publish.',
+  'paquetes.itinerario.agregar': 'Add day',
+  'paquetes.itinerario.vacio':
+    'No days yet: add the first day of the itinerary.',
+  'paquetes.itinerario.subir': 'Move day up',
+  'paquetes.itinerario.bajar': 'Move day down',
+  'paquetes.itinerario.quitar': 'Remove day',
+  'paquetes.itinerario.titulo': 'Day title',
+  'paquetes.itinerario.detalle': 'What happens this day',
   'paquetes.ayudaServicios':
     'Check what the price covers. This list is the source of included services.',
   'paquetes.ayudaServiciosDetalle':
@@ -438,6 +446,15 @@ export const en: Mensajes = {
   'proveedores.tipos.otro': 'Other',
   'proveedores.form.nombre': 'Name or legal name',
   'proveedores.form.tipos': 'Service types',
+  'proveedores.detalles.titulo': 'Details per service',
+  'proveedores.detalles.ayuda':
+    "The provider's offer: guides and their certification, menus and allergens, units. The departure card presents them.",
+  'proveedores.detalles.agregar': 'Add detail',
+  'proveedores.detalles.vacio': 'No details yet.',
+  'proveedores.detalles.tituloPlaceholder': 'Title (e.g. Lead salt-flat guide)',
+  'proveedores.detalles.contenido':
+    'Description: dishes and allergens, certification and languages, capacity…',
+  'proveedores.detalles.quitar': 'Remove detail',
   'proveedores.ayudaTipos':
     'Check every type the provider offers. When linking it to a package, one of these is chosen.',
   'proveedores.form.nit': 'Tax ID',
@@ -470,6 +487,8 @@ export const en: Mensajes = {
   'proveedores.desvinculado': 'Link removed from provider {nombre}.',
   'proveedores.errores.nombre': 'The name must have at least 3 characters.',
   'proveedores.errores.tipos': 'Check at least one service type.',
+  'proveedores.errores.detalleDeclarado':
+    'Each detail must use a declared type of the provider.',
   'proveedores.errores.vinculo':
     'Choose the package, the service and complete the cost.',
 
@@ -587,6 +606,41 @@ export const en: Mensajes = {
     'The package base price is filled in when you choose it.',
   'salidas.errores.revisar':
     'Review the package, dates, capacity and price.',
+  'salidas.errores.asignaciones':
+    'Review the assignments: a provider or a service is missing.',
+  'salidas.errores.asignacionesRepetidas':
+    'The same provider cannot repeat within the departure.',
+  'salidas.asignaciones.titulo': 'Assignments of this departure',
+  'salidas.asignaciones.ayuda':
+    'The lead guide and the actual unit. Optional and cost-free: the departure card shows them as "assigned to this departure".',
+  'salidas.asignaciones.agregar': 'Add assignment',
+  'salidas.asignaciones.vacio':
+    'No assignments: the card shows the package providers.',
+  'salidas.asignaciones.detalle': 'Detail (plate, lead…)',
+  'salidas.asignaciones.quitar': 'Remove assignment',
+  'salidas.ficha.titulo': 'Departure card',
+  'salidas.ficha.ver': 'See details',
+  'salidas.ficha.fechas': 'Dates',
+  'salidas.ficha.precio': 'Price',
+  'salidas.ficha.precioBase': 'catalog price: {precio}',
+  'salidas.ficha.cupo': 'Quota',
+  'salidas.ficha.disponibles': 'available',
+  'salidas.ficha.desglose': '({confirmados} confirmed, {pendientes} under review)',
+  'salidas.ficha.punto': 'Meeting point',
+  'salidas.ficha.recorrido': 'Route',
+  'salidas.ficha.recorridoTexto': '{recorrido}',
+  'salidas.ficha.itinerario': 'Itinerary',
+  'salidas.ficha.sinItinerario': 'The package does not declare an itinerary yet.',
+  'salidas.ficha.incluye': 'Included',
+  'salidas.ficha.excluye': 'Not included',
+  'salidas.ficha.sinExcluidos': 'No exclusions declared.',
+  'salidas.ficha.proveedores': 'Package providers',
+  'salidas.ficha.sinProveedores': 'The package has no providers linked.',
+  'salidas.ficha.costo': 'Internal cost: {costo}',
+  'salidas.ficha.asignaciones': 'Assigned to this departure',
+  'salidas.ficha.sinCupo':
+    'Departure sold out: the card stays as information, but it takes no requests.',
+  'salidas.ficha.editar': 'Edit departure',
   'salidas.creado': 'Departure created for {paquete}.',
   'salidas.actualizado': 'Departure updated for {paquete}.',
   'salidas.motivoCancelacion': 'Cancellation requires a reason.',

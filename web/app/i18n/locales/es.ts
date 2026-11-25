@@ -367,7 +367,15 @@ export const es = {
     'Se genera con el destino, el año y un número de secuencia. No se edita.',
   'paquetes.ayudaPrecio': 'En bolivianos, por persona.',
   'paquetes.ayudaItinerario':
-    'Describe el recorrido día por día. Es obligatorio para publicar.',
+    'Un día por fila, con título y detalle. La ficha de la salida los presenta en orden; es obligatorio para publicar.',
+  'paquetes.itinerario.agregar': 'Agregar día',
+  'paquetes.itinerario.vacio':
+    'Sin días todavía: agrega el primer día del itinerario.',
+  'paquetes.itinerario.subir': 'Subir el día',
+  'paquetes.itinerario.bajar': 'Bajar el día',
+  'paquetes.itinerario.quitar': 'Quitar el día',
+  'paquetes.itinerario.titulo': 'Título del día',
+  'paquetes.itinerario.detalle': 'Qué ocurre este día',
   'paquetes.ayudaServicios':
     'Marca lo que cubre el precio. La lista es la fuente de los servicios incluidos.',
   'paquetes.ayudaServiciosDetalle':
@@ -454,6 +462,15 @@ export const es = {
   'proveedores.form.tipos': 'Tipos de servicio',
   'proveedores.ayudaTipos':
     'Marca todos los tipos que el proveedor presta. Al vincularlo a un paquete se elige uno de estos.',
+  'proveedores.detalles.titulo': 'Detalles por servicio',
+  'proveedores.detalles.ayuda':
+    'La oferta del proveedor: guías y su certificación, menús y sus alérgenos, unidades. La ficha de la salida los presenta.',
+  'proveedores.detalles.agregar': 'Agregar detalle',
+  'proveedores.detalles.vacio': 'Sin detalles todavía.',
+  'proveedores.detalles.tituloPlaceholder': 'Título (p. ej. Guía titular del salar)',
+  'proveedores.detalles.contenido':
+    'Descripción: platos y alérgenos, certificación e idiomas, capacidad…',
+  'proveedores.detalles.quitar': 'Quitar detalle',
   'proveedores.form.nit': 'NIT',
   'proveedores.form.telefono': 'Teléfono',
   'proveedores.form.correo': 'Correo',
@@ -485,6 +502,8 @@ export const es = {
   'proveedores.errores.nombre':
     'El nombre debe tener al menos 3 caracteres.',
   'proveedores.errores.tipos': 'Marca al menos un tipo de servicio.',
+  'proveedores.errores.detalleDeclarado':
+    'Cada detalle debe usar un tipo declarado del proveedor.',
   'proveedores.errores.vinculo':
     'Elige el paquete, el servicio y completa el costo.',
 
@@ -602,6 +621,41 @@ export const es = {
     'Al elegir el paquete se completa con su precio base.',
   'salidas.errores.revisar':
     'Revisa el paquete, las fechas, la capacidad y el precio.',
+  'salidas.errores.asignaciones':
+    'Revisa las asignaciones: falta el proveedor o el servicio.',
+  'salidas.errores.asignacionesRepetidas':
+    'El mismo proveedor no se repite en la salida.',
+  'salidas.asignaciones.titulo': 'Asignaciones de esta salida',
+  'salidas.asignaciones.ayuda':
+    'El guía titular y la unidad concreta. Opcional y sin costos: la ficha lo muestra como «asignado a esta salida».',
+  'salidas.asignaciones.agregar': 'Agregar asignación',
+  'salidas.asignaciones.vacio':
+    'Sin asignaciones: la ficha muestra los proveedores del paquete.',
+  'salidas.asignaciones.detalle': 'Detalle (placa, titular…)',
+  'salidas.asignaciones.quitar': 'Quitar asignación',
+  'salidas.ficha.titulo': 'Ficha de la salida',
+  'salidas.ficha.ver': 'Ver detalles',
+  'salidas.ficha.fechas': 'Fechas',
+  'salidas.ficha.precio': 'Precio',
+  'salidas.ficha.precioBase': 'precio de catálogo: {precio}',
+  'salidas.ficha.cupo': 'Cupo',
+  'salidas.ficha.disponibles': 'disponibles',
+  'salidas.ficha.desglose': '({confirmados} confirmados, {pendientes} en revisión)',
+  'salidas.ficha.punto': 'Punto de encuentro',
+  'salidas.ficha.recorrido': 'Recorrido',
+  'salidas.ficha.recorridoTexto': '{recorrido}',
+  'salidas.ficha.itinerario': 'Itinerario',
+  'salidas.ficha.sinItinerario': 'El paquete todavía no declara itinerario.',
+  'salidas.ficha.incluye': 'Incluye',
+  'salidas.ficha.excluye': 'No incluye',
+  'salidas.ficha.sinExcluidos': 'Sin exclusiones declaradas.',
+  'salidas.ficha.proveedores': 'Proveedores del paquete',
+  'salidas.ficha.sinProveedores': 'El paquete no tiene proveedores vinculados.',
+  'salidas.ficha.costo': 'Costo interno: {costo}',
+  'salidas.ficha.asignaciones': 'Asignado a esta salida',
+  'salidas.ficha.sinCupo':
+    'Salida agotada: la ficha queda como información, pero no admite solicitudes.',
+  'salidas.ficha.editar': 'Editar salida',
   'salidas.creado': 'Salida creada para {paquete}.',
   'salidas.actualizado': 'Salida actualizada para {paquete}.',
   'salidas.motivoCancelacion': 'La cancelación exige un motivo.',

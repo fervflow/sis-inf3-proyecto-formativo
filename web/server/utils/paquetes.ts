@@ -10,6 +10,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { z } from 'zod'
 import * as schema from '../../db/schema'
 import type {
+  ItinerarioDia,
   LugarResumen,
   PaqueteAdmin,
   ProveedorPaqueteResumen,
@@ -24,6 +25,12 @@ type Transaccion = Parameters<Parameters<BaseDatos['transaction']>[0]>[0]
 /** Un identificador de lugar opcional. */
 const idLugar = z.coerce.number().int().positive().nullable().optional()
 
+/** Un día del itinerario, tal como lo envía la interfaz. */
+const esquemaDiaItinerario = z.object({
+  titulo: z.string().trim().min(1, 'datos_invalidos').max(150),
+  detalle: z.string().trim().max(4000).nullable().optional(),
+})
+
 /** Cuerpo del alta y de la edición de un paquete. */
 export const esquemaPaquete = z
   .object({
@@ -34,7 +41,7 @@ export const esquemaPaquete = z
     descripcion: z.string().trim().max(2000).nullable().optional(),
     duracionDias: z.coerce.number().int().min(1).max(365),
     precioBase: z.coerce.number().min(0.01).max(9_999_999.99),
-    itinerario: z.string().trim().max(4000).nullable().optional(),
+    itinerario: z.array(esquemaDiaItinerario).max(60).default([]),
     serviciosDetalle: z.string().trim().max(2000).nullable().optional(),
     serviciosExcluidos: z.string().trim().max(2000).nullable().optional(),
     paradas: z.array(z.coerce.number().int().positive()).max(20).default([]),
@@ -59,7 +66,7 @@ export function validarPaquetePublicable(datos: {
   estado: EstadoPaquete
   idLugarDestino?: number | null
   descripcion?: string | null
-  itinerario?: string | null
+  itinerario: { titulo: string }[]
   servicios: number[]
 }): void {
   if (datos.estado !== 'activo') return
@@ -67,7 +74,7 @@ export function validarPaquetePublicable(datos: {
   const faltantes: string[] = []
   if (!datos.idLugarDestino) faltantes.push('destino')
   if (!datos.descripcion?.trim()) faltantes.push('descripcion')
-  if (!datos.itinerario?.trim()) faltantes.push('itinerario')
+  if (datos.itinerario.length === 0) faltantes.push('itinerario')
   if (datos.servicios.length === 0) faltantes.push('servicios')
 
   if (faltantes.length > 0) {
@@ -112,7 +119,6 @@ export interface FilaPaquete {
   descripcion: string | null
   duracionDias: number
   precioBase: string
-  itinerario: string | null
   serviciosDetalle: string | null
   serviciosExcluidos: string | null
   estado: string
@@ -149,6 +155,7 @@ export function aPaqueteAdmin(
   destino: LugarResumen | null,
   origen: LugarResumen | null,
   paradas: LugarResumen[],
+  itinerario: ItinerarioDia[],
   servicios: ServicioResumen[],
   proveedores: ProveedorPaqueteResumen[] = [],
 ): PaqueteAdmin {
@@ -163,7 +170,7 @@ export function aPaqueteAdmin(
     descripcion: fila.descripcion,
     duracionDias: fila.duracionDias,
     precioBase: fila.precioBase,
-    itinerario: fila.itinerario,
+    itinerario,
     serviciosDetalle: fila.serviciosDetalle,
     serviciosExcluidos: fila.serviciosExcluidos,
     servicios,
@@ -226,6 +233,36 @@ export async function cargarParadas(
   for (const fila of filas) {
     const lista = mapa.get(fila.idPaquete) ?? []
     lista.push(aLugarResumen(fila))
+    mapa.set(fila.idPaquete, lista)
+  }
+  return mapa
+}
+
+/** Itinerario de un conjunto de paquetes, agrupado por día (RN-PAQ-18). */
+export async function cargarItinerario(
+  idsPaquetes: number[],
+): Promise<Map<number, ItinerarioDia[]>> {
+  const mapa = new Map<number, ItinerarioDia[]>()
+  if (idsPaquetes.length === 0) return mapa
+
+  const filas = await useDb()
+    .select({
+      idPaquete: schema.paqueteItinerario.idPaquete,
+      dia: schema.paqueteItinerario.dia,
+      titulo: schema.paqueteItinerario.titulo,
+      detalle: schema.paqueteItinerario.detalle,
+    })
+    .from(schema.paqueteItinerario)
+    .where(inArray(schema.paqueteItinerario.idPaquete, idsPaquetes))
+    .orderBy(asc(schema.paqueteItinerario.idPaquete), asc(schema.paqueteItinerario.dia))
+
+  for (const fila of filas) {
+    const lista = mapa.get(fila.idPaquete) ?? []
+    lista.push({
+      dia: fila.dia,
+      titulo: fila.titulo,
+      detalle: fila.detalle,
+    })
     mapa.set(fila.idPaquete, lista)
   }
   return mapa
@@ -361,6 +398,31 @@ export async function reemplazarServicios(
   await tx
     .insert(schema.paqueteServicio)
     .values(unicos.map((idServicio) => ({ idPaquete, idServicio })))
+}
+
+/**
+ * Reemplaza el itinerario de un paquete dentro de una transacción y
+ * renumera los días por el orden de la lista (RN-PAQ-18).
+ */
+export async function reemplazarItinerario(
+  tx: Transaccion,
+  idPaquete: number,
+  dias: Array<{ titulo: string; detalle?: string | null }>,
+): Promise<void> {
+  await tx
+    .delete(schema.paqueteItinerario)
+    .where(eq(schema.paqueteItinerario.idPaquete, idPaquete))
+
+  if (dias.length === 0) return
+
+  await tx.insert(schema.paqueteItinerario).values(
+    dias.map((dia, indice) => ({
+      idPaquete,
+      dia: indice + 1,
+      titulo: dia.titulo,
+      detalle: dia.detalle ?? null,
+    })),
+  )
 }
 
 /** Prefijo de tres letras derivado de un nombre, para el código. */

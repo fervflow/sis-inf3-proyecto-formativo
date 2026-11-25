@@ -10,6 +10,8 @@ import {
   esquemaSalida,
   hoyIso,
   obtenerSalida,
+  reemplazarAsignaciones,
+  validarAsignaciones,
 } from '../../../utils/salidas'
 import { leerCuerpo } from '../../../utils/validacion'
 
@@ -44,6 +46,10 @@ export default defineEventHandler(async (event): Promise<SalidaAdmin> => {
   }
 
   validarTransicionSalida(actual.estado, datos.estado)
+
+  // Las asignaciones usan proveedores activos con el tipo declarado
+  // (RN-SAL-23 y RN-PRV-06).
+  await validarAsignaciones(datos.asignaciones)
 
   const [paquete] = await useDb()
     .select({ duracionDias: schema.paquete.duracionDias })
@@ -82,6 +88,8 @@ export default defineEventHandler(async (event): Promise<SalidaAdmin> => {
       statusMessage: codigoErrorSalida(error),
     })
   }
+
+  await reemplazarAsignaciones(id, datos.asignaciones)
 
   const salida = await obtenerSalida(id)
   if (!salida) {

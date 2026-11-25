@@ -17,6 +17,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   editar: [salida: SalidaAdmin]
+  /** La persona quiere ver la ficha completa de la salida (HU-18). */
+  verDetalle: [salida: SalidaAdmin]
 }>()
 
 const { t } = useTexto()
@@ -205,13 +207,23 @@ const desglose = computed(() =>
             })
           }}
         </p>
-        <UButton
-          size="xs"
-          variant="soft"
-          color="neutral"
-          :label="t('salidas.acciones.editar')"
-          @click="emit('editar', salida)"
-        />
+        <div class="flex items-center gap-2">
+          <UButton
+            size="xs"
+            variant="soft"
+            color="neutral"
+            icon="i-lucide-eye"
+            :label="t('salidas.ficha.ver')"
+            @click="emit('verDetalle', salida)"
+          />
+          <UButton
+            size="xs"
+            variant="soft"
+            color="primary"
+            :label="t('salidas.acciones.editar')"
+            @click="emit('editar', salida)"
+          />
+        </div>
       </div>
     </template>
   </BaseTarjeta>

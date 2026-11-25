@@ -10,19 +10,31 @@ import { asc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import * as schema from '../../db/schema'
 import type {
+  DetalleServicioResumen,
   ProveedorAdmin,
   ProveedorPaquete,
   ProveedorPaqueteResumen,
 } from '#shared/types/api'
 import type { EstadoProveedor, TipoProveedor } from '#shared/types/domain'
 
-const tiposValidos = [
+/** Los tipos de servicio que un proveedor puede declarar (RN-PRV-02). */
+export const tiposProveedor = [
   'transporte',
   'hospedaje',
   'guia',
   'alimentacion',
   'otro',
 ] as const
+
+const tiposValidos = tiposProveedor
+
+/** Un detalle de servicio del proveedor (RN-PRV-08). */
+const esquemaDetalle = z.object({
+  // Uno de los tipos declarados del proveedor.
+  tipo: z.enum(tiposValidos),
+  titulo: z.string().trim().min(1, 'datos_invalidos').max(150),
+  detalle: z.string().trim().max(2000).nullable().optional(),
+})
 
 /** Cuerpo del alta y de la edición de un proveedor. */
 export const esquemaProveedor = z.object({
@@ -35,6 +47,8 @@ export const esquemaProveedor = z.object({
     .refine((tipos) => new Set(tipos).size === tipos.length, {
       message: 'tipos_repetidos',
     }),
+  // Detalles por servicio, con su orden (RN-PRV-08).
+  detalles: z.array(esquemaDetalle).max(50).default([]),
   nit: z.string().trim().max(30).nullable().optional(),
   telefono: z.string().trim().max(30).nullable().optional(),
   correo: z.string().trim().max(150).nullable().optional(),
@@ -97,16 +111,51 @@ async function cargarTipos(
   return mapa
 }
 
+/** Detalles por servicio de cada proveedor, con su orden (RN-PRV-08). */
+async function cargarDetalles(
+  idsProveedores: number[],
+): Promise<Map<number, DetalleServicioResumen[]>> {
+  const mapa = new Map<number, DetalleServicioResumen[]>()
+  if (idsProveedores.length === 0) return mapa
+
+  const filas = await useDb()
+    .select({
+      idProveedor: schema.proveedorServicio.idProveedor,
+      tipo: schema.proveedorServicio.tipo,
+      titulo: schema.proveedorServicio.titulo,
+      detalle: schema.proveedorServicio.detalle,
+    })
+    .from(schema.proveedorServicio)
+    .where(inArray(schema.proveedorServicio.idProveedor, idsProveedores))
+    .orderBy(
+      asc(schema.proveedorServicio.idProveedor),
+      asc(schema.proveedorServicio.orden),
+    )
+
+  for (const fila of filas) {
+    const lista = mapa.get(fila.idProveedor) ?? []
+    lista.push({
+      tipo: fila.tipo as TipoProveedor,
+      titulo: fila.titulo,
+      detalle: fila.detalle,
+    })
+    mapa.set(fila.idProveedor, lista)
+  }
+  return mapa
+}
+
 /** Convierte una fila en la forma pública. */
 function aProveedorAdmin(
   fila: FilaProveedor,
   tipos: TipoProveedor[],
+  detalles: DetalleServicioResumen[],
   paquetes: ProveedorPaquete[],
 ): ProveedorAdmin {
   return {
     idProveedor: fila.idProveedor,
     nombre: fila.nombre,
     tipos,
+    detalles,
     nit: fila.nit,
     telefono: fila.telefono,
     correo: fila.correo,
@@ -177,11 +226,15 @@ export async function listarProveedores(): Promise<ProveedorAdmin[]> {
   const tipos = await cargarTipos(
     filas.map((fila) => fila.idProveedor),
   )
+  const detalles = await cargarDetalles(
+    filas.map((fila) => fila.idProveedor),
+  )
 
   return filas.map((fila) =>
     aProveedorAdmin(
       fila,
       tipos.get(fila.idProveedor) ?? [],
+      detalles.get(fila.idProveedor) ?? [],
       vinculos.get(fila.idProveedor) ?? [],
     ),
   )
@@ -208,7 +261,27 @@ export async function obtenerProveedor(
   if (!fila) return null
   const vinculos = await cargarVinculos([id])
   const tipos = await cargarTipos([id])
-  return aProveedorAdmin(fila, tipos.get(id) ?? [], vinculos.get(id) ?? [])
+  const detalles = await cargarDetalles([id])
+  return aProveedorAdmin(
+    fila,
+    tipos.get(id) ?? [],
+    detalles.get(id) ?? [],
+    vinculos.get(id) ?? [],
+  )
+}
+
+/** Comprueba que cada detalle use un tipo declarado (RN-PRV-08). */
+function validarDetallesDeclarados(
+  tipos: TipoProveedor[],
+  detalles: Array<{ tipo: TipoProveedor }>,
+): void {
+  const ajeno = detalles.find((detalle) => !tipos.includes(detalle.tipo))
+  if (ajeno) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'servicio_no_declarado',
+    })
+  }
 }
 
 /** Comprueba que el nombre no esté usado por otro proveedor. */
@@ -267,6 +340,8 @@ export async function crearProveedor(
     throw createError({ statusCode: 500, statusMessage: 'alta_incompleta' })
   }
 
+  validarDetallesDeclarados(datos.tipos, datos.detalles)
+
   try {
     await db
       .insert(schema.proveedorTipo)
@@ -276,6 +351,17 @@ export async function crearProveedor(
           tipo,
         })),
       )
+    if (datos.detalles.length > 0) {
+      await db.insert(schema.proveedorServicio).values(
+        datos.detalles.map((detalle, orden) => ({
+          idProveedor: creado.idProveedor,
+          tipo: detalle.tipo,
+          titulo: detalle.titulo,
+          detalle: detalle.detalle ?? null,
+          orden: (orden + 1) * 10,
+        })),
+      )
+    }
   } catch (error) {
     // Sin tipos declarados el proveedor no sirve: se deshace el alta para
     // no dejar una fila a medias.
@@ -285,7 +371,16 @@ export async function crearProveedor(
     throw error
   }
 
-  return aProveedorAdmin(creado, datos.tipos, [])
+  return aProveedorAdmin(
+    creado,
+    datos.tipos,
+    datos.detalles.map((detalle) => ({
+      tipo: detalle.tipo,
+      titulo: detalle.titulo,
+      detalle: detalle.detalle ?? null,
+    })),
+    [],
+  )
 }
 
 /** Edición de un proveedor. */
@@ -317,6 +412,9 @@ export async function actualizarProveedor(
     }
   }
 
+  // Cada detalle pertenece a un tipo declarado (RN-PRV-08).
+  validarDetallesDeclarados(datos.tipos, datos.detalles)
+
   const db = useDb()
 
   const [actualizado] = await db
@@ -344,7 +442,8 @@ export async function actualizarProveedor(
     throw createError({ statusCode: 404, statusMessage: 'proveedor_inexistente' })
   }
 
-  // Los tipos se reemplazan por completo: es la lista declarada.
+  // Los tipos se reemplazan por completo: es la lista declarada. Los
+  // detalles por servicio también (RN-PRV-08).
   await db
     .delete(schema.proveedorTipo)
     .where(eq(schema.proveedorTipo.idProveedor, id))
@@ -352,7 +451,31 @@ export async function actualizarProveedor(
     .insert(schema.proveedorTipo)
     .values(datos.tipos.map((tipo) => ({ idProveedor: id, tipo })))
 
-  return aProveedorAdmin(actualizado, datos.tipos, actual.paquetes)
+  await db
+    .delete(schema.proveedorServicio)
+    .where(eq(schema.proveedorServicio.idProveedor, id))
+  if (datos.detalles.length > 0) {
+    await db.insert(schema.proveedorServicio).values(
+      datos.detalles.map((detalle, orden) => ({
+        idProveedor: id,
+        tipo: detalle.tipo,
+        titulo: detalle.titulo,
+        detalle: detalle.detalle ?? null,
+        orden: (orden + 1) * 10,
+      })),
+    )
+  }
+
+  return aProveedorAdmin(
+    actualizado,
+    datos.tipos,
+    datos.detalles.map((detalle) => ({
+      tipo: detalle.tipo,
+      titulo: detalle.titulo,
+      detalle: detalle.detalle ?? null,
+    })),
+    actual.paquetes,
+  )
 }
 
 /** Vincula o actualiza el servicio de un proveedor en un paquete. */

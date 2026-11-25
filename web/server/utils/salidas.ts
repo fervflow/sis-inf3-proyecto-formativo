@@ -5,14 +5,26 @@
  * `fn_actualizar_salida`; aquí solo se valida la forma del cuerpo y se
  * traduce la fila de la base a la interfaz.
  */
-import { eq, sql } from 'drizzle-orm'
+import { asc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import * as schema from '../../db/schema'
-import type { SalidaAdmin } from '#shared/types/api'
+import type {
+  AsignacionSalidaResumen,
+  SalidaAdmin,
+} from '#shared/types/api'
 import { consultar } from './db'
-import type { EstadoPaquete, EstadoSalida } from '#shared/types/domain'
+import type { EstadoPaquete, EstadoSalida, TipoProveedor } from '#shared/types/domain'
+import { tiposProveedor } from './proveedores'
 
 const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'datos_invalidos')
+
+/** Una asignación operativa de proveedor en la salida (RN-SAL-23). */
+const esquemaAsignacion = z.object({
+  idProveedor: z.coerce.number().int().positive(),
+  // Uno de los tipos declarados del proveedor (RN-PRV-06).
+  servicio: z.enum(tiposProveedor),
+  detalle: z.string().trim().max(200).nullable().optional(),
+})
 
 /** Cuerpo del alta y de la edición de una salida. */
 export const esquemaSalida = z
@@ -26,6 +38,7 @@ export const esquemaSalida = z
     estado: z.enum(['programada', 'confirmada', 'realizada', 'cancelada']),
     observaciones: z.string().trim().max(1000).optional(),
     motivo: z.string().trim().max(200).optional(),
+    asignaciones: z.array(esquemaAsignacion).max(20).default([]),
   })
   .refine((datos) => datos.fechaRetorno >= datos.fechaSalida, {
     message: 'fechas_invalidas',
@@ -77,6 +90,7 @@ export interface OcupacionSalida {
 export function aSalidaAdmin(
   fila: FilaSalida,
   ocupacion?: OcupacionSalida,
+  asignaciones: AsignacionSalidaResumen[] = [],
 ): SalidaAdmin {
   return {
     idSalida: fila.idSalida,
@@ -99,8 +113,119 @@ export function aSalidaAdmin(
     estado: fila.estado as EstadoSalida,
     estadoPaquete: fila.estadoPaquete as EstadoPaquete,
     observaciones: fila.observaciones,
+    asignaciones,
     fechaActualizacion: fila.fechaActualizacion.toISOString(),
   }
+}
+
+/** Asignaciones operativas de un conjunto de salidas (RN-SAL-23). */
+export async function cargarAsignaciones(
+  idsSalidas: number[],
+): Promise<Map<number, AsignacionSalidaResumen[]>> {
+  const mapa = new Map<number, AsignacionSalidaResumen[]>()
+  if (idsSalidas.length === 0) return mapa
+
+  const filas = await useDb()
+    .select({
+      idSalida: schema.salidaProveedor.idSalida,
+      idProveedor: schema.proveedor.idProveedor,
+      nombre: schema.proveedor.nombre,
+      servicio: schema.salidaProveedor.servicio,
+      detalle: schema.salidaProveedor.detalle,
+    })
+    .from(schema.salidaProveedor)
+    .innerJoin(
+      schema.proveedor,
+      eq(schema.proveedor.idProveedor, schema.salidaProveedor.idProveedor),
+    )
+    .where(inArray(schema.salidaProveedor.idSalida, idsSalidas))
+    .orderBy(asc(schema.proveedor.nombre))
+
+  for (const fila of filas) {
+    const lista = mapa.get(fila.idSalida) ?? []
+    lista.push({
+      idProveedor: fila.idProveedor,
+      nombre: fila.nombre,
+      servicio: fila.servicio as TipoProveedor,
+      detalle: fila.detalle,
+    })
+    mapa.set(fila.idSalida, lista)
+  }
+  return mapa
+}
+
+/**
+ * Comprueba que cada asignación use un proveedor activo con ese tipo
+ * declarado (RN-PRV-06) y que el proveedor no se repita.
+ */
+export async function validarAsignaciones(
+  asignaciones: Array<{ idProveedor: number; servicio: TipoProveedor }>,
+): Promise<void> {
+  const ids = [...new Set(asignaciones.map((a) => a.idProveedor))]
+  if (asignaciones.length !== ids.length) {
+    throw createError({ statusCode: 400, statusMessage: 'datos_invalidos' })
+  }
+  if (ids.length === 0) return
+
+  const filas = await useDb()
+    .select({
+      idProveedor: schema.proveedorTipo.idProveedor,
+      tipo: schema.proveedorTipo.tipo,
+      estado: schema.proveedor.estado,
+    })
+    .from(schema.proveedorTipo)
+    .innerJoin(
+      schema.proveedor,
+      eq(schema.proveedor.idProveedor, schema.proveedorTipo.idProveedor),
+    )
+    .where(inArray(schema.proveedorTipo.idProveedor, ids))
+
+  for (const asignacion of asignaciones) {
+    const declarado = filas.some(
+      (fila) =>
+        fila.idProveedor === asignacion.idProveedor &&
+        fila.tipo === asignacion.servicio,
+    )
+    if (!declarado) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'servicio_no_declarado',
+      })
+    }
+  }
+
+  const activos = filas.every((fila) => fila.estado === 'activo')
+  if (!activos) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'proveedor_inactivo',
+    })
+  }
+}
+
+/** Reemplaza las asignaciones operativas de una salida (RN-SAL-23). */
+export async function reemplazarAsignaciones(
+  idSalida: number,
+  asignaciones: Array<{
+    idProveedor: number
+    servicio: string
+    detalle?: string | null
+  }>,
+): Promise<void> {
+  await useDb()
+    .delete(schema.salidaProveedor)
+    .where(eq(schema.salidaProveedor.idSalida, idSalida))
+
+  if (asignaciones.length === 0) return
+
+  await useDb().insert(schema.salidaProveedor).values(
+    asignaciones.map((asignacion) => ({
+      idSalida,
+      idProveedor: asignacion.idProveedor,
+      servicio: asignacion.servicio,
+      detalle: asignacion.detalle ?? null,
+    })),
+  )
 }
 
 /** Devuelve una salida con su paquete, o `null` si no existe. */
@@ -148,6 +273,8 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
     where id_salida = ${id}
   `)
 
+  const asignaciones = await cargarAsignaciones([id])
+
   return aSalidaAdmin(
     fila,
     ocupacion
@@ -158,6 +285,7 @@ export async function obtenerSalida(id: number): Promise<SalidaAdmin | null> {
           cupoDisponible: Number(ocupacion.cupo_disponible),
         }
       : undefined,
+    asignaciones.get(id) ?? [],
   )
 }
 

@@ -58,6 +58,7 @@
           :recorrido="recorridoPublico(salida)"
           :desglose="desgloseDe(salida)"
           @solicitar="solicitar"
+          @ver-detalle="abrirFicha"
         />
       </div>
 
@@ -99,6 +100,7 @@
           :salida="salida"
           :recorrido="recorridoDeSalida(salida)"
           @editar="abrirEdicion"
+          @ver-detalle="abrirFicha"
         />
       </div>
 
@@ -137,6 +139,32 @@
       </template>
     </UModal>
 
+    <!--
+      Ficha de una salida (HU-18): el paquete, el mapa del recorrido, el
+      itinerario, los servicios y los proveedores. Abre desde las
+      tarjetas de los dos canales; el administrador puede editar desde
+      ella.
+    -->
+    <UModal
+      v-model:open="fichaAbierta"
+      :title="t('salidas.ficha.titulo')"
+      :ui="{ content: 'max-w-3xl' }"
+    >
+      <template #body>
+        <div v-if="cargandoFicha" class="space-y-3">
+          <USkeleton class="h-16 w-full" />
+          <USkeleton class="h-64 w-full" />
+          <USkeleton class="h-24 w-full" />
+        </div>
+        <SalidasFichaSalida
+          v-else-if="ficha"
+          :ficha="ficha"
+          @cerrar="fichaAbierta = false"
+          @editar="editarDesdeFicha"
+        />
+      </template>
+    </UModal>
+
     <SalidasFormularioSalida
       v-model:open="formularioAbierto"
       :salida="editando"
@@ -150,6 +178,7 @@
 import type { Ref } from 'vue'
 import type { NuxtError } from '#app'
 import type {
+  FichaSalida,
   PaqueteAdmin,
   RespuestaCuenta,
   RespuestaDisponibilidad,
@@ -160,9 +189,11 @@ import type {
   SalidaAdmin,
   SalidaDisponible,
 } from '#shared/types/api'
+import type { ClaveMensaje } from '~/i18n'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
+const avisos = useAvisos()
 const { moneda } = useFormato()
 const { armar: armarRecorrido } = useRecorrido()
 const peticion = useRequestFetch()
@@ -329,6 +360,39 @@ function pagado(respuesta: RespuestaPagos) {
   reservaSolicitada.value = null
   paso.value = 'solicitud'
   recargar()
+}
+
+// --- Ficha de una salida (HU-18) ------------------------------------------
+
+const fichaAbierta = ref(false)
+const ficha = ref<FichaSalida | null>(null)
+const cargandoFicha = ref(false)
+
+/** Carga y abre la ficha de una salida, desde cualquiera de los canales. */
+async function abrirFicha(
+  salida: SalidaDisponible | SalidaAdmin,
+): Promise<void> {
+  const id = 'idSalida' in salida ? salida.idSalida : salida.id_salida
+  fichaAbierta.value = true
+  cargandoFicha.value = true
+  ficha.value = null
+  try {
+    ficha.value = await peticion<FichaSalida>(`/api/salidas/${id}`)
+  } catch (fallo) {
+    fichaAbierta.value = false
+    avisos.fallo(fallo)
+  } finally {
+    cargandoFicha.value = false
+  }
+}
+
+/** Desde la ficha, abre el formulario de edición de la salida. */
+function editarDesdeFicha() {
+  fichaAbierta.value = false
+  const salida = salidasAdmin.value.find(
+    (item) => item.idSalida === ficha.value?.idSalida,
+  )
+  if (salida) abrirEdicion(salida)
 }
 
 // --- Alta y edición de salidas (administrador) ---------------------------

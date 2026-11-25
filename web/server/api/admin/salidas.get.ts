@@ -3,7 +3,7 @@ import * as schema from '../../../db/schema'
 import type { RespuestaSalidas } from '#shared/types/api'
 import { exigirAdmin } from '../../utils/autorizacion'
 import { consultar } from '../../utils/db'
-import { aSalidaAdmin } from '../../utils/salidas'
+import { aSalidaAdmin, cargarAsignaciones } from '../../utils/salidas'
 
 /**
  * Salidas programadas, con el paquete resuelto y la ocupación calculada
@@ -67,9 +67,17 @@ export default defineEventHandler(async (event): Promise<RespuestaSalidas> => {
     ]),
   )
 
+  const asignaciones = await cargarAsignaciones(
+    filas.map((fila) => fila.idSalida),
+  )
+
   return {
     salidas: filas.map((fila) =>
-      aSalidaAdmin(fila, ocupacion.get(fila.idSalida)),
+      aSalidaAdmin(
+        fila,
+        ocupacion.get(fila.idSalida),
+        asignaciones.get(fila.idSalida) ?? [],
+      ),
     ),
   }
 })

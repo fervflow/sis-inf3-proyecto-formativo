@@ -74,6 +74,57 @@ export interface RespuestaDisponibilidad {
   salidas: SalidaDisponible[]
 }
 
+/** Un proveedor en la ficha de la salida (HU-18). */
+export interface ProveedorFicha {
+  idProveedor: number
+  nombre: string
+  /** Tipo de servicio declarado que presta en el paquete (RN-PRV-06). */
+  servicio: TipoProveedor
+  /** Descripción del vínculo con el paquete. */
+  detalle: string | null
+  /** Costo interno del vínculo; solo lo ve el personal (RN-SAL-24). */
+  costo: string | null
+  /** Los detalles del servicio de este proveedor (RN-PRV-08). */
+  detallesServicio: DetalleServicioResumen[]
+}
+
+/**
+ * La ficha de una salida (HU-18): el paquete, el mapa del recorrido, el
+ * itinerario, los servicios y los proveedores, con los costos solo para
+ * el personal (RN-SAL-24).
+ */
+export interface FichaSalida {
+  idSalida: number
+  codigoSalida: string
+  codigoPaquete: string
+  paquete: string
+  descripcion: string | null
+  tipoRecorrido: TipoRecorrido
+  duracionDias: number
+  destino: string | null
+  origen: string | null
+  /** Paradas con coordenadas, para el mapa del recorrido. */
+  paradas: LugarResumen[]
+  itinerario: ItinerarioDia[]
+  servicios: ServicioResumen[]
+  serviciosDetalle: string | null
+  serviciosExcluidos: string | null
+  fechaSalida: string
+  fechaRetorno: string
+  cupoMaximo: number
+  /** Pasajeros de solicitudes pendientes vigentes (en revisión). */
+  pasajerosPendientes: number
+  pasajerosConfirmados: number
+  cupoDisponible: number
+  precio: string
+  precioBase: string
+  puntoEncuentro: string | null
+  estado: EstadoSalida
+  estadoPaquete: EstadoPaquete
+  proveedores: ProveedorFicha[]
+  asignaciones: AsignacionSalidaResumen[]
+}
+
 /** Respuesta del barrido de solicitudes vencidas. */
 export interface RespuestaBarrido {
   vencidas: number
@@ -187,6 +238,32 @@ export interface ReporteResumen {
 /** Respuesta del reporte por fecha. */
 export interface RespuestaReportes {
   salidas: ReporteResumen[]
+}
+
+/** Un día del itinerario de un paquete, día por día (RN-PAQ-18). */
+export interface ItinerarioDia {
+  /** Posición en el relato: 1 es el primer día. */
+  dia: number
+  titulo: string
+  detalle: string | null
+}
+
+/** Un detalle de servicio de un proveedor (RN-PRV-08). */
+export interface DetalleServicioResumen {
+  /** Tipo de servicio declarado al que pertenece el detalle. */
+  tipo: TipoProveedor
+  titulo: string
+  detalle: string | null
+}
+
+/** Una asignación operativa de proveedor en una salida (RN-SAL-23). */
+export interface AsignacionSalidaResumen {
+  idProveedor: number
+  nombre: string
+  /** Tipo de servicio declarado del proveedor (RN-PRV-06). */
+  servicio: TipoProveedor
+  /** Descripción opcional de la asignación concreta. */
+  detalle: string | null
 }
 
 /** Respuesta de la consulta de reservas. */
@@ -323,6 +400,8 @@ export interface ProveedorAdmin {
   nombre: string
   /** Tipos de servicio que declara prestar (RN-PRV-02). */
   tipos: TipoProveedor[]
+  /** Detalles por servicio, para la ficha de la salida (RN-PRV-08). */
+  detalles: DetalleServicioResumen[]
   nit: string | null
   telefono: string | null
   correo: string | null
@@ -348,7 +427,8 @@ export interface PaqueteAdmin {
   descripcion: string | null
   duracionDias: number
   precioBase: string
-  itinerario: string | null
+  /** Itinerario día por día, renumerado al guardar (RN-PAQ-18). */
+  itinerario: ItinerarioDia[]
   serviciosDetalle: string | null
   serviciosExcluidos: string | null
   servicios: ServicioResumen[]
@@ -413,6 +493,8 @@ export interface SalidaAdmin {
   estado: EstadoSalida
   estadoPaquete: EstadoPaquete
   observaciones: string | null
+  /** Asignaciones operativas de proveedores (RN-SAL-23). */
+  asignaciones: AsignacionSalidaResumen[]
   fechaActualizacion: string
 }
 

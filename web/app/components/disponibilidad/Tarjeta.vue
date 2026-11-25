@@ -19,6 +19,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   solicitar: [salida: SalidaDisponible]
+  /** La persona quiere ver la ficha completa de la salida (HU-18). */
+  verDetalle: [salida: SalidaDisponible]
 }>()
 
 const { t } = useTexto()
@@ -189,6 +191,14 @@ const precioDistinto = computed(
 
     <template #pie>
       <div class="flex items-center justify-end gap-2">
+        <UButton
+          size="xs"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-eye"
+          :label="t('salidas.ficha.ver')"
+          @click="emit('verDetalle', salida)"
+        />
         <UButton
           v-if="!agotada"
           size="xs"

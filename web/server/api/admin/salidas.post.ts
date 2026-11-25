@@ -9,6 +9,8 @@ import {
   esquemaSalida,
   hoyIso,
   obtenerSalida,
+  reemplazarAsignaciones,
+  validarAsignaciones,
 } from '../../utils/salidas'
 import { leerCuerpo } from '../../utils/validacion'
 
@@ -64,6 +66,10 @@ export default defineEventHandler(async (event): Promise<SalidaAdmin> => {
     throw createError({ statusCode: 409, statusMessage: 'salida_duplicada' })
   }
 
+  // Las asignaciones usan proveedores activos con el tipo declarado
+  // (RN-SAL-23 y RN-PRV-06).
+  await validarAsignaciones(datos.asignaciones)
+
   try {
     const filas = await consultar<{ id_salida: string | number }>(sql`
       select turismo.fn_crear_salida(
@@ -82,6 +88,8 @@ export default defineEventHandler(async (event): Promise<SalidaAdmin> => {
     if (!Number.isInteger(idSalida) || idSalida < 1) {
       throw createError({ statusCode: 500, statusMessage: 'alta_incompleta' })
     }
+
+    await reemplazarAsignaciones(idSalida, datos.asignaciones)
 
     const salida = await obtenerSalida(idSalida)
     if (!salida) {

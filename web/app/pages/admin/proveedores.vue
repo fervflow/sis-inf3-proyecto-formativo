@@ -103,6 +103,79 @@
             </div>
           </UFormField>
 
+          <!--
+            Detalles por servicio (RN-PRV-08): la oferta del proveedor,
+            con su tipo declarado y su orden.
+          -->
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                  {{ t('proveedores.detalles.titulo') }}
+                </p>
+                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                  {{ t('proveedores.detalles.ayuda') }}
+                </p>
+              </div>
+              <UButton
+                type="button"
+                size="xs"
+                color="neutral"
+                variant="soft"
+                icon="i-lucide-plus"
+                :label="t('proveedores.detalles.agregar')"
+                :disabled="formulario.tipos.length === 0"
+                @click="agregarDetalle"
+              />
+            </div>
+
+            <p
+              v-if="formulario.detalles.length === 0"
+              class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+            >
+              {{ t('proveedores.detalles.vacio') }}
+            </p>
+
+            <div
+              v-for="(detalle, indice) in formulario.detalles"
+              :key="indice"
+              class="space-y-2 rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
+            >
+              <div class="grid items-center gap-2 sm:grid-cols-[auto_1fr_auto]">
+                <USelect
+                  v-model="detalle.tipo"
+                  :items="tiposDisponiblesDetalle(indice)"
+                  size="sm"
+                  class="w-full sm:w-36"
+                />
+                <UInput
+                  v-model="detalle.titulo"
+                  :placeholder="t('proveedores.detalles.tituloPlaceholder')"
+                  maxlength="150"
+                  size="sm"
+                  class="w-full"
+                />
+                <UButton
+                  type="button"
+                  size="xs"
+                  variant="ghost"
+                  color="error"
+                  icon="i-lucide-trash-2"
+                  :aria-label="t('proveedores.detalles.quitar')"
+                  @click="quitarDetalle(indice)"
+                />
+              </div>
+              <UTextarea
+                v-model="detalle.detalle"
+                :placeholder="t('proveedores.detalles.contenido')"
+                :rows="2"
+                maxlength="2000"
+                size="sm"
+                class="w-full"
+              />
+            </div>
+          </div>
+
           <div class="grid gap-4 sm:grid-cols-2">
             <UFormField :label="t('proveedores.form.nit')" name="nit">
               <UInput
@@ -261,6 +334,7 @@ import type {
   EstadoProveedor,
   TipoProveedor,
 } from '#shared/types/domain'
+import type { ClaveMensaje } from '~/i18n'
 
 const peticion = useRequestFetch()
 const { t } = useTexto()
@@ -316,6 +390,7 @@ const editando = ref<ProveedorAdmin | null>(null)
 const formulario = reactive({
   nombre: '',
   tipos: [] as TipoProveedor[],
+  detalles: [] as Array<{ tipo: TipoProveedor; titulo: string; detalle: string }>,
   nit: '',
   telefono: '',
   correo: '',
@@ -334,12 +409,44 @@ function alternarTipo(tipo: TipoProveedor, valor: boolean) {
   formulario.tipos = valor
     ? [...formulario.tipos, tipo]
     : formulario.tipos.filter((actual) => actual !== tipo)
+  // Un tipo retirado se lleva sus detalles (RN-PRV-08).
+  if (!valor) {
+    formulario.detalles = formulario.detalles.filter(
+      (detalle) => detalle.tipo !== tipo,
+    )
+  }
+}
+
+/** Tipos declarados que la fila todavía no usa (RN-PRV-08). */
+function tiposDisponiblesDetalle(indice: number) {
+  const usados = new Set(
+    formulario.detalles
+      .filter((_, actual) => actual !== indice)
+      .map((detalle) => detalle.tipo),
+  )
+  return formulario.tipos
+    .filter((tipo) => !usados.has(tipo))
+    .map((tipo) => ({
+      label: t(`proveedores.tipos.${tipo}` as ClaveMensaje),
+      value: tipo,
+    }))
+}
+
+function agregarDetalle() {
+  const primero = formulario.tipos[0]
+  if (!primero) return
+  formulario.detalles.push({ tipo: primero, titulo: '', detalle: '' })
+}
+
+function quitarDetalle(indice: number) {
+  formulario.detalles.splice(indice, 1)
 }
 
 function abrirAlta() {
   editando.value = null
   formulario.nombre = ''
   formulario.tipos = []
+  formulario.detalles = []
   formulario.nit = ''
   formulario.telefono = ''
   formulario.correo = ''
@@ -354,6 +461,11 @@ function abrirEdicion(proveedor: ProveedorAdmin) {
   editando.value = proveedor
   formulario.nombre = proveedor.nombre
   formulario.tipos = [...proveedor.tipos]
+  formulario.detalles = proveedor.detalles.map((detalle) => ({
+    tipo: detalle.tipo,
+    titulo: detalle.titulo,
+    detalle: detalle.detalle ?? '',
+  }))
   formulario.nit = proveedor.nit ?? ''
   formulario.telefono = proveedor.telefono ?? ''
   formulario.correo = proveedor.correo ?? ''
@@ -377,11 +489,25 @@ async function guardar() {
     return
   }
 
+  if (
+    formulario.detalles.some(
+      (detalle) => !formulario.tipos.includes(detalle.tipo),
+    )
+  ) {
+    errorFormulario.value = t('proveedores.errores.detalleDeclarado')
+    return
+  }
+
   guardando.value = true
 
   const cuerpo = {
     nombre: formulario.nombre,
     tipos: formulario.tipos,
+    detalles: formulario.detalles.map((detalle) => ({
+      tipo: detalle.tipo,
+      titulo: detalle.titulo.trim(),
+      detalle: detalle.detalle.trim() || null,
+    })),
     nit: formulario.nit,
     telefono: formulario.telefono,
     correo: formulario.correo,

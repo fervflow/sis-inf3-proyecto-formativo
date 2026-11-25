@@ -224,6 +224,34 @@ export const proveedorTipo = turismo.table(
   ],
 )
 
+// Detalles de cada servicio que declara el proveedor (RN-PRV-08): qué
+// guía conduce, qué menú se sirve y sus alérgenos, qué unidad sale a la
+// ruta. La oferta es del proveedor, no del paquete.
+export const proveedorServicio = turismo.table(
+  'proveedor_servicio',
+  {
+    idProveedorServicio: bigint('id_proveedor_servicio', { mode: 'number' })
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
+    idProveedor: bigint('id_proveedor', { mode: 'number' })
+      .notNull()
+      .references(() => proveedor.idProveedor, { onDelete: 'cascade' }),
+    tipo: varchar('tipo', { length: 20 }).notNull(),
+    titulo: varchar('titulo', { length: 150 }).notNull(),
+    detalle: text('detalle'),
+    orden: smallint('orden').notNull().default(0),
+  },
+  (tabla) => [
+    index('ix_proveedor_servicio').on(tabla.idProveedor, tabla.tipo, tabla.orden),
+    foreignKey({
+      name: 'fk_proveedor_servicio_tipo',
+      columns: [tabla.idProveedor, tabla.tipo],
+      foreignColumns: [proveedorTipo.idProveedor, proveedorTipo.tipo],
+    }).onDelete('cascade'),
+    check('ck_proveedor_servicio_titulo', sql`btrim(${tabla.titulo}) <> ''`),
+  ],
+)
+
 export const paquete = turismo.table('paquete', {
   idPaquete: bigint('id_paquete', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   codigo: varchar('codigo', { length: 20 }).notNull().unique(),
@@ -242,7 +270,6 @@ export const paquete = turismo.table('paquete', {
   descripcion: text('descripcion'),
   duracionDias: smallint('duracion_dias').notNull(),
   precioBase: numeric('precio_base', { precision: 12, scale: 2 }).notNull(),
-  itinerario: text('itinerario'),
   serviciosDetalle: text('servicios_detalle'),
   serviciosExcluidos: text('servicios_excluidos'),
   estado: varchar('estado', { length: 15 }).notNull().default('borrador'),
@@ -258,6 +285,27 @@ export const paquete = turismo.table('paquete', {
     .notNull()
     .defaultNow(),
 })
+
+// Itinerario del paquete, día por día (HU-01). El número de día es la
+// posición en el relato; la interfaz reordena la lista y renumera al
+// guardar.
+export const paqueteItinerario = turismo.table(
+  'paquete_itinerario',
+  {
+    idPaquete: bigint('id_paquete', { mode: 'number' })
+      .notNull()
+      .references(() => paquete.idPaquete, { onDelete: 'cascade' }),
+    dia: smallint('dia').notNull(),
+    titulo: varchar('titulo', { length: 150 }).notNull(),
+    detalle: text('detalle'),
+  },
+  (tabla) => [
+    uniqueIndex('paquete_itinerario_pkey').on(tabla.idPaquete, tabla.dia),
+    index('ix_paquete_itinerario').on(tabla.idPaquete, tabla.dia),
+    check('ck_paquete_itinerario_dia', sql`${tabla.dia} > 0`),
+    check('ck_paquete_itinerario_titulo', sql`btrim(${tabla.titulo}) <> ''`),
+  ],
+)
 
 export const paqueteParada = turismo.table(
   'paquete_parada',
@@ -351,6 +399,34 @@ export const salida = turismo.table(
     uniqueIndex('ux_salida_paquete_fecha').on(tabla.idPaquete, tabla.fechaSalida),
     index('ix_salida_paquete_fecha').on(tabla.idPaquete, tabla.fechaSalida),
     index('ix_salida_fecha').on(tabla.fechaSalida),
+  ],
+)
+
+// Asignación operativa de proveedores a una salida (RN-SAL-23). La capa
+// del paquete es el contrato con su costo; esta es la de la salida
+// concreta: qué guía conduce, con qué unidad se viaja. Es opcional, sin
+// costos y no cambia el cupo ni el precio.
+export const salidaProveedor = turismo.table(
+  'salida_proveedor',
+  {
+    idSalida: bigint('id_salida', { mode: 'number' })
+      .notNull()
+      .references(() => salida.idSalida, { onDelete: 'cascade' }),
+    idProveedor: bigint('id_proveedor', { mode: 'number' })
+      .notNull()
+      .references(() => proveedor.idProveedor, { onDelete: 'restrict' }),
+    // El servicio es el tipo declarado del proveedor (RN-PRV-06).
+    servicio: varchar('servicio', { length: 20 }).notNull(),
+    // Descripción opcional de la asignación concreta en esta salida.
+    detalle: varchar('detalle', { length: 200 }),
+  },
+  (tabla) => [
+    uniqueIndex('salida_proveedor_pkey').on(tabla.idSalida, tabla.idProveedor),
+    foreignKey({
+      name: 'fk_salida_proveedor_servicio',
+      columns: [tabla.idProveedor, tabla.servicio],
+      foreignColumns: [proveedorTipo.idProveedor, proveedorTipo.tipo],
+    }),
   ],
 )
 

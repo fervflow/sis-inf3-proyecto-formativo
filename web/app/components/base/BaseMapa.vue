@@ -19,12 +19,15 @@ interface MarcadorMapa {
 const props = withDefaults(
   defineProps<{
     marcadores?: MarcadorMapa[]
+    /** Paradas ordenadas del recorrido: se unen con una línea (HU-18). */
+    ruta?: Array<{ latitud: number; longitud: number }>
     altura?: string
     interactivo?: boolean
     zoom?: number
   }>(),
   {
     marcadores: () => [],
+    ruta: () => [],
     altura: '220px',
     interactivo: false,
     zoom: 13,
@@ -55,11 +58,26 @@ function crearIcono() {
   })
 }
 
-/** Dibuja los marcadores y encuadra el mapa. */
+/** Dibuja los marcadores, la línea de ruta y encuadra el mapa. */
 function dibujar() {
   if (!mapa || !capa || !L) return
 
   capa.clearLayers()
+
+  // La ruta une las paradas en orden; se dibuja antes de los marcadores
+  // para que quede debajo.
+  if (props.ruta.length > 1) {
+    const linea = L.polyline(
+      props.ruta.map((punto) => [punto.latitud, punto.longitud]),
+      {
+        color: 'var(--vt-color-marca-600)',
+        weight: 3,
+        opacity: 0.75,
+        dashArray: '6 8',
+      },
+    )
+    linea.addTo(capa)
+  }
 
   for (const marcador of props.marcadores) {
     const icono = crearIcono()
@@ -86,9 +104,11 @@ function dibujar() {
   }
 
   const primero = props.marcadores[0]
-  if (props.marcadores.length > 1) {
+  const puntosParaEncuadre =
+    props.ruta.length > 1 ? props.ruta : props.marcadores
+  if (puntosParaEncuadre.length > 1) {
     const limites = L.latLngBounds(
-      props.marcadores.map((marcador) => [marcador.latitud, marcador.longitud]),
+      puntosParaEncuadre.map((punto) => [punto.latitud, punto.longitud]),
     )
     mapa.fitBounds(limites, { padding: [28, 28], maxZoom: 12 })
   } else if (primero) {
@@ -142,7 +162,7 @@ onMounted(async () => {
 })
 
 watch(
-  () => props.marcadores,
+  () => [props.marcadores, props.ruta],
   () => dibujar(),
   { deep: true },
 )

@@ -4,6 +4,7 @@ import type { RespuestaPaquetes } from '#shared/types/api'
 import { exigirAdmin } from '../../utils/autorizacion'
 import {
   aPaqueteAdmin,
+  cargarItinerario,
   cargarLugares,
   cargarParadas,
   cargarServicios,
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event): Promise<RespuestaPaquetes> => {
 
   const lugares = await cargarLugares(idsLugares)
   const paradas = await cargarParadas(ids)
+  const itinerario = await cargarItinerario(ids)
   const servicios = await cargarServicios(ids)
   const proveedores = await cargarProveedoresDePaquetes(ids)
 
@@ -42,6 +44,7 @@ export default defineEventHandler(async (event): Promise<RespuestaPaquetes> => {
         fila.idLugarDestino ? (lugares.get(fila.idLugarDestino) ?? null) : null,
         fila.idLugarOrigen ? (lugares.get(fila.idLugarOrigen) ?? null) : null,
         paradas.get(fila.idPaquete) ?? [],
+        itinerario.get(fila.idPaquete) ?? [],
         servicios.get(fila.idPaquete) ?? [],
         proveedores.get(fila.idPaquete) ?? [],
       ),

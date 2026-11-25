@@ -20,6 +20,12 @@ interface RangoFechas {
   end: CalendarDate
 }
 
+/** Un día del itinerario en el formulario, con textos editables. */
+interface DiaItinerario {
+  titulo: string
+  detalle: string
+}
+
 interface Formulario {
   nombre: string
   destino: LugarResumen | null
@@ -28,7 +34,7 @@ interface Formulario {
   descripcion: string
   duracionDias: number | null
   precioBase: number | null
-  itinerario: string
+  itinerario: DiaItinerario[]
   serviciosDetalle: string
   serviciosExcluidos: string
   paradas: LugarResumen[]
@@ -73,7 +79,7 @@ const formulario = reactive<Formulario>({
   descripcion: '',
   duracionDias: null,
   precioBase: null,
-  itinerario: '',
+  itinerario: [],
   serviciosDetalle: '',
   serviciosExcluidos: '',
   paradas: [],
@@ -161,7 +167,7 @@ const publicacionFaltantes = computed<ClaveMensaje[]>(() => {
   if (!formulario.descripcion.trim()) {
     faltantes.push('paquetes.faltantes.descripcion')
   }
-  if (!formulario.itinerario.trim()) {
+  if (formulario.itinerario.length === 0) {
     faltantes.push('paquetes.faltantes.itinerario')
   }
   if (formulario.servicios.length === 0) {
@@ -215,7 +221,10 @@ function inicializar() {
   formulario.descripcion = paquete?.descripcion ?? ''
   formulario.duracionDias = paquete?.duracionDias ?? null
   formulario.precioBase = paquete ? Number(paquete.precioBase) : null
-  formulario.itinerario = paquete?.itinerario ?? ''
+  formulario.itinerario = (paquete?.itinerario ?? []).map((dia) => ({
+    titulo: dia.titulo,
+    detalle: dia.detalle ?? '',
+  }))
   formulario.serviciosDetalle = paquete?.serviciosDetalle ?? ''
   formulario.serviciosExcluidos = paquete?.serviciosExcluidos ?? ''
   formulario.paradas = [...(paquete?.paradas ?? [])]
@@ -337,7 +346,7 @@ function validar(estadoObjetivo: EstadoPaquete): boolean {
       erroresCampo.descripcion = t('paquetes.errores.descripcion')
       valido = false
     }
-    if (!formulario.itinerario.trim()) {
+    if (formulario.itinerario.length === 0) {
       erroresCampo.itinerario = t('paquetes.errores.itinerario')
       valido = false
     }
@@ -350,6 +359,26 @@ function validar(estadoObjetivo: EstadoPaquete): boolean {
   mensajeValidacion.value = valido ? null : t('paquetes.errores.revisar')
   return valido
 }
+
+/** Agrega, quita y reordena los días del itinerario (RN-PAQ-18). */
+function agregarDia() {
+  formulario.itinerario.push({ titulo: '', detalle: '' })
+}
+
+function quitarDia(indice: number) {
+  formulario.itinerario.splice(indice, 1)
+}
+
+function moverDia(desde: number, hasta: number) {
+  if (hasta < 0 || hasta >= formulario.itinerario.length) return
+  const dia = formulario.itinerario[desde]
+  if (!dia) return
+  formulario.itinerario.splice(desde, 1)
+  formulario.itinerario.splice(hasta, 0, dia)
+}
+
+const subirDia = (indice: number) => moverDia(indice, indice - 1)
+const bajarDia = (indice: number) => moverDia(indice, indice + 1)
 
 async function guardar(estadoObjetivo: EstadoPaquete) {
   errorFormulario.value = null
@@ -367,7 +396,10 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
     descripcion: formulario.descripcion,
     duracionDias: formulario.duracionDias,
     precioBase: formulario.precioBase,
-    itinerario: formulario.itinerario,
+    itinerario: formulario.itinerario.map((dia) => ({
+      titulo: dia.titulo.trim(),
+      detalle: dia.detalle.trim() || null,
+    })),
     serviciosDetalle: formulario.serviciosDetalle,
     serviciosExcluidos: formulario.serviciosExcluidos,
     paradas: formulario.paradas.map((parada) => parada.idLugar),
@@ -547,7 +579,11 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
             <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
               {{ t('paquetes.columnas.recorrido') }}
             </p>
-            <BaseMapa :marcadores="marcadoresRecorrido" altura="180px" />
+            <BaseMapa
+              :marcadores="marcadoresRecorrido"
+              :ruta="marcadoresRecorrido"
+              altura="180px"
+            />
           </div>
         </section>
 
@@ -574,21 +610,109 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
             />
           </UFormField>
 
-          <UFormField
-            :label="t('paquetes.form.itinerario')"
-            name="itinerario"
-            :help="t('paquetes.ayudaItinerario')"
-            :error="erroresCampo.itinerario"
-            :hint="`${formulario.itinerario.length}/4000`"
-            :required="formulario.estado === 'activo'"
-          >
-            <UTextarea
-              v-model="formulario.itinerario"
-              :rows="5"
-              maxlength="4000"
-              class="w-full"
-            />
-          </UFormField>
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                  {{ t('paquetes.form.itinerario') }}
+                </p>
+                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                  {{ t('paquetes.ayudaItinerario') }}
+                </p>
+              </div>
+              <UButton
+                type="button"
+                size="xs"
+                color="neutral"
+                variant="soft"
+                icon="i-lucide-plus"
+                :label="t('paquetes.itinerario.agregar')"
+                @click="agregarDia"
+              />
+            </div>
+
+            <p
+              v-if="formulario.itinerario.length === 0"
+              class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+            >
+              {{ t('paquetes.itinerario.vacio') }}
+            </p>
+
+            <div
+              v-for="(dia, indice) in formulario.itinerario"
+              :key="indice"
+              class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
+            >
+              <div class="flex items-start gap-2">
+                <div class="flex flex-col gap-0.5 pt-1">
+                  <UButton
+                    type="button"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-lucide-chevron-up"
+                    :disabled="indice === 0"
+                    :aria-label="t('paquetes.itinerario.subir')"
+                    @click="subirDia(indice)"
+                  />
+                  <UButton
+                    type="button"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-lucide-chevron-down"
+                    :disabled="indice === formulario.itinerario.length - 1"
+                    :aria-label="t('paquetes.itinerario.bajar')"
+                    @click="bajarDia(indice)"
+                  />
+                </div>
+
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--vt-color-marca-100) text-xs font-(--vt-texto-peso-medio) text-(--vt-color-marca-800)"
+                    >
+                      {{ indice + 1 }}
+                    </span>
+                    <UInput
+                      v-model="dia.titulo"
+                      :placeholder="t('paquetes.itinerario.titulo')"
+                      maxlength="150"
+                      size="sm"
+                      class="w-full"
+                      :required="formulario.estado === 'activo'"
+                    />
+                  </div>
+                  <UTextarea
+                    v-model="dia.detalle"
+                    :placeholder="t('paquetes.itinerario.detalle')"
+                    :rows="2"
+                    maxlength="4000"
+                    size="sm"
+                    class="w-full"
+                  />
+                </div>
+
+                <UButton
+                  type="button"
+                  size="xs"
+                  variant="ghost"
+                  color="error"
+                  icon="i-lucide-trash-2"
+                  class="mt-1"
+                  :aria-label="t('paquetes.itinerario.quitar')"
+                  @click="quitarDia(indice)"
+                />
+              </div>
+            </div>
+
+            <p
+              v-if="erroresCampo.itinerario"
+              class="text-(--vt-texto-sm) text-(--vt-color-error-600)"
+            >
+              {{ erroresCampo.itinerario }}
+            </p>
+          </div>
 
           <UFormField
             :label="t('paquetes.form.servicios')"

@@ -5,10 +5,12 @@ import type { EstadoPaquete } from '#shared/types/domain'
 import { exigirAdmin } from '../../../utils/autorizacion'
 import {
   aPaqueteAdmin,
+  cargarItinerario,
   cargarLugares,
   cargarParadas,
   cargarServicios,
   esquemaPaquete,
+  reemplazarItinerario,
   reemplazarParadas,
   reemplazarServicios,
   validarLugares,
@@ -20,7 +22,9 @@ import { leerCuerpo } from '../../../utils/validacion'
 import { cargarProveedoresDePaquetes } from '../../../utils/proveedores'
 
 /**
- * Edición de un paquete turístico. El código no cambia.
+ * Edición de un paquete turístico. El código no cambia y el itinerario
+ * se reemplaza completo, renumerado por el orden de la lista
+ * (RN-PAQ-18).
  */
 export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   const sesion = exigirAdmin(event)
@@ -31,7 +35,13 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
   }
 
   const datos = await leerCuerpo(event, esquemaPaquete)
-  validarPaquetePublicable(datos)
+  validarPaquetePublicable({
+    estado: datos.estado,
+    idLugarDestino: datos.idLugarDestino,
+    descripcion: datos.descripcion,
+    itinerario: datos.itinerario,
+    servicios: datos.servicios,
+  })
 
   const db = useDb()
 
@@ -67,7 +77,6 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
         descripcion: datos.descripcion || null,
         duracionDias: datos.duracionDias,
         precioBase: datos.precioBase.toFixed(2),
-        itinerario: datos.itinerario || null,
         serviciosDetalle: datos.serviciosDetalle || null,
         serviciosExcluidos: datos.serviciosExcluidos || null,
         estado: datos.estado,
@@ -85,6 +94,7 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
     }
 
     await reemplazarParadas(tx, id, datos.paradas)
+    await reemplazarItinerario(tx, id, datos.itinerario)
     await reemplazarServicios(tx, id, datos.servicios)
     return actualizado
   })
@@ -95,6 +105,7 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
     ),
   )
   const paradas = await cargarParadas([id])
+  const itinerario = await cargarItinerario([id])
   const servicios = await cargarServicios([id])
   const proveedores = await cargarProveedoresDePaquetes([id])
 
@@ -103,6 +114,7 @@ export default defineEventHandler(async (event): Promise<PaqueteAdmin> => {
     fila.idLugarDestino ? (lugares.get(fila.idLugarDestino) ?? null) : null,
     fila.idLugarOrigen ? (lugares.get(fila.idLugarOrigen) ?? null) : null,
     paradas.get(id) ?? [],
+    itinerario.get(id) ?? [],
     servicios.get(id) ?? [],
     proveedores.get(id) ?? [],
   )

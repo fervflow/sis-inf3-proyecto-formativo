@@ -66,7 +66,7 @@ En `app/components/base/`, con prefijo `Base`:
 | `BaseEstadoVacio` | Lo que se ve cuando no hay nada |
 | `BaseDato` | Indicador con etiqueta |
 | `BaseCampoMoneda` | Importe en bolivianos con formato y dos decimales |
-| `BaseMapa` | Mapa de OpenStreetMap con marcadores; solo se carga en el cliente |
+| `BaseMapa` | Mapa de OpenStreetMap con marcadores y línea de ruta opcional; solo se carga en el cliente |
 | `BaseBarraCupo` | Barra de ocupación en dos segmentos: confirmados y pendientes |
 
 Ejemplo de tabla:
@@ -121,10 +121,15 @@ pagos cambian. El registro de oficina sugiere el tipo y el monto según
 los pagos ya registrados: sin anticipo propone el mínimo del 30%; con
 anticipo pasa al saldo y admite abonarlo por partes con `BaseCampoMoneda`. En `disponibilidad/`
 vive `Tarjeta`, el espejo público de la tarjeta de salidas: muestra el
-paquete, fechas, ocupación y precio, y emite `solicitar` para pedir cupo.
-En `salidas/` viven `Tarjeta`, la tarjeta del panel, y `FormularioSalida`,
-el modal de alta y edición: recibe la salida a editar, o `null` para el
-alta, junto con el catálogo de paquetes, y emite `guardada`.
+paquete, fechas, ocupación y precio, y emite `solicitar` y `verDetalle`.
+En `salidas/` viven `Tarjeta`, la tarjeta del panel, `FormularioSalida`,
+el modal de alta y edición — que recibe la salida a editar, o `null` para
+el alta, junto con el catálogo de paquetes, edita las asignaciones
+operativas de proveedores (RN-SAL-23) y emite `guardada` — y
+`FichaSalida`, el contenido del modal de la ficha de la salida (HU-18):
+mapa del recorrido con la línea de ruta, itinerario por días, servicios
+incluidos y exclusiones, y proveedores con sus detalles por servicio. Los
+costos internos y el botón de edición solo aparecen para el personal.
 
 ## Slots
 
