@@ -4,9 +4,10 @@
  *
  * Emula el cobro por banca móvil o código QR: el servidor genera la
  * referencia y el pago nace `registrado`, a la espera de la validación
- * del personal (RN-PAG-03 y RN-PAG-04). El mínimo del anticipo y el tope
- * del saldo los aplica `fn_registrar_pago`; la interfaz muestra los
- * mismos límites con los datos de la consulta de pagos.
+ * del personal (RN-PAG-03 y RN-PAG-04). La reserva manda: sin anticipo
+ * se paga el anticipo (mínimo del 30%, RN-PAG-01); con el anticipo ya
+ * validado se paga el saldo, que admite abonos parciales (RN-PAG-05);
+ * si el anticipo aún espera validación, no se paga nada todavía.
  */
 import type { ClaveMensaje } from '~/i18n'
 import type {
@@ -33,62 +34,61 @@ const emit = defineEmits<{
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
+const avisos = useAvisos()
 const { moneda } = useFormato()
 
 const cargando = ref(false)
 const error = ref<string | null>(null)
 const pagos = ref<RespuestaPagos | null>(null)
 
-/** Todo lo no anulado: un pago registrado también compromete el total. */
-const comprometido = computed(() => {
-  if (!pagos.value) return 0
-  const total = Number(pagos.value.resumen.montoTotal) || 0
-  return Math.round((total - Number(pagos.value.resumen.saldoPendiente)) * 100) / 100
+const resumen = computed(() => pagos.value?.resumen)
+
+/** El pendiente real para un pago nuevo: el saldo menos lo en revisión. */
+const disponible = computed(() => {
+  if (!resumen.value) return 0
+  return (
+    Math.round(
+      (Number(resumen.value.saldoPendiente) - Number(resumen.value.enRevision)) * 100,
+    ) / 100
+  )
 })
 
-const tieneAnticipo = computed(
-  () =>
-    pagos.value?.pagos.some(
-      (pago) => pago.tipo === 'anticipo' && pago.estado !== 'anulado',
-    ) ?? false,
+/** Lo comprometido: lo abonado validado más lo que espera validación. */
+const comprometido = computed(() => {
+  if (!resumen.value) return 0
+  return (
+    Math.round(
+      (Number(resumen.value.abonado) + Number(resumen.value.enRevision)) * 100,
+    ) / 100
+  )
+})
+
+const tieneAnticipo = computed(() =>
+  (pagos.value?.pagos ?? []).some(
+    (pago) => pago.tipo === 'anticipo' && pago.estado !== 'anulado',
+  ),
 )
 
-/** El saldo solo existe si ya hay anticipo, y paga el resto exacto. */
-const disponible = computed(() => {
-  const total = Number(props.reserva.montoTotal) || 0
-  return Math.round((total - comprometido.value) * 100) / 100
-})
+/** Lo registrado como anticipo: la suma de los anticipos no anulados. */
+const anticipoRegistrado = computed(() =>
+  (pagos.value?.pagos ?? [])
+    .filter((pago) => pago.tipo === 'anticipo' && pago.estado !== 'anulado')
+    .reduce((total, pago) => total + Number(pago.monto), 0),
+)
+
+const anticipoValidado = computed(() => resumen.value?.anticipoValidado ?? false)
+
+/** El pago que sigue: anticipo si falta, saldo si el anticipo ya valida. */
+const tipoPago = computed<'anticipo' | 'saldo'>(() =>
+  tieneAnticipo.value ? 'saldo' : 'anticipo',
+)
 
 const minimo = computed(() => montoMinimoAnticipo(props.reserva.montoTotal))
 
-const puedeSaldo = computed(() => tieneAnticipo.value && disponible.value > 0)
-
 const formulario = reactive({
-  tipo: 'anticipo' as 'anticipo' | 'saldo',
   metodo: 'banca_movil' as (typeof METODOS_WEB)[number],
-  monto: minimo.value,
+  monto: 0,
 })
-
-/** Al cargar los pagos, el monto se ajusta al mínimo o al resto. */
-async function cargarPagos() {
-  try {
-    pagos.value = await $fetch<RespuestaPagos>('/api/pagos', {
-      query: { reserva: props.reserva.idReserva },
-    })
-    ajustar()
-  } catch (fallo) {
-    error.value = mensajeDeError(fallo)
-  }
-}
-
-function ajustar() {
-  formulario.monto = formulario.tipo === 'saldo' ? disponible.value : minimo.value
-}
-
-watch(
-  () => formulario.tipo,
-  ajustar,
-)
 
 const metodos = computed(() =>
   METODOS_WEB.map((metodo) => ({
@@ -97,21 +97,31 @@ const metodos = computed(() =>
   })),
 )
 
-const tipos = computed(() => [
-  { label: t('pagos.tipos.anticipo'), value: 'anticipo' as const },
-  ...(puedeSaldo.value
-    ? [{ label: t('pagos.tipos.saldo'), value: 'saldo' as const }]
-    : []),
-])
-
 const montoInvalido = computed(() => {
-  if (formulario.tipo === 'saldo') {
-    return Math.abs(formulario.monto - disponible.value) > 0.005
+  if (tipoPago.value === 'saldo') {
+    return formulario.monto < 0.01 || formulario.monto > disponible.value + 0.005
   }
   return (
     formulario.monto < minimo.value - 0.005 || formulario.monto > disponible.value + 0.005
   )
 })
+
+/** El anticipo está registrado pero el personal todavía no lo valida. */
+const esperandoValidacion = computed(
+  () => tieneAnticipo.value && !anticipoValidado.value,
+)
+
+async function cargarPagos() {
+  error.value = null
+  try {
+    pagos.value = await $fetch<RespuestaPagos>('/api/pagos', {
+      query: { reserva: props.reserva.idReserva },
+    })
+    formulario.monto = tipoPago.value === 'saldo' ? disponible.value : minimo.value
+  } catch (fallo) {
+    error.value = mensajeDeError(fallo)
+  }
+}
 
 async function pagar() {
   if (montoInvalido.value) return
@@ -122,7 +132,7 @@ async function pagar() {
       method: 'POST',
       body: {
         idReserva: props.reserva.idReserva,
-        tipo: formulario.tipo,
+        tipo: tipoPago.value,
         monto: formulario.monto,
         metodo: formulario.metodo,
         observacion: t('pasarela.observacion'),
@@ -130,98 +140,142 @@ async function pagar() {
     })
     emit('pagado', respuesta)
   } catch (fallo) {
-    error.value = mensajeDeError(fallo)
+    avisos.fallo(fallo)
   } finally {
     cargando.value = false
   }
 }
 
 await cargarPagos()
-
-defineExpose({ ajustar })
 </script>
 
 <template>
-  <form id="form-pago" class="space-y-4" @submit.prevent="pagar">
-    <UAlert
-      color="info"
-      variant="soft"
-      icon="i-lucide-credit-card"
-      :title="t('pasarela.introduccion')"
-    />
-
-    <div
-      class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
-    >
-      <p class="font-(--vt-texto-peso-medio)">
-        {{ reserva.paquete }} · {{ reserva.codigo }}
-      </p>
-      <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
-        {{ t('pagos.total') }}: {{ moneda(reserva.montoTotal) }}
-        <template v-if="comprometido > 0">
-          · {{ t('pagos.comprometido') }}: {{ moneda(String(comprometido)) }}
-        </template>
-      </p>
-    </div>
-
-    <div class="grid gap-4 sm:grid-cols-2">
-      <UFormField :label="t('pagos.form.tipo')" name="tipo">
-        <USelect v-model="formulario.tipo" :items="tipos" class="w-full" />
-      </UFormField>
-
-      <UFormField :label="t('pagos.form.metodo')" name="metodo">
-        <USelect v-model="formulario.metodo" :items="metodos" class="w-full" />
-      </UFormField>
-    </div>
-
-    <UFormField
-      :label="t('pagos.form.monto')"
-      name="monto"
-      :help="
-        formulario.tipo === 'saldo'
-          ? t('pagos.ayudaSaldo')
-          : t('pagos.ayudaMinimo', { porcentaje: ANTICIPO_MINIMO_PORCENTAJE })
-      "
-    >
-      <UInputNumber
-        v-model="formulario.monto"
-        :min="formulario.tipo === 'saldo' ? disponible : minimo"
-        :max="disponible"
-        :step="10"
-        :disabled="formulario.tipo === 'saldo'"
-        class="w-full"
+  <div class="space-y-4">
+    <!--
+      Anticipo registrado y sin validar: no se paga nada más todavía.
+      El pago quedará en revisión junto al anticipo y no avanza la
+      reserva; mejor esperar la validación.
+    -->
+    <template v-if="esperandoValidacion">
+      <UAlert
+        color="warning"
+        variant="soft"
+        icon="i-lucide-shield-alert"
+        :title="t('pasarela.anticipoEnRevisionTitulo')"
+        :description="
+          t('pasarela.anticipoEnRevision', {
+            monto: moneda(String(anticipoRegistrado)),
+          })
+        "
       />
-      <p class="mt-1 text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
-        {{ t('pasarela.minimo', { monto: moneda(String(minimo)) }) }}
-      </p>
-    </UFormField>
 
-    <UAlert
-      color="neutral"
-      variant="subtle"
-      icon="i-lucide-rotate-ccw"
-      :title="t('pagos.lineamientosTitulo')"
-      :description="t('pagos.lineamientos')"
-    />
+      <UAlert v-if="error" color="error" variant="soft" :title="error" />
 
-    <UAlert v-if="error" color="error" variant="soft" :title="error" />
+      <div class="flex justify-end">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :label="t('pasarela.tarde')"
+          @click="emit('cancelar')"
+        />
+      </div>
+    </template>
 
-    <div class="flex justify-end gap-2">
-      <UButton
+    <form v-else id="form-pago" class="space-y-4" @submit.prevent="pagar">
+      <UAlert
+        color="info"
+        variant="soft"
+        icon="i-lucide-credit-card"
+        :title="t('pasarela.introduccion')"
+      />
+
+      <div
+        class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
+      >
+        <p class="font-(--vt-texto-peso-medio)">
+          {{ reserva.paquete }} · {{ reserva.codigo }}
+        </p>
+        <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+          {{ t('pagos.total') }}: {{ moneda(reserva.montoTotal) }}
+          <template v-if="comprometido > 0">
+            · {{ t('pagos.comprometido') }}: {{ moneda(String(comprometido)) }}
+          </template>
+        </p>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <UFormField :label="t('pagos.form.tipo')" name="tipo">
+          <USelect
+            :model-value="tipoPago"
+            :items="[
+              {
+                label: t(`pagos.tipos.${tipoPago}` as ClaveMensaje),
+                value: tipoPago,
+              },
+            ]"
+            disabled
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField :label="t('pagos.form.metodo')" name="metodo">
+          <USelect v-model="formulario.metodo" :items="metodos" class="w-full" />
+        </UFormField>
+      </div>
+
+      <UFormField
+        :label="t('pagos.form.monto')"
+        name="monto"
+        :help="
+          tipoPago === 'saldo'
+            ? t('pagos.ayudaSaldo')
+            : t('pagos.ayudaMinimo', { porcentaje: ANTICIPO_MINIMO_PORCENTAJE })
+        "
+      >
+        <BaseCampoMoneda
+          :model-value="formulario.monto"
+          :min="tipoPago === 'saldo' ? 0.01 : minimo"
+          :max="Math.max(disponible, 0.01)"
+          :disabled="disponible <= 0"
+          required
+          @update:model-value="(valor) => (formulario.monto = valor ?? 0)"
+        />
+        <p class="mt-1 text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+          {{
+            tipoPago === 'saldo'
+              ? t('pasarela.saldoRestante', { monto: moneda(String(disponible)) })
+              : t('pasarela.minimo', { monto: moneda(String(minimo)) })
+          }}
+        </p>
+      </UFormField>
+
+      <UAlert
         color="neutral"
-        variant="ghost"
-        :label="t('pasarela.tarde')"
-        @click="emit('cancelar')"
+        variant="subtle"
+        icon="i-lucide-rotate-ccw"
+        :title="t('pagos.lineamientosTitulo')"
+        :description="t('pagos.lineamientos')"
       />
-      <UButton
-        type="submit"
-        form="form-pago"
-        color="primary"
-        icon="i-lucide-banknote"
-        :label="t('pasarela.pagar', { monto: moneda(String(formulario.monto)) })"
-        :disabled="montoInvalido"
-        :loading="cargando"
-      />
-    </div>
-  </form>
+
+      <UAlert v-if="error" color="error" variant="soft" :title="error" />
+
+      <div class="flex justify-end gap-2">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :label="t('pasarela.tarde')"
+          @click="emit('cancelar')"
+        />
+        <UButton
+          type="submit"
+          form="form-pago"
+          color="primary"
+          icon="i-lucide-banknote"
+          :label="t('pasarela.pagar', { monto: moneda(String(formulario.monto)) })"
+          :disabled="montoInvalido"
+          :loading="cargando"
+        />
+      </div>
+    </form>
+  </div>
 </template>

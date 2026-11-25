@@ -147,6 +147,9 @@ export function codigoErrorManifiesto(error: unknown): string {
 
   if (mensaje.includes('ficha de otro cliente')) return 'pasajero_ajeno'
   if (mensaje.includes('manifiesto necesita')) return 'manifiesto_vacio'
+  if (mensaje.includes('más pasajeros que los solicitados')) {
+    return 'manifiesto_excedido'
+  }
   if (mensaje.includes('pagos comprometidos superan')) return 'pagos_excedidos'
   if (mensaje.includes('cupo suficiente')) return 'cupo_insuficiente'
   if (mensaje.includes('ya tiene una solicitud pendiente')) {

@@ -37,16 +37,32 @@ const error = computed<string | null>(() =>
   errorConsulta.value ? mensajeDeError(errorConsulta.value) : null,
 )
 
+/** El manifiesto falta o está incompleto (RN-RES-19): badge en la fila. */
+function manifiestoPendiente(reserva: ReservaResumen): boolean {
+  return (
+    ['pendiente', 'confirmada'].includes(reserva.estado) &&
+    reserva.pasajerosRegistrados < reserva.cantidadPasajeros
+  )
+}
+
+/** Con saldo por pagar y ya respaldada la reserva, el pago falta. */
+function saldoPendiente(reserva: ReservaResumen): boolean {
+  return (
+    ['pendiente', 'confirmada'].includes(reserva.estado) &&
+    Number(reserva.saldoPendiente) > 0
+  )
+}
+
 // --- Avisos de cambios de salida (HU-16) --------------------------------
 
 const {
-  data: avisos,
+  data: avisosSalida,
   error: errorAvisos,
 } = useAsyncData<RespuestaAvisos>('avisos', () =>
   peticion<RespuestaAvisos>('/api/avisos'),
 )
 
-const listaAvisos = computed(() => avisos.value?.avisos ?? [])
+const listaAvisos = computed(() => avisosSalida.value?.avisos ?? [])
 
 function textoCampo(campo: string): string {
   const clave = {
@@ -135,27 +151,20 @@ const pagosAbierto = ref(false)
 const manifiestoAbierto = ref(false)
 const pagando = ref<ReservaResumen | null>(null)
 const consultando = ref<ReservaResumen | null>(null)
-const aviso = ref<string | null>(null)
-const errorOperacion = ref<string | null>(null)
+const avisos = useAvisos()
 const solicitandoCancelacion = ref<number | null>(null)
 
 function abrirPago(reserva: ReservaResumen) {
-  aviso.value = null
-  errorOperacion.value = null
   pagando.value = reserva
   pagoAbierto.value = true
 }
 
 function abrirPagos(reserva: ReservaResumen) {
-  aviso.value = null
-  errorOperacion.value = null
   consultando.value = reserva
   pagosAbierto.value = true
 }
 
 function abrirManifiesto(reserva: ReservaResumen) {
-  aviso.value = null
-  errorOperacion.value = null
   consultando.value = reserva
   manifiestoAbierto.value = true
 }
@@ -164,7 +173,7 @@ function abrirManifiesto(reserva: ReservaResumen) {
 function pagado(respuesta: RespuestaPagos) {
   pagoAbierto.value = false
   const pago = respuesta.pagos.at(-1)
-  aviso.value = t('pasarela.exito', {
+  avisos.exito('pasarela.exito', {
     monto: moneda(pago?.monto ?? '0'),
     referencia: pago?.referencia ?? '—',
   })
@@ -175,15 +184,14 @@ function pagado(respuesta: RespuestaPagos) {
 /** El cliente pide la cancelación; el personal la ejecuta (HU-13). */
 async function solicitarCancelacion(reserva: ReservaResumen) {
   solicitandoCancelacion.value = reserva.idReserva
-  errorOperacion.value = null
   try {
     await peticion(
       `/api/reservas/${reserva.idReserva}/solicitar-cancelacion`,
       { method: 'POST' },
     )
-    aviso.value = t('misreservas.cancelacionSolicitada')
+    avisos.exito('misreservas.cancelacionSolicitada')
   } catch (fallo) {
-    errorOperacion.value = mensajeDeError(fallo)
+    avisos.fallo(fallo)
   } finally {
     solicitandoCancelacion.value = null
     await recargar()
@@ -198,8 +206,6 @@ async function solicitarCancelacion(reserva: ReservaResumen) {
       :descripcion="t('misreservas.introduccion')"
     />
 
-    <UAlert v-if="aviso" color="success" variant="soft" :title="aviso" />
-    <UAlert v-if="errorOperacion" color="error" variant="soft" :title="errorOperacion" />
     <UAlert v-if="error" color="error" variant="soft" :title="error" />
 
     <!-- Avisos de cambios de la salida (HU-16): solo los del cliente. -->
@@ -237,6 +243,22 @@ async function solicitarCancelacion(reserva: ReservaResumen) {
                 :color="fila.origen === 'web' ? 'info' : 'neutral'"
                 variant="subtle"
                 :label="t(`solicitudes.origenes.${fila.origen}` as ClaveMensaje)"
+              />
+              <UBadge
+                v-if="manifiestoPendiente(fila)"
+                class="ml-2"
+                color="warning"
+                variant="subtle"
+                icon="i-lucide-users"
+                :label="t('misreservas.manifiestoPendiente')"
+              />
+              <UBadge
+                v-else-if="saldoPendiente(fila)"
+                class="ml-2"
+                color="warning"
+                variant="subtle"
+                icon="i-lucide-banknote"
+                :label="t('pagos.saldoPendiente')"
               />
               <UBadge
                 v-if="fila.fechaSolicitudCancelacion && fila.estado !== 'cancelada'"

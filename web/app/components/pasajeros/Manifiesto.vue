@@ -4,12 +4,15 @@
  *
  * Muestra los pasajeros registrados contra la cantidad declarada y
  * guarda la lista completa: la cantidad pasa a ser la del manifiesto y
- * la base revalida cupos, monto y pagos comprometidos (RN-RES-21). Una
- * reserva confirmada también puede ajustar su manifiesto; una vencida o
- * cancelada no (RN-RES-20).
+ * la base revalida cupos, monto y pagos comprometidos (RN-RES-21). En el
+ * canal web el manifiesto no declara más pasajeros que los solicitados;
+ * el canal personal puede ampliarlo. La cuenta de cliente puede
+ * agregarse con su propia ficha. El resultado se avisa con un aviso
+ * flotante, igual que el resto de las acciones.
  */
 import type { ClaveMensaje } from '~/i18n'
 import type {
+  RespuestaCuenta,
   RespuestaPasajeros,
   ReservaResumen,
 } from '#shared/types/api'
@@ -29,11 +32,13 @@ const emit = defineEmits<{
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
+const avisos = useAvisos()
 
 const cargando = ref(true)
 const guardando = ref(false)
 const error = ref<string | null>(null)
 const manifiesto = ref<RespuestaPasajeros | null>(null)
+const cuenta = ref<RespuestaCuenta | null>(null)
 
 /** Las filas editables del manifiesto. */
 const filas = ref<
@@ -63,6 +68,36 @@ const coinciden = computed(
   () => filas.value.length === (manifiesto.value?.cantidadDeclarada ?? 0),
 )
 
+/**
+ * El canal web no declara más pasajeros que los solicitados
+ * (RN-RES-21); el canal personal puede ampliar el grupo.
+ */
+const puedeAgregar = computed(
+  () =>
+    editable.value &&
+    (props.reserva.origen !== 'web' ||
+      filas.value.length < (manifiesto.value?.cantidadDeclarada ?? 0)),
+)
+
+/** La ficha del cliente en sesión, para agregarse como pasajero. */
+const fichaPropia = computed(() => {
+  const usuario = cuenta.value?.usuario
+  if (!usuario || usuario.rol !== 'CLIENTE') return null
+  return usuario.ficha
+})
+
+/** La ficha ya está en el manifiesto, por documento. */
+const fichaAgregada = computed(() => {
+  const ficha = fichaPropia.value
+  if (!ficha) return false
+  return filas.value.some(
+    (fila) =>
+      fila.tipoDocumento === ficha.tipoDocumento &&
+      fila.numeroDocumento.trim().toUpperCase() ===
+        ficha.numeroDocumento.toUpperCase(),
+  )
+})
+
 async function cargar() {
   cargando.value = true
   error.value = null
@@ -91,6 +126,19 @@ function agregar() {
     nombres: '',
     apellidos: '',
     fechaNacimiento: '',
+  })
+}
+
+/** Agrega la ficha del cliente en sesión como pasajero (HU-12). */
+function agregarme() {
+  const ficha = fichaPropia.value
+  if (!ficha) return
+  filas.value.push({
+    tipoDocumento: ficha.tipoDocumento,
+    numeroDocumento: ficha.numeroDocumento,
+    nombres: ficha.nombres,
+    apellidos: ficha.apellidos,
+    fechaNacimiento: ficha.fechaNacimiento ?? '',
   })
 }
 
@@ -124,6 +172,10 @@ async function guardar() {
       apellidos: pasajero.apellidos,
       fechaNacimiento: pasajero.fechaNacimiento ?? '',
     }))
+    avisos.exito('pasajeros.guardadoOk', {
+      registrados: manifiesto.value?.pasajeros.length ?? 0,
+      declarada: manifiesto.value?.cantidadDeclarada ?? 0,
+    })
     emit('cambio')
   } catch (fallo) {
     error.value = mensajeDeError(fallo)
@@ -133,6 +185,11 @@ async function guardar() {
 }
 
 await cargar()
+
+// La cuenta se consulta aparte: solo el canal web trae ficha propia.
+$fetch<RespuestaCuenta>('/api/cuenta')
+  .then((respuesta) => (cuenta.value = respuesta))
+  .catch(() => (cuenta.value = null))
 
 defineExpose({ recargar: cargar })
 </script>
@@ -235,15 +292,37 @@ defineExpose({ recargar: cargar })
       {{ t('pasajeros.vacio') }}
     </p>
 
-    <UButton
-      v-if="editable"
-      size="xs"
-      color="neutral"
-      variant="soft"
-      icon="i-lucide-user-plus"
-      :label="t('pasajeros.agregar')"
-      @click="agregar()"
-    />
+    <div v-if="editable" class="flex flex-wrap items-center gap-2">
+      <UButton
+        size="xs"
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-user-plus"
+        :label="t('pasajeros.agregar')"
+        :disabled="!puedeAgregar"
+        @click="agregar()"
+      />
+      <UButton
+        v-if="fichaPropia"
+        size="xs"
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-id-card"
+        :label="t('pasajeros.agregarme')"
+        :disabled="!puedeAgregar || fichaAgregada"
+        @click="agregarme()"
+      />
+      <span
+        v-if="reserva.origen === 'web'"
+        class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+      >
+        {{
+          t('pasajeros.topeSolicitado', {
+            cantidad: manifiesto?.cantidadDeclarada ?? reserva.cantidadPasajeros,
+          })
+        }}
+      </span>
+    </div>
 
     <UAlert v-if="error" color="error" variant="soft" :title="error" />
 

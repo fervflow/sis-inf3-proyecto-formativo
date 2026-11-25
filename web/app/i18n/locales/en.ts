@@ -118,6 +118,7 @@ export const en: Mensajes = {
   'solicitudes.columnas.vencimiento': 'Expires',
   'solicitudes.columnas.acciones': 'Actions',
   'solicitudes.sinAnticipo': 'No deposit',
+  'solicitudes.manifiestoPendiente': 'Manifest pending',
   'solicitudes.pagos.abrir': 'Payments',
   'solicitudes.filtroCanal': 'Filter by channel',
   'solicitudes.filtroCanalTodo': 'Both channels',
@@ -157,7 +158,7 @@ export const en: Mensajes = {
   'solicitudes.form.salida': 'Departure',
   'solicitudes.form.cantidad': 'Number of passengers',
   'solicitudes.ayudaCantidad':
-    'Up to 4 passengers on the web and never above the available quota; larger groups are served at the agency.',
+    'Up to 4 passengers per web request; together, the pending web requests of a departure retain no more than 70% of the available quota. Larger groups are served at the agency.',
   'solicitudes.ayudaVencimiento':
     'The request stays pending and expires after 24 hours if not confirmed.',
 
@@ -169,6 +170,10 @@ export const en: Mensajes = {
     'Only a pending or confirmed booking accepts a manifest.',
   'pasajeros.vacio': 'No passengers registered: the manifest must be filled before confirming.',
   'pasajeros.agregar': 'Add passenger',
+  'pasajeros.agregarme': 'Add my own details as passenger',
+  'pasajeros.topeSolicitado':
+    'The manifest cannot exceed the {cantidad} requested passengers.',
+  'pasajeros.guardadoOk': 'Manifest saved: {registrados} of {declarada} passengers.',
   'pasajeros.quitar': 'Remove',
   'pasajeros.guardar': 'Save manifest',
   'pasajeros.columnas.tipo': 'Type',
@@ -605,11 +610,14 @@ export const en: Mensajes = {
   'pagos.form.referencia': 'Reference (optional)',
   'pagos.ayudaMinimo':
     'The deposit cannot be lower than {porcentaje}% of the total.',
-  'pagos.ayudaSaldo': 'The balance pays the exact remainder of the booking.',
+  'pagos.ayudaSaldo':
+    'You may pay the whole balance or only part of it; the remainder stays pending for another payment.',
   'pagos.lineamientosTitulo': 'Refunds',
   'pagos.lineamientos':
     'Cancelling your booking: 15 days or more before departure, 100% of the paid amount is refunded; between 8 and 14 days, 50%; with 7 days or less, no refund. If the agency cancels the departure, 100% is refunded.',
   'pagos.registradoOk': 'Payment registered: validated by the office record.',
+  'pagos.validadoOk': 'Payment validated.',
+  'pagos.anuladoOk': 'Payment voided.',
   'pagos.tipos.anticipo': 'Deposit',
   'pagos.tipos.saldo': 'Balance',
   'pagos.metodos.efectivo': 'Cash',
@@ -629,10 +637,15 @@ export const en: Mensajes = {
   'pagos.columnas.estado': 'Status',
   'pagos.columnas.acciones': 'Actions',
 
-  'pasarela.titulo': 'Pay the deposit',
+  'pasarela.titulo': 'Pay the booking',
   'pasarela.introduccion':
     'Simulated payment: the reference is recorded and the agency validates it; no real money moves.',
   'pasarela.minimo': 'The deposit minimum is {monto} (30% of the total).',
+  'pasarela.saldoRestante':
+    'Balance due: {monto}. You may pay all of it or only part.',
+  'pasarela.anticipoEnRevisionTitulo': 'Your deposit awaits validation',
+  'pasarela.anticipoEnRevision':
+    'Your deposit of {monto} was registered. Once the agency validates it, you will be able to pay the balance from here.',
   'pasarela.pagar': 'Pay {monto}',
   'pasarela.tarde': 'Pay later',
   'pasarela.exito':
@@ -657,6 +670,7 @@ export const en: Mensajes = {
   'misreservas.columnas.vencimiento': 'Expires',
   'misreservas.columnas.acciones': 'Actions',
   'misreservas.pagar': 'Pay',
+  'misreservas.manifiestoPendiente': 'Manifest pending',
   'misreservas.pagos': 'Payments',
   'misreservas.solicitarCancelacion': 'Request cancellation',
   'misreservas.cancelacionSolicitada':
@@ -815,7 +829,6 @@ export const en: Mensajes = {
   'errores.anticipoRequerido':
     'The booking has no validated deposit: register and validate it before confirming.',
   'errores.anticipoMinimo': 'The deposit cannot be lower than 30% of the total.',
-  'errores.saldoIncompleto': 'The balance must pay the exact remainder of the booking.',
   'errores.saldoSinAnticipo': 'The balance requires a previous deposit.',
   'errores.montoExcedido': 'The payment exceeds the balance due of the booking.',
   'errores.reservaNoPagable':
@@ -824,6 +837,8 @@ export const en: Mensajes = {
   'errores.manifiestoIncompleto':
     'The manifest is incomplete: register the passengers before confirming.',
   'errores.manifiestoVacio': 'The manifest needs at least one passenger.',
+  'errores.manifiestoExcedido':
+    'The manifest cannot declare more passengers than requested.',
   'errores.manifiestoGrande': 'The manifest accepts up to 60 passengers.',
   'errores.reservaNoEditable':
     'Only a pending or confirmed booking can be modified.',

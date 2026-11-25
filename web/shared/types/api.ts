@@ -104,6 +104,8 @@ export interface ReservaResumen {
   anticipo: EstadoPago | null
   /** Total menos lo abonado validado. */
   saldoPendiente: string
+  /** Pasajeros ya registrados en el manifiesto (RN-RES-19). */
+  pasajerosRegistrados: number
 }
 
 /** Un pasajero del manifiesto de una reserva (HU-12). */
@@ -233,6 +235,17 @@ export interface CuentaActual {
   rol: Rol
   estado: EstadoUsuario
   debeCambiarPassword: boolean
+  /** Ficha del cliente dueño de la cuenta; nula fuera del canal web. */
+  ficha: FichaCliente | null
+}
+
+/** Los datos de la ficha de cliente que el manifiesto puede reutilizar. */
+export interface FichaCliente {
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
+  nombres: string
+  apellidos: string
+  fechaNacimiento: string | null
 }
 
 /** Respuesta de la cuenta de la sesión en curso. */

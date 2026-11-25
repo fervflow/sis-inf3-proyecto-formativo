@@ -480,7 +480,8 @@ export const pago = turismo.table(
     observacion: varchar('observacion', { length: 200 }),
   },
   (tabla) => [
-    uniqueIndex('uq_pago_reserva_tipo').on(tabla.idReserva, tabla.tipo),
+    // Puede haber varios pagos por tipo (RN-PAG-02): el tope real lo
+    // aplica fn_registrar_pago con el saldo pendiente.
     index('ix_pago_reserva').on(tabla.idReserva),
     index('ix_pago_fecha').on(tabla.fechaPago),
   ],

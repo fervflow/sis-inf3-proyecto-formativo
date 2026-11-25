@@ -52,15 +52,56 @@
   --vt-color-neutro-900: oklch(0.22 0.007 90);
   --vt-color-neutro-950: oklch(0.16 0.006 90);
 
-  /* Semánticos de estado. */
+  /* Semánticos de estado, con escala completa 50 a 950: Nuxt UI usa
+     todos los tonos según la variante (subtle usa el 50 y el 500, solid
+     el 500 y el 600). */
+  --vt-color-exito-50: oklch(0.97 0.03 155);
+  --vt-color-exito-100: oklch(0.94 0.06 155);
+  --vt-color-exito-200: oklch(0.89 0.09 155);
+  --vt-color-exito-300: oklch(0.83 0.11 155);
+  --vt-color-exito-400: oklch(0.78 0.13 155);
   --vt-color-exito-500: oklch(0.72 0.15 155);
   --vt-color-exito-600: oklch(0.62 0.14 155);
+  --vt-color-exito-700: oklch(0.52 0.12 155);
+  --vt-color-exito-800: oklch(0.42 0.09 155);
+  --vt-color-exito-900: oklch(0.33 0.07 155);
+  --vt-color-exito-950: oklch(0.24 0.05 155);
+
+  --vt-color-advertencia-50: oklch(0.98 0.03 85);
+  --vt-color-advertencia-100: oklch(0.95 0.06 85);
+  --vt-color-advertencia-200: oklch(0.91 0.09 85);
+  --vt-color-advertencia-300: oklch(0.87 0.12 83);
+  --vt-color-advertencia-400: oklch(0.83 0.14 80);
   --vt-color-advertencia-500: oklch(0.79 0.15 80);
   --vt-color-advertencia-600: oklch(0.7 0.15 75);
+  --vt-color-advertencia-700: oklch(0.59 0.13 70);
+  --vt-color-advertencia-800: oklch(0.47 0.1 65);
+  --vt-color-advertencia-900: oklch(0.37 0.08 60);
+  --vt-color-advertencia-950: oklch(0.27 0.06 55);
+
+  --vt-color-error-50: oklch(0.96 0.02 25);
+  --vt-color-error-100: oklch(0.92 0.04 25);
+  --vt-color-error-200: oklch(0.86 0.08 25);
+  --vt-color-error-300: oklch(0.78 0.13 25);
+  --vt-color-error-400: oklch(0.7 0.17 25);
   --vt-color-error-500: oklch(0.62 0.2 25);
   --vt-color-error-600: oklch(0.55 0.2 25);
+  --vt-color-error-700: oklch(0.47 0.17 25);
+  --vt-color-error-800: oklch(0.38 0.13 25);
+  --vt-color-error-900: oklch(0.3 0.1 25);
+  --vt-color-error-950: oklch(0.22 0.07 25);
+
+  --vt-color-info-50: oklch(0.97 0.02 240);
+  --vt-color-info-100: oklch(0.94 0.04 240);
+  --vt-color-info-200: oklch(0.89 0.07 240);
+  --vt-color-info-300: oklch(0.83 0.1 240);
+  --vt-color-info-400: oklch(0.75 0.12 240);
   --vt-color-info-500: oklch(0.66 0.14 240);
   --vt-color-info-600: oklch(0.58 0.14 240);
+  --vt-color-info-700: oklch(0.49 0.13 240);
+  --vt-color-info-800: oklch(0.39 0.1 240);
+  --vt-color-info-900: oklch(0.31 0.08 240);
+  --vt-color-info-950: oklch(0.23 0.06 240);
 
   /* Superficies y bordes, sobre el fondo del documento. */
   --vt-color-fondo: var(--vt-color-neutro-50);
@@ -138,6 +179,58 @@
   --ui-color-neutral-800: var(--vt-color-neutro-800);
   --ui-color-neutral-900: var(--vt-color-neutro-900);
   --ui-color-neutral-950: var(--vt-color-neutro-950);
+
+  /* Semánticos de estado: sin este mapeo, las variables de Nuxt UI
+     quedan en una referencia circular y los componentes de error,
+     advertencia, éxito e información salen sin color de fondo ni de
+     texto (el botón de confirmación de la cancelación, por ejemplo). */
+  --ui-color-success-50: var(--vt-color-exito-50);
+  --ui-color-success-100: var(--vt-color-exito-100);
+  --ui-color-success-200: var(--vt-color-exito-200);
+  --ui-color-success-300: var(--vt-color-exito-300);
+  --ui-color-success-400: var(--vt-color-exito-400);
+  --ui-color-success-500: var(--vt-color-exito-500);
+  --ui-color-success-600: var(--vt-color-exito-600);
+  --ui-color-success-700: var(--vt-color-exito-700);
+  --ui-color-success-800: var(--vt-color-exito-800);
+  --ui-color-success-900: var(--vt-color-exito-900);
+  --ui-color-success-950: var(--vt-color-exito-950);
+
+  --ui-color-warning-50: var(--vt-color-advertencia-50);
+  --ui-color-warning-100: var(--vt-color-advertencia-100);
+  --ui-color-warning-200: var(--vt-color-advertencia-200);
+  --ui-color-warning-300: var(--vt-color-advertencia-300);
+  --ui-color-warning-400: var(--vt-color-advertencia-400);
+  --ui-color-warning-500: var(--vt-color-advertencia-500);
+  --ui-color-warning-600: var(--vt-color-advertencia-600);
+  --ui-color-warning-700: var(--vt-color-advertencia-700);
+  --ui-color-warning-800: var(--vt-color-advertencia-800);
+  --ui-color-warning-900: var(--vt-color-advertencia-900);
+  --ui-color-warning-950: var(--vt-color-advertencia-950);
+
+  --ui-color-error-50: var(--vt-color-error-50);
+  --ui-color-error-100: var(--vt-color-error-100);
+  --ui-color-error-200: var(--vt-color-error-200);
+  --ui-color-error-300: var(--vt-color-error-300);
+  --ui-color-error-400: var(--vt-color-error-400);
+  --ui-color-error-500: var(--vt-color-error-500);
+  --ui-color-error-600: var(--vt-color-error-600);
+  --ui-color-error-700: var(--vt-color-error-700);
+  --ui-color-error-800: var(--vt-color-error-800);
+  --ui-color-error-900: var(--vt-color-error-900);
+  --ui-color-error-950: var(--vt-color-error-950);
+
+  --ui-color-info-50: var(--vt-color-info-50);
+  --ui-color-info-100: var(--vt-color-info-100);
+  --ui-color-info-200: var(--vt-color-info-200);
+  --ui-color-info-300: var(--vt-color-info-300);
+  --ui-color-info-400: var(--vt-color-info-400);
+  --ui-color-info-500: var(--vt-color-info-500);
+  --ui-color-info-600: var(--vt-color-info-600);
+  --ui-color-info-700: var(--vt-color-info-700);
+  --ui-color-info-800: var(--vt-color-info-800);
+  --ui-color-info-900: var(--vt-color-info-900);
+  --ui-color-info-950: var(--vt-color-info-950);
 
   --ui-radius: var(--vt-radio-md);
   --ui-font: var(--vt-fuente);

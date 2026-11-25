@@ -83,7 +83,6 @@ const CODIGOS: Record<string, ClaveMensaje> = {
   documento_duplicado: 'errores.documentoDuplicado',
   anticipo_requerido: 'errores.anticipoRequerido',
   anticipo_minimo: 'errores.anticipoMinimo',
-  saldo_incompleto: 'errores.saldoIncompleto',
   saldo_sin_anticipo: 'errores.saldoSinAnticipo',
   monto_excedido: 'errores.montoExcedido',
   reserva_no_pagable: 'errores.reservaNoPagable',

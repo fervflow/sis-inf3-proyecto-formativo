@@ -116,7 +116,10 @@ En `pagos/` viven `FormularioPago`, el pago simulado del cliente con banca
 móvil o código QR, que emite `pagado` con la respuesta de la API, y
 `ResumenPagos`, el resumen del saldo y el historial de pagos de una
 reserva; con `editable` añade las acciones de validar y anular del
-personal y emite `cambio` cuando los pagos cambian. En `disponibilidad/`
+personal, el registro de un pago de oficina y emite `cambio` cuando los
+pagos cambian. El registro de oficina sugiere el tipo y el monto según
+los pagos ya registrados: sin anticipo propone el mínimo del 30%; con
+anticipo pasa al saldo y admite abonarlo por partes con `BaseCampoMoneda`. En `disponibilidad/`
 vive `Tarjeta`, el espejo público de la tarjeta de salidas: muestra el
 paquete, fechas, ocupación y precio, y emite `solicitar` para pedir cupo.
 En `salidas/` viven `Tarjeta`, la tarjeta del panel, y `FormularioSalida`,

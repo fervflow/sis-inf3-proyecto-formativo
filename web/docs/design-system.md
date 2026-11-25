@@ -29,14 +29,27 @@ radios (`--vt-radio-*`), sombras (`--vt-sombra-*`), tipografía
 
 ### 2. Mapeo a Nuxt UI (`--ui-color-*`)
 
-Nuxt UI lee `--ui-color-primary-50…950` y `--ui-color-neutral-*`. El mapeo
-está al final de `tokens.css`:
+Nuxt UI lee `--ui-color-primary-50…950`, `--ui-color-neutral-*` y los
+semánticos de estado `--ui-color-success-*`, `--ui-color-warning-*`,
+`--ui-color-error-*` e `--ui-color-info-*`. El mapeo está al final de
+`tokens.css`:
 
 ```css
 --ui-color-primary-50: var(--vt-color-marca-50);
 --ui-color-primary-100: var(--vt-color-marca-100);
 /* … */
+--ui-color-success-500: var(--vt-color-exito-500);
+--ui-color-error-500: var(--vt-color-error-500);
+/* … */
 ```
+
+**El mapeo semántico es obligatorio.** Sin él, Nuxt UI genera una
+referencia circular (`--ui-color-error-500 → --color-error-500 →
+--ui-color-error-500`) y los componentes con esos colores salen sin
+fondo ni color de texto: botones invisibles, avisos como texto suelto y
+badges sin chip. Por eso los semánticos tienen escala completa 50 a 950,
+como la marca: cada variante de Nuxt UI (solid, soft, subtle) usa tonos
+distintos.
 
 ## Reglas
 

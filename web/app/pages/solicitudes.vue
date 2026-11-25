@@ -20,7 +20,6 @@
       </template>
     </BaseEncabezadoPagina>
 
-    <UAlert v-if="aviso" color="success" variant="soft" :title="aviso" />
     <UAlert v-if="error" color="error" variant="soft" :title="error" />
 
     <BaseTarjeta>
@@ -72,6 +71,14 @@
                 :color="fila.origen === 'web' ? 'info' : 'neutral'"
                 variant="subtle"
                 :label="t(`solicitudes.origenes.${fila.origen}` as ClaveMensaje)"
+              />
+              <UBadge
+                v-if="manifiestoPendiente(fila)"
+                class="ml-2"
+                color="warning"
+                variant="subtle"
+                icon="i-lucide-users"
+                :label="t('solicitudes.manifiestoPendiente')"
               />
               <UBadge
                 v-if="fila.fechaSolicitudCancelacion && fila.estado !== 'cancelada'"
@@ -375,8 +382,9 @@
 
     <!--
       Pagos de una reserva (HU-14): resumen del saldo, historial con
-      validar y anular, y el registro de un pago de oficina. La
-      confirmación exige el anticipo validado (RN-RES-18).
+      validar y anular, y el registro de un pago de oficina dentro del
+      mismo panel. La confirmación exige el anticipo validado
+      (RN-RES-18).
     -->
     <UModal
       v-model:open="pagosAbierto"
@@ -384,77 +392,13 @@
       :ui="{ content: 'max-w-3xl' }"
     >
       <template #body>
-        <div v-if="consultando" class="space-y-5">
-          <PagosResumenPagos
-            ref="panel-pagos"
-            :id-reserva="consultando.idReserva"
-            editable
-            @cambio="recargar()"
-          />
-
-          <div
-            v-if="['pendiente', 'confirmada'].includes(consultando.estado)"
-            class="rounded-(--vt-radio-md) px-3 py-3 ring-1 ring-(--vt-color-borde)"
-          >
-            <form id="form-pago-oficina" class="space-y-3" @submit.prevent="registrarPago">
-              <p class="font-(--vt-texto-peso-medio) text-(--vt-texto-sm)">
-                {{ t('pagos.registrarTitulo') }}
-              </p>
-
-              <div class="grid gap-3 sm:grid-cols-2">
-                <UFormField :label="t('pagos.form.tipo')" name="tipo">
-                  <USelect v-model="pagoFormulario.tipo" :items="tiposPago" class="w-full" />
-                </UFormField>
-                <UFormField :label="t('pagos.form.metodo')" name="metodo">
-                  <USelect v-model="pagoFormulario.metodo" :items="metodosPago" class="w-full" />
-                </UFormField>
-              </div>
-
-              <div class="grid gap-3 sm:grid-cols-2">
-                <UFormField
-                  :label="t('pagos.form.monto')"
-                  name="monto"
-                  :help="
-                    pagoFormulario.tipo === 'saldo'
-                      ? t('pagos.ayudaSaldo')
-                      : t('pagos.ayudaMinimo', { porcentaje: ANTICIPO_MINIMO_PORCENTAJE })
-                  "
-                >
-                  <UInputNumber
-                    v-model="pagoFormulario.monto"
-                    :min="1"
-                    :step="10"
-                    :increment="false"
-                    :decrement="false"
-                    class="w-full"
-                  />
-                </UFormField>
-                <UFormField :label="t('pagos.form.referencia')" name="referencia">
-                  <UInput v-model="pagoFormulario.referencia" class="w-full" />
-                </UFormField>
-              </div>
-
-              <UAlert
-                color="neutral"
-                variant="subtle"
-                icon="i-lucide-rotate-ccw"
-                :title="t('pagos.lineamientosTitulo')"
-                :description="t('pagos.lineamientos')"
-              />
-
-              <div class="flex justify-end">
-                <UButton
-                  type="submit"
-                  form="form-pago-oficina"
-                  color="primary"
-                  size="sm"
-                  :label="t('pagos.registrar')"
-                  :loading="registrandoPago"
-                />
-              </div>
-            </form>
-          </div>
-        </div>
+        <PagosResumenPagos
+          v-if="consultando"
+          :id-reserva="consultando.idReserva"
+          :reserva="consultando"
+          editable
+          @cambio="recargar()"
+        />
       </template>
     </UModal>
   </div>
@@ -470,12 +414,6 @@ import type {
   ReservaResumen,
 } from '#shared/types/api'
 import type { ColumnaTabla } from '#shared/types/ui'
-import type { MetodoPago, TipoPago } from '#shared/types/domain'
-import {
-  ANTICIPO_MINIMO_PORCENTAJE,
-  METODOS_OFICINA,
-  montoMinimoAnticipo,
-} from '#shared/pagos'
 
 const { t } = useTexto()
 const mensajeDeError = useMensajeError()
@@ -534,10 +472,11 @@ type FilaSolicitud = ReservaResumen & {
   acciones: number
 }
 
-// El error de la lista y el de las operaciones comparten el aviso superior.
-const errorOperacion = ref<string | null>(null)
+// El error de la lista queda en el aviso superior; los resultados de las
+// operaciones se avisan con avisos flotantes.
+const avisos = useAvisos()
 const error = computed<string | null>(
-  () => errorOperacion.value ?? (errorConsulta.value ? mensajeDeError(errorConsulta.value) : null),
+  () => (errorConsulta.value ? mensajeDeError(errorConsulta.value) : null),
 )
 
 const columnas = computed<ColumnaTabla<FilaSolicitud>[]>(() => [
@@ -584,25 +523,38 @@ function expiraPronto(fechaExpiracion: string): boolean {
 // --- Confirmación -------------------------------------------------------
 
 const confirmando = ref<number | null>(null)
-const aviso = ref<string | null>(null)
 
+/**
+ * Confirmación de una solicitud (HU-17).
+ *
+ * La base la rechaza sin el anticipo validado (RN-RES-18) o con el
+ * manifiesto incompleto (RN-RES-19): el aviso del error dice qué falta
+ * para que la persona sepa a dónde ir, y el badge de la fila lo muestra
+ * de antemano.
+ */
 async function confirmar(idReserva: number) {
   confirmando.value = idReserva
-  errorOperacion.value = null
   try {
     const reserva = await peticion<ReservaResumen>(
       `/api/reservas/${idReserva}/confirmar`,
       { method: 'POST' },
     )
-    aviso.value = t('solicitudes.confirmada', { codigo: reserva.codigo })
+    avisos.exito('solicitudes.confirmada', { codigo: reserva.codigo })
   } catch (fallo) {
-    aviso.value = null
     // La lista se recarga igual: la fila pudo vencerse en el servidor.
-    errorOperacion.value = mensajeDeError(fallo)
+    avisos.fallo(fallo)
   } finally {
     confirmando.value = null
     await recargar()
   }
+}
+
+/** El manifiesto falta o está incompleto (RN-RES-19): se avisa en la fila. */
+function manifiestoPendiente(reserva: ReservaResumen): boolean {
+  return (
+    ['pendiente', 'confirmada'].includes(reserva.estado) &&
+    reserva.pasajerosRegistrados < reserva.cantidadPasajeros
+  )
 }
 
 // --- Manifiesto, historial, modificación y cancelación ------------------
@@ -616,25 +568,21 @@ const cancelando = ref(false)
 const motivoCancelacion = ref('')
 
 function abrirManifiesto(reserva: ReservaResumen) {
-  errorOperacion.value = null
   consultando.value = reserva
   manifiestoAbierto.value = true
 }
 
 function abrirHistorial(reserva: ReservaResumen) {
-  errorOperacion.value = null
   consultando.value = reserva
   historialAbierto.value = true
 }
 
 function abrirModificacion(reserva: ReservaResumen) {
-  errorOperacion.value = null
   consultando.value = reserva
   modificacionAbierta.value = true
 }
 
 function abrirCancelacion(reserva: ReservaResumen) {
-  errorOperacion.value = null
   consultando.value = reserva
   motivoCancelacion.value = ''
   cancelacionAbierta.value = true
@@ -643,7 +591,6 @@ function abrirCancelacion(reserva: ReservaResumen) {
 async function ejecutarCancelacion() {
   if (!consultando.value) return
   cancelando.value = true
-  errorOperacion.value = null
   try {
     const reserva = await peticion<ReservaResumen>(
       `/api/reservas/${consultando.value.idReserva}/ejecutar-cancelacion`,
@@ -653,9 +600,9 @@ async function ejecutarCancelacion() {
       },
     )
     cancelacionAbierta.value = false
-    aviso.value = t('solicitudes.cancelada', { codigo: reserva.codigo })
+    avisos.exito('solicitudes.cancelada', { codigo: reserva.codigo })
   } catch (fallo) {
-    errorOperacion.value = mensajeDeError(fallo)
+    avisos.fallo(fallo)
   } finally {
     cancelando.value = false
     await recargar()
@@ -664,7 +611,7 @@ async function ejecutarCancelacion() {
 
 async function modificada(reserva: ReservaResumen) {
   modificacionAbierta.value = false
-  aviso.value = t('historial.modificada', {
+  avisos.exito('historial.modificada', {
     codigo: reserva.codigo,
     salida: reserva.paquete,
   })
@@ -674,65 +621,10 @@ async function modificada(reserva: ReservaResumen) {
 // --- Pagos de una reserva ----------------------------------------------
 
 const pagosAbierto = ref(false)
-const registrandoPago = ref(false)
-const panelPagos = useTemplateRef<{ recargar: () => Promise<void> }>('panel-pagos')
-
-const pagoFormulario = reactive({
-  tipo: 'anticipo' as TipoPago,
-  metodo: 'efectivo' as (typeof METODOS_OFICINA)[number],
-  monto: 0,
-  referencia: '',
-})
-
-const tiposPago = computed(() => [
-  { label: t('pagos.tipos.anticipo'), value: 'anticipo' as const },
-  { label: t('pagos.tipos.saldo'), value: 'saldo' as const },
-])
-
-const metodosPago = computed(() =>
-  METODOS_OFICINA.map((metodo) => ({
-    label: t(`pagos.metodos.${metodo}` as ClaveMensaje),
-    value: metodo,
-  })),
-)
 
 function abrirPagos(reserva: ReservaResumen) {
-  aviso.value = null
-  errorOperacion.value = null
   consultando.value = reserva
-  pagoFormulario.tipo = 'anticipo'
-  pagoFormulario.metodo = 'efectivo'
-  pagoFormulario.monto =
-    reserva.anticipo && reserva.anticipo !== 'anulado'
-      ? Number(reserva.saldoPendiente)
-      : montoMinimoAnticipo(reserva.montoTotal)
-  pagoFormulario.referencia = ''
   pagosAbierto.value = true
-}
-
-async function registrarPago() {
-  if (!consultando.value) return
-  registrandoPago.value = true
-  errorOperacion.value = null
-  try {
-    await peticion('/api/pagos', {
-      method: 'POST',
-      body: {
-        idReserva: consultando.value.idReserva,
-        tipo: pagoFormulario.tipo,
-        monto: pagoFormulario.monto,
-        metodo: pagoFormulario.metodo,
-        referencia: pagoFormulario.referencia.trim() || undefined,
-      },
-    })
-    aviso.value = t('pagos.registradoOk')
-    await panelPagos.value?.recargar()
-    await recargar()
-  } catch (fallo) {
-    errorOperacion.value = mensajeDeError(fallo)
-  } finally {
-    registrandoPago.value = false
-  }
 }
 
 // --- Barrido manual de vencidas (HU-17, T-HU-17.4) -----------------------
@@ -741,18 +633,16 @@ const barrido = ref(false)
 
 async function ejecutarBarrido() {
   barrido.value = true
-  errorOperacion.value = null
-  aviso.value = null
   try {
     const respuesta = await peticion<RespuestaBarrido>('/api/reservas/vencer', {
       method: 'POST',
     })
-    aviso.value =
-      respuesta.vencidas > 0
-        ? t('solicitudes.barridoOk', { cantidad: respuesta.vencidas })
-        : t('solicitudes.barridoNinguna')
+    avisos.exito(
+      respuesta.vencidas > 0 ? 'solicitudes.barridoOk' : 'solicitudes.barridoNinguna',
+      { cantidad: respuesta.vencidas },
+    )
   } catch (fallo) {
-    errorOperacion.value = mensajeDeError(fallo)
+    avisos.fallo(fallo)
   } finally {
     barrido.value = false
     await recargar()
@@ -808,14 +698,12 @@ function abrirAlta() {
   formulario.idCliente = undefined
   formulario.idSalida = undefined
   formulario.cantidadPasajeros = 1
-  errorOperacion.value = null
   formularioAbierto.value = true
 }
 
 async function guardar() {
   if (!formulario.idCliente || !formulario.idSalida) return
   guardando.value = true
-  errorOperacion.value = null
   try {
     const reserva = await peticion<ReservaResumen>('/api/reservas', {
       method: 'POST',
@@ -826,10 +714,10 @@ async function guardar() {
       },
     })
     formularioAbierto.value = false
-    aviso.value = t('solicitudes.creada', { codigo: reserva.codigo })
+    avisos.exito('solicitudes.creada', { codigo: reserva.codigo })
     estadoFiltro.value = 'pendiente'
   } catch (fallo) {
-    errorOperacion.value = mensajeDeError(fallo)
+    avisos.fallo(fallo)
   } finally {
     guardando.value = false
     await recargar()

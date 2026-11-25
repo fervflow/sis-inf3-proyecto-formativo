@@ -15,8 +15,9 @@ Base de datos (Drizzle ORM → PostgreSQL)
 ```
 
 - **La vista** no habla con la base: pide datos a la API y dibuja.
-- **El composable** comparte lógica entre vistas: datos, carga, error y
-  textos.
+- **El composable** comparte lógica entre vistas: datos, carga, error,
+  textos y avisos flotantes (`useAvisos`: el resultado de una acción se
+  muestra con un aviso flotante, no con un aviso lejano en la página).
 - **La API** es la única capa que conoce Drizzle y las funciones de la base.
 - **La base** guarda el estado y aplica las reglas críticas.
 

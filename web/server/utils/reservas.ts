@@ -68,6 +68,8 @@ export interface FilaReserva {
   anticipo: string | null
   /** Total menos lo abonado validado. */
   saldoPendiente: string
+  /** Pasajeros ya registrados en el manifiesto (RN-RES-19). */
+  pasajerosRegistrados: number
 }
 
 /** Convierte la fila de la base en lo que consume la interfaz. */
@@ -92,6 +94,7 @@ export function aReservaResumen(fila: FilaReserva): ReservaResumen {
     fechaSolicitudCancelacion: fila.fechaSolicitudCancelacion?.toISOString() ?? null,
     anticipo: (fila.anticipo as EstadoPago | null) ?? null,
     saldoPendiente: fila.saldoPendiente,
+    pasajerosRegistrados: fila.pasajerosRegistrados,
   }
 }
 
@@ -134,6 +137,13 @@ export function seleccionReserva() {
       from ${schema.pago} p2
       where p2.id_reserva = ${schema.reserva.idReserva}
         and p2.estado = 'validado'
+    )`,
+    // Los pasajeros del manifiesto ya registrados, para que la interfaz
+    // marque el manifiesto pendiente (RN-RES-19).
+    pasajerosRegistrados: sql<number>`(
+      select count(*)::int
+      from ${schema.reservaPasajero} rp2
+      where rp2.id_reserva = ${schema.reserva.idReserva}
     )`,
   }
 }

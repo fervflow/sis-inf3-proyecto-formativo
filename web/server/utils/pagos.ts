@@ -2,11 +2,11 @@
  * Pagos de una reserva.
  *
  * Las reglas viven en la base: `fn_registrar_pago` aplica el anticipo
- * mínimo del 30%, exige anticipo previo para el saldo y respeta el saldo
- * pendiente (RN-PAG-01, RN-PAG-05); `fn_validar_pago` valida o anula
- * (RN-PAG-04). Aquí solo se valida la forma del cuerpo, se traduce la fila
- * de la base y se clasifican los errores de la base en códigos de la
- * interfaz.
+ * mínimo del 30%, exige anticipo previo para el saldo, admite pagos
+ * parciales del saldo y respeta el saldo pendiente (RN-PAG-01, RN-PAG-02
+ * y RN-PAG-05); `fn_validar_pago` valida o anula (RN-PAG-04). Aquí solo
+ * se valida la forma del cuerpo, se traduce la fila de la base y se
+ * clasifican los errores de la base en códigos de la interfaz.
  */
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -116,13 +116,13 @@ export async function obtenerPagosDeReserva(
       abonado: abonado.toFixed(2),
       enRevision: enRevision.toFixed(2),
       saldoPendiente: saldoPendienteDe(reserva.montoTotal, abonado).toFixed(2),
-      anticipoValidado: filas.some(
-        (fila) =>
-          fila.tipo === 'anticipo' &&
-          fila.estado === 'validado' &&
-          Number(fila.monto) >=
-            Math.round(Number(reserva.montoTotal) * 0.3 * 100) / 100,
-      ),
+      // Puede haber varios anticipos (RN-PAG-02): el respaldo es la
+      // suma de los validados contra el mínimo del 30% (RN-PAG-01).
+      anticipoValidado:
+        filas
+          .filter((fila) => fila.tipo === 'anticipo' && fila.estado === 'validado')
+          .reduce((total, fila) => total + Number(fila.monto), 0) >=
+        Math.round(Number(reserva.montoTotal) * 0.3 * 100) / 100,
     },
   }
 }
@@ -136,7 +136,6 @@ export function codigoErrorPago(error: unknown): string {
   const mensaje = base.message ?? ''
 
   if (mensaje.includes('anticipo no puede ser menor')) return 'anticipo_minimo'
-  if (mensaje.includes('saldo debe pagar el resto')) return 'saldo_incompleto'
   if (mensaje.includes('saldo exige un anticipo')) return 'saldo_sin_anticipo'
   if (mensaje.includes('supera el saldo pendiente')) return 'monto_excedido'
   if (mensaje.includes('admite pagos')) return 'reserva_no_pagable'

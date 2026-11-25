@@ -129,6 +129,7 @@ export const es = {
   'solicitudes.columnas.vencimiento': 'Vence',
   'solicitudes.columnas.acciones': 'Acciones',
   'solicitudes.sinAnticipo': 'Sin anticipo',
+  'solicitudes.manifiestoPendiente': 'Manifiesto pendiente',
   'solicitudes.pagos.abrir': 'Pagos',
   'solicitudes.filtroCanal': 'Filtrar por canal',
   'solicitudes.filtroCanalTodo': 'Ambos canales',
@@ -170,7 +171,7 @@ export const es = {
   'solicitudes.form.salida': 'Salida',
   'solicitudes.form.cantidad': 'Cantidad de pasajeros',
   'solicitudes.ayudaCantidad':
-    'Por la web hasta 4 pasajeros y sin superar el cupo disponible; los grupos mayores se atienden en la agencia.',
+    'Por la web hasta 4 pasajeros por solicitud; todas las solicitudes web pendientes de la salida no retienen en conjunto más del 70% de los cupos disponibles. Los grupos mayores se atienden en la agencia.',
   'solicitudes.ayudaVencimiento':
     'La solicitud queda pendiente y vence a las 24 horas si no se confirma.',
 
@@ -182,6 +183,10 @@ export const es = {
     'Solo una reserva pendiente o confirmada admite manifiesto.',
   'pasajeros.vacio': 'Sin pasajeros registrados: el manifiesto debe llenarse antes de confirmar.',
   'pasajeros.agregar': 'Agregar pasajero',
+  'pasajeros.agregarme': 'Agregar mi ficha como pasajero',
+  'pasajeros.topeSolicitado':
+    'El manifiesto no puede superar los {cantidad} pasajeros solicitados.',
+  'pasajeros.guardadoOk': 'Manifiesto guardado: {registrados} de {declarada} pasajeros.',
   'pasajeros.quitar': 'Quitar',
   'pasajeros.guardar': 'Guardar manifiesto',
   'pasajeros.columnas.tipo': 'Tipo',
@@ -620,11 +625,14 @@ export const es = {
   'pagos.form.referencia': 'Referencia (opcional)',
   'pagos.ayudaMinimo':
     'El anticipo no puede ser menor al {porcentaje}% del total.',
-  'pagos.ayudaSaldo': 'El saldo paga el resto completo de la reserva.',
+  'pagos.ayudaSaldo':
+    'Puedes abonar todo el saldo o solo una parte; lo que falta queda pendiente para otro pago.',
   'pagos.lineamientosTitulo': 'Devoluciones',
   'pagos.lineamientos':
     'Cancelando tu reserva: con 15 días o más antes de la salida se devuelve el 100% de lo abonado, entre 8 y 14 días el 50%, y con 7 días o menos no hay devolución. Si la salida la cancela la agencia, se devuelve el 100%.',
   'pagos.registradoOk': 'Pago registrado: nace validado por el registro de oficina.',
+  'pagos.validadoOk': 'Pago validado.',
+  'pagos.anuladoOk': 'Pago anulado.',
   'pagos.tipos.anticipo': 'Anticipo',
   'pagos.tipos.saldo': 'Saldo',
   'pagos.metodos.efectivo': 'Efectivo',
@@ -644,10 +652,15 @@ export const es = {
   'pagos.columnas.estado': 'Estado',
   'pagos.columnas.acciones': 'Acciones',
 
-  'pasarela.titulo': 'Pagar el anticipo',
+  'pasarela.titulo': 'Pagar la reserva',
   'pasarela.introduccion':
     'Pago simulado: se registra la referencia y la agencia lo valida; no se mueve dinero real.',
   'pasarela.minimo': 'El mínimo del anticipo es {monto} (30% del total).',
+  'pasarela.saldoRestante':
+    'Saldo pendiente: {monto}. Puedes abonar todo o solo una parte.',
+  'pasarela.anticipoEnRevisionTitulo': 'Tu anticipo espera validación',
+  'pasarela.anticipoEnRevision':
+    'Tu anticipo de {monto} quedó registrado. Cuando la agencia lo valide podrás abonar el saldo desde aquí.',
   'pasarela.pagar': 'Pagar {monto}',
   'pasarela.tarde': 'Pagar más tarde',
   'pasarela.exito':
@@ -672,6 +685,7 @@ export const es = {
   'misreservas.columnas.vencimiento': 'Vence',
   'misreservas.columnas.acciones': 'Acciones',
   'misreservas.pagar': 'Pagar',
+  'misreservas.manifiestoPendiente': 'Manifiesto pendiente',
   'misreservas.pagos': 'Pagos',
   'misreservas.solicitarCancelacion': 'Solicitar cancelación',
   'misreservas.cancelacionSolicitada':
@@ -830,7 +844,6 @@ export const es = {
   'errores.anticipoRequerido':
     'La reserva no tiene el anticipo validado: regístralo y valídalo antes de confirmar.',
   'errores.anticipoMinimo': 'El anticipo no puede ser menor al 30% del total.',
-  'errores.saldoIncompleto': 'El saldo debe pagar el resto completo de la reserva.',
   'errores.saldoSinAnticipo': 'El saldo exige un anticipo previo de la reserva.',
   'errores.montoExcedido': 'El pago supera el saldo pendiente de la reserva.',
   'errores.reservaNoPagable':
@@ -839,6 +852,8 @@ export const es = {
   'errores.manifiestoIncompleto':
     'El manifiesto está incompleto: registra los pasajeros antes de confirmar.',
   'errores.manifiestoVacio': 'El manifiesto necesita al menos un pasajero.',
+  'errores.manifiestoExcedido':
+    'El manifiesto no puede declarar más pasajeros que los solicitados.',
   'errores.manifiestoGrande': 'El manifiesto admite hasta 60 pasajeros.',
   'errores.reservaNoEditable':
     'Solo una reserva pendiente o confirmada se modifica.',
