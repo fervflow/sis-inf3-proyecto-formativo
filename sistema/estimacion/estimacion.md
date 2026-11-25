@@ -8,12 +8,12 @@ convertir el esfuerzo en dinero.
 
 **No forma parte del informe compilado**: es documentación de trabajo.
 
-- **Fecha:** 17 de noviembre de 2026
-- **Alcance estimado:** las 17 historias de usuario del backlog (47 pts,
-  39 tareas)
+- **Fecha:** 25 de noviembre de 2026 (re-estimada al crecer el alcance)
+- **Alcance estimado:** las 19 historias de usuario del backlog (55 pts,
+  54 tareas)
 - **Fuentes:** `sistema/historias-usuario/historias-usuario.md` y su CSV,
   `tablero/tablero.md`, `sistema/estimacion/README.md`
-- **Costo estimado del alcance completo:** **5.875 Bs**
+- **Costo estimado del alcance completo:** **6.875 Bs**
 - **Costo del MVP de la primera ventana:** **2.500 Bs**
 
 ---
@@ -51,20 +51,17 @@ leen de esos archivos.
 
 | Dato | Valor | Origen |
 |---|---|---|
-| Historias de usuario | 17 | Backlog |
-| Puntos de historia | 47 | Columna «Estimación» del CSV |
-| Tareas | 39 | Desglose de tareas |
-| Puntos de riesgo alto | 22 de 47 (47 %) | Columna «Riesgo» del CSV |
-| Reparto de trabajo | 20 tareas al programador A, 19 al B | Desglose de tareas |
-| Tareas en `Hecho` | 7 | Tablero Kanban |
-| Tareas en `En curso` | 4 (en el límite) | Tablero Kanban |
-| Tareas en `Por hacer` | 28 | Tablero Kanban |
+| Historias de usuario | 19 | Backlog |
+| Puntos de historia | 55 | Columna «Estimación» del CSV |
+| Tareas | 54 | Desglose de tareas |
+| Puntos de riesgo alto | 22 de 55 (40 %) | Columna «Riesgo» del CSV |
+| Reparto de trabajo | 33 tareas al programador A, 21 al B | Desglose de tareas |
+| Tareas en `Hecho` | 45 | Tablero Kanban |
+| Tareas en `Por hacer` | 9 | Tablero Kanban |
 
-La estimación está **fechada**: refleja el estado del tablero el 17 de
-noviembre de 2026, con HU-02, HU-03, HU-10 y HU-05 ya en curso. Las cuatro
-historias están en curso porque cada una tiene al menos una tarea en
-`En curso` y le queda alguna en `Por hacer`, que es la regla de cierre del
-tablero.
+La estimación está **fechada**: refleja el estado del tablero el 25 de
+noviembre de 2026, con el backlog original (44 tareas) cerrado en `Hecho`
+y las historias nuevas HU-18 y HU-19 en `Por hacer`.
 
 ---
 
@@ -134,10 +131,10 @@ de la duración de la ventana ni de cuántos días se trabaje.
 ### Esfuerzo
 
 ```
-Lo ya gastado       =  32 horas-persona
-Lo que falta        =  39 puntos × 4,00 h por punto = 156 horas-persona
-Esfuerzo total      =  32 + 156                        = 188 horas-persona
-En mes-persona      =  188 ÷ 160                       =   1,18 mes-persona
+Lo ya gastado       =  47 puntos × 4,00 h por punto = 188 horas-persona
+Lo que falta        =   8 puntos × 4,00 h por punto =  32 horas-persona
+Esfuerzo total      = 188 + 32                        = 220 horas-persona
+En mes-persona      = 220 ÷ 160                       =   1,38 mes-persona
 ```
 
 ### Calendario
@@ -147,22 +144,22 @@ Los dos trabajan en paralelo, así que el número de días de calendario es el
 mismo para ambos: no se divide entre dos.
 
 ```
-Días hábiles de calendario = 188 h ÷ 8 h por día de equipo = 23,5 días
-Ventanas de 2 semanas       = 23,5 ÷ 10 días hábiles         =  2,35 ventanas
-Cierre estimado             = 15 de diciembre de 2026
+Días hábiles de calendario = 220 h ÷ 8 h por día de equipo = 27,5 días
+Ventanas de 2 semanas       = 27,5 ÷ 10 días hábiles        =  2,75 ventanas
+Cierre estimado             = 7 de enero de 2027
 ```
 
 ### El contraste con Scrum
 
 La misma cifra se obtiene por un camino independiente. Un sprint de dos
 semanas tiene la capacidad de la ventana: 10 días hábiles × 8 h = 80 h, que a
-4,00 h por punto son **20 puntos por sprint**. Con 47 puntos:
+4,00 h por punto son **20 puntos por sprint**. Con 55 puntos:
 
 ```
-47 ÷ 20 puntos por sprint = 2,35 sprints
+55 ÷ 20 puntos por sprint = 2,75 sprints
 ```
 
-Los dos métodos coinciden en **2,35 unidades de control**. No es casualidad:
+Los dos métodos coinciden en **2,75 unidades de control**. No es casualidad:
 las dos cuentas miden lo mismo —las horas que el equipo puede aportar— y solo
 cambia la unidad con la que se agrupan. Es el mejor control de la estimación,
 porque dos caminos independientes dan el mismo número.
@@ -170,14 +167,14 @@ porque dos caminos independientes dan el mismo número.
 ### Costo
 
 ```
-Costo = 1,18 mes-persona × 5.000 Bs = 5.875 Bs
+Costo = 1,38 mes-persona × 5.000 Bs = 6.875 Bs
 ```
 
 | Reparto | Horas-persona | Mes-persona | Costo |
 |---|---|---|---|
-| Ya gastado (hasta el 17/11) | 32 | 0,20 | 1.000 Bs |
-| Restante | 156 | 0,98 | 4.875 Bs |
-| **Total** | **188** | **1,18** | **5.875 Bs** |
+| Ya gastado (hasta el 25/11) | 188 | 1,18 | 5.875 Bs |
+| Restante (HU-18 y HU-19) | 32 | 0,20 | 1.000 Bs |
+| **Total** | **220** | **1,38** | **6.875 Bs** |
 
 ### Sensibilidad
 
@@ -186,10 +183,10 @@ por punto. Si el ritmo real fuera otro, el costo y el plazo se mueven así:
 
 | h por punto | Esfuerzo total | Mes-persona | Costo | Días de equipo | Cierre |
 |---|---|---|---|---|---|
-| 3,00 (más rápido) | 149 h | 0,93 | 4.656 Bs | 18,6 | 08/12/2026 |
-| **4,00 (el medido)** | **188 h** | **1,18** | **5.875 Bs** | **23,5** | **15/12/2026** |
-| 5,00 (algo más lento) | 227 h | 1,42 | 7.094 Bs | 28,4 | 21/12/2026 |
-| 6,00 (más lento) | 266 h | 1,66 | 8.313 Bs | 33,2 | 28/12/2026 |
+| 3,00 (más rápido) | 165 h | 1,03 | 5.156 Bs | 20,6 | 24/12/2026 |
+| **4,00 (el medido)** | **220 h** | **1,38** | **6.875 Bs** | **27,5** | **07/01/2027** |
+| 5,00 (algo más lento) | 275 h | 1,72 | 8.594 Bs | 34,4 | 15/01/2027 |
+| 6,00 (más lento) | 330 h | 2,06 | 10.313 Bs | 41,3 | 25/01/2027 |
 
 El costo se mueve poco, porque la tarifa es baja; lo que cambia de verdad es
 la fecha. En los cuatro escenarios el alcance completo cabe en un mes de
@@ -230,7 +227,7 @@ muestra pequeña y hay que decirlo.
 |---|---|---|
 | **Muestra mínima** | 4 días no representan el ritmo de todo el alcance. | Repetir la medición al cerrar la ventana, el 25/11, con las tareas de «En pruebas / QA» ya resueltas. |
 | **WIP no medido** | El ritmo de 1,75 tareas/día pudo obtenerse con más de 4 tarjetas en curso. Desde el 17 de noviembre el límite está puesto y hay 4 tarjetas en curso, de modo que el rendimiento bajo el límite todavía no se ha observado. | Medir el flujo real con el límite aplicado y recalcular. Es el experimento que empieza el 25/11. |
-| **Perfil de riesgo desigual** | 22 de los 47 puntos pendientes son de riesgo alto, frente a 8 puntos ya cerrados de riesgo mixto. | La estimación se recalcula al cierre de cada historia de riesgo alto. |
+| **Perfil de riesgo desigual** | El alcance original cerró sus 22 puntos de riesgo alto; los 8 puntos pendientes (HU-18 y HU-19) son de riesgo medio. | La estimación se recalcula al cierre de cada historia de riesgo alto. |
 | **Alcance del MVP** | Si el MVP crece, crece el total. | El tablero y el backlog son la fuente; cualquier cambio se refleja al regenerarlos. |
 | **Sin historial** | No hay datos de proyectos anteriores de la agencia que sirvan de contraste. | La estimación se contrasta con la velocidad observada en el propio tablero. |
 

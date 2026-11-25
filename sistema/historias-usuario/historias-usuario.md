@@ -35,9 +35,11 @@ revisión.
 | HU-09 | Modificar fechas o capacidad de una salida | Administrador | Web | Media | Alto | 3 pts | 2 tareas |
 | HU-11 | Consultar reportes de ocupación y reservas por fecha | Personal | Web | Baja | Medio | 2 pts | 2 tareas |
 | HU-13 | Solicitud y ejecución de la cancelación de una reserva | Cliente, Personal | Web, Oficina | Media | Alto | 3 pts | 2 tareas |
-| HU-14 | Registro y validación de anticipos y saldos de una reserva | Cliente, Personal | Web, Oficina | Alta | Medio | 3 pts | 2 tareas |
+| HU-14 | Registro y validación de anticipos y saldos de una reserva | Cliente, Personal | Web, Oficina | Alta | Medio | 3 pts | 3 tareas |
 | HU-16 | Avisos de cambios de fecha y capacidad de una salida | Cliente | Web | Baja | Medio | 2 pts | 2 tareas |
-| **TOTAL** | **17 historias de usuario** | | | | | **47 pts** | **44 tareas** |
+| HU-18 | Ficha de la salida | Cliente, Personal | Web | Alta | Medio | 5 pts | 5 tareas |
+| HU-19 | Detalles de servicios de proveedores | Administrador | Web | Media | Medio | 3 pts | 4 tareas |
+| **TOTAL** | **19 historias de usuario** | | | | | **55 pts** | **54 tareas** |
 
 ## Criterio de prioridades
 
@@ -47,20 +49,20 @@ prioridad media si el MVP puede resolverla de forma manual.
 
 | Prioridad | Criterio | Historias |
 |---|---|---|
-| Alta | Sostiene el flujo mínimo: acceso, catálogo, salida con cupo, disponibilidad, reserva, confirmación y pago. Sin estas historias no hay proceso validado. | HU-01, HU-02, HU-03, HU-06, HU-08, HU-14, HU-17 |
-| Media | Necesaria para operar, pero se puede resolver después del flujo mínimo o de forma manual durante el MVP. | HU-04, HU-07, HU-09, HU-10, HU-12, HU-13, HU-15 |
+| Alta | Sostiene el flujo mínimo: acceso, catálogo, salida con cupo, disponibilidad, reserva, confirmación y pago. Sin estas historias no hay proceso validado. | HU-01, HU-02, HU-03, HU-06, HU-08, HU-14, HU-17, HU-18 |
+| Media | Necesaria para operar, pero se puede resolver después del flujo mínimo o de forma manual durante el MVP. | HU-04, HU-07, HU-09, HU-10, HU-12, HU-13, HU-15, HU-19 |
 | Baja | Complementaria o fuera del alcance inmediato: cotizaciones, reportes y avisos por correo. | HU-05, HU-11, HU-16 |
 
-La distribución queda en 7 historias de prioridad alta, 7 de prioridad
+La distribución queda en 8 historias de prioridad alta, 8 de prioridad
 media y 3 de prioridad baja.
 
 ## Actores
 
 | Actor | Rol en el sistema | Historias |
 |---|---|---|
-| Cliente | Cuenta propia. Consulta, solicita reservas, registra pagos y solicita cancelaciones. Solo accede a su propia información. | HU-03, HU-06, HU-08, HU-12, HU-13, HU-14, HU-15, HU-16 |
-| Personal de agencia | Agentes de atención y ventas, responsables de operaciones y personal de apoyo administrativo. Confirma reservas, valida pagos, ejecuta cancelaciones y responde consultas. | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-10, HU-11, HU-12, HU-13, HU-14, HU-17 |
-| Administrador | Gestiona usuarios, paquetes, salidas, proveedores y reportes. | HU-01, HU-02, HU-07, HU-09, HU-10, HU-11, HU-15, HU-17 |
+| Cliente | Cuenta propia. Consulta, solicita reservas, registra pagos y solicita cancelaciones. Solo accede a su propia información. | HU-03, HU-06, HU-08, HU-12, HU-13, HU-14, HU-15, HU-16, HU-18 |
+| Personal de agencia | Agentes de atención y ventas, responsables de operaciones y personal de apoyo administrativo. Confirma reservas, valida pagos, ejecuta cancelaciones y responde consultas. | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-10, HU-11, HU-12, HU-13, HU-14, HU-17, HU-18 |
+| Administrador | Gestiona usuarios, paquetes, salidas, proveedores y reportes. | HU-01, HU-02, HU-07, HU-09, HU-10, HU-11, HU-15, HU-17, HU-19 |
 
 ## Enunciado de las historias
 
@@ -83,10 +85,12 @@ media y 3 de prioridad baja.
 | HU-14 | Como cliente, quiero registrar mi anticipo o mi saldo, y como personal, quiero validarlo, para que la reserva quede con respaldo verificado. |
 | HU-16 | Como cliente, quiero recibir aviso de los cambios de fecha o de capacidad de mi salida, para enterarme a tiempo y organizar mi viaje. |
 | HU-17 | Como personal, quiero ver las solicitudes pendientes y confirmarlas dentro del plazo, para que ningún cupo quede bloqueado por una solicitud sin atender. |
+| HU-18 | Como cliente, quiero abrir la ficha de una salida y ver todo lo que incluye, para decidir mi viaje sin llamar a la agencia. |
+| HU-19 | Como administrador, quiero registrar los detalles por servicio de cada proveedor y asignarlos a las salidas, para mostrar en la ficha quién guía, qué se sirve y con qué unidad se viaja. |
 
 ## Criterios de aceptación
 
-Las 17 historias tienen criterios de aceptación redactados. Se ordenan como el
+Las 19 historias tienen criterios de aceptación redactados. Se ordenan como el
 backlog y cada criterio se apoya en las reglas de negocio ya reflejadas en el
 esquema de la base de datos, de modo que las historias no exijan nada que el
 sistema no pueda cumplir.
@@ -345,12 +349,53 @@ sistema no pueda cumplir.
 - El aviso no cambia el estado de la reserva ni la confirma por sí solo.
 - Las reservas canceladas y vencidas no generan aviso.
 
+### HU-18 · Ficha de la salida
+
+- Cada tarjeta de salida, en la consulta del cliente y en la del personal,
+  abre la ficha de la salida con el paquete, las fechas, el precio y el
+  cupo.
+- La ficha muestra el mapa del recorrido con la línea de ruta y las paradas
+  ordenadas, a partir de las coordenadas del catálogo de lugares; un lugar
+  sin coordenadas aparece en la lista sin punto en el mapa.
+- La ficha presenta el itinerario día por día, la lista de servicios que
+  cubre el precio, sus detalles y lo que no está incluido, tal como los
+  declara el paquete.
+- La ficha muestra los proveedores del paquete con el servicio que prestan
+  y sus detalles por servicio: guías, menús y unidades, sin sus costos.
+- El personal ve además los costos de los vínculos y las asignaciones
+  operativas de la salida, y el cliente nunca ve costos internos.
+- Las asignaciones operativas son opcionales y no cambian el cupo ni el
+  precio de la salida.
+- Una salida sin cupo disponible sigue mostrando su ficha informativa, pero
+  no admite la solicitud de reserva.
+- El visitante sin sesión ve la ficha de las salidas programadas o
+  confirmadas de paquetes activos; el personal la ve de cualquier salida,
+  con su estado.
+
+### HU-19 · Detalles de servicios de proveedores
+
+- Cada proveedor registra varios detalles por cada tipo de servicio que
+  declara, con título, descripción y orden.
+- Un detalle describe la oferta del proveedor, no la del paquete: el guía
+  con su certificación e idiomas, el menú con sus platos y sus alérgenos,
+  la unidad con su capacidad, la habitación con sus servicios.
+- Un detalle no se guarda sin título y pertenece a un tipo que el
+  proveedor tenga declarado; al retirar un tipo declarado se retiran sus
+  detalles.
+- Los vínculos del paquete con proveedores conservan su costo interno; los
+  detalles y las asignaciones no tienen costo.
+- La salida puede registrar asignaciones operativas de proveedores activos
+  con un tipo declarado, con una descripción opcional, y no se repite el
+  mismo proveedor en una salida.
+- El mantenimiento de detalles y asignaciones corresponde al
+  administrador; el personal y el cliente los consultan desde la ficha.
+
 ## Desglose de tareas
 
-Las 44 tareas se detallan por historia, en el orden del backlog. Cada tarea
+Las 54 tareas se detallan por historia, en el orden del backlog. Cada tarea
 hereda los criterios de aceptación de su historia y la prioridad y el riesgo
 de esa historia. El responsable indicado corresponde al reparto de trabajo
-entre los dos programadores: 24 tareas para el programador A y 20 para el
+entre los dos programadores: 33 tareas para el programador A y 21 para el
 programador B.
 
 En el tablero, el programador A aparece como **EV** y el programador B como
@@ -438,8 +483,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
   que excedan la capacidad.
 - **T-HU-06.3** Guardar la reserva en estado pendiente con su fecha de
   vencimiento y reflejar la ocupación en la disponibilidad.
-- **T-HU-06.4** Revalidar la retención web del 70% de los cupos disponibles
-  al modificar una reserva del canal web.
+- **T-HU-06.4** Revalidar la retención web del 70% de los cupos disponibles al
+  modificar una reserva del canal web.
 
 ### HU-12 · Registro de pasajeros y vinculación a una reserva
 
@@ -502,12 +547,15 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 ### HU-14 · Registro y validación de anticipos y saldos de una reserva
 
-**Responsable:** Programador B · **2 tareas** · **Criterios:** los de HU-14
+**Responsable:** Programador B · **3 tareas** · **Criterios:** los de HU-14
 
 - **T-HU-14.1** Registrar anticipos y pagos con importe, fecha, método y
   concepto, desde el personal o desde la cuenta del cliente.
 - **T-HU-14.2** Validar o anular el pago y calcular el total abonado, el saldo
   pendiente y el historial de pagos.
+- **T-HU-14.5** Ajustar pagos, retención web y manifiesto tras las pruebas del
+  ciclo: pagos por partes, retención del 70%, manifiesto web sin superación y
+  avisos flotantes.
 
 ### HU-16 · Avisos de cambios de fecha y capacidad de una salida
 
@@ -517,6 +565,35 @@ En el tablero, el programador A aparece como **EV** y el programador B como
   la capacidad de una salida.
 - **T-HU-16.2** Mostrar el aviso con el valor anterior y el nuevo, y comprobar
   que solo lo vea el cliente afectado.
+
+### HU-18 · Ficha de la salida
+
+**Responsable:** Programador A · **5 tareas** · **Criterios:** los de HU-18
+
+- **T-HU-18.1** Exponer la ficha de la salida por API, con el paquete, las
+  paradas, los servicios y los proveedores, según el rol de quien consulta.
+- **T-HU-18.2** Dibujar el mapa del recorrido con la línea de ruta y las
+  paradas ordenadas en la ficha de la salida.
+- **T-HU-18.3** Presentar el itinerario por días, los servicios incluidos, sus
+  detalles y las exclusiones en la ficha de la salida.
+- **T-HU-18.4** Mostrar en la ficha los proveedores del paquete con sus
+  detalles por servicio y las asignaciones operativas de la salida, con costos
+  solo para el personal.
+- **T-HU-18.5** Volver clicables las tarjetas de salida de los dos canales
+  para abrir la ficha.
+
+### HU-19 · Detalles de servicios de proveedores
+
+**Responsable:** Programador A · **4 tareas** · **Criterios:** los de HU-19
+
+- **T-HU-19.1** Guardar los detalles por servicio de cada proveedor, con su
+  tipo declarado y su orden.
+- **T-HU-19.2** Registrar las asignaciones operativas de proveedores de cada
+  salida, sin costos ni cupos.
+- **T-HU-19.3** Editar los detalles por servicio y las asignaciones desde los
+  formularios de proveedores y de salidas.
+- **T-HU-19.4** Renovar los datos de demostración con guías, menús y
+  alérgenos, unidades, asignaciones y salidas regionales.
 
 ## Convenciones del backlog
 
@@ -544,16 +621,16 @@ En el tablero, el programador A aparece como **EV** y el programador B como
 
 | Concepto | Valor |
 |---|---|
-| Historias de usuario | 17 |
-| Historias con criterios de aceptación | 17 |
-| Estimación total | 47 pts |
-| Tareas totales | 44 |
-| Tareas desglosadas | 44 |
-| Prioridad alta | 7 |
-| Prioridad media | 7 |
+| Historias de usuario | 19 |
+| Historias con criterios de aceptación | 19 |
+| Estimación total | 55 pts |
+| Tareas totales | 54 |
+| Tareas desglosadas | 54 |
+| Prioridad alta | 8 |
+| Prioridad media | 8 |
 | Prioridad baja | 3 |
 | Riesgo alto | 7 |
-| Riesgo medio | 9 |
+| Riesgo medio | 11 |
 | Riesgo bajo | 1 |
 
 ## Escala de estimación
@@ -562,7 +639,7 @@ Escala de Fibonacci (1, 2, 3, 5, 8, 13) aplicada a la complejidad y al
 esfuerzo relativo de cada historia, con independencia del plazo de entrega.
 En esta versión se usan los valores 2, 3 y 5. La priorización se expresa
 mediante las columnas de prioridad y riesgo, no mediante el puntaje: el
-total de 47 puntos sirve para dimensionar el alcance, no para-planificar
+total de 55 puntos sirve para dimensionar el alcance, no para-planificar
 iteraciones, porque todavía no se ha definido una velocidad de referencia.
 
 ## Observaciones
@@ -634,7 +711,7 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
 
 - Definir una velocidad de referencia para convertir los 47 puntos en un
   plan de entrega.
-- Revisar la estimación de HU-06, que concentra 5 de los 47 puntos y tres
+- Revisar la estimación de HU-06, que concentra 5 de los 55 puntos y cuatro
   tareas, por ser la historia de mayor riesgo y alcance.
 - Elaborar el diagrama de secuencia de HU-17, que no tiene
   representación propia en `sistema/diagramas/uml/secuencia/`.

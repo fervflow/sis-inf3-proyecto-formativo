@@ -6,6 +6,34 @@ kanban-plugin: basic
 
 ## Por hacer
 
+- [ ] **T-HU-18.1** · EV · HU-18 \
+  Exponer la ficha de la salida por API, con el paquete, las paradas, los servicios y los proveedores, según el rol de quien consulta.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-18.2** · EV · HU-18 \
+  Dibujar el mapa del recorrido con la línea de ruta y las paradas ordenadas en la ficha de la salida.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-18.3** · EV · HU-18 \
+  Presentar el itinerario por días, los servicios incluidos, sus detalles y las exclusiones en la ficha de la salida.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-18.4** · EV · HU-18 \
+  Mostrar en la ficha los proveedores del paquete con sus detalles por servicio y las asignaciones operativas de la salida, con costos solo para el personal.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-18.5** · EV · HU-18 \
+  Volver clicables las tarjetas de salida de los dos canales para abrir la ficha.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
+- [ ] **T-HU-19.1** · EV · HU-19 \
+  Guardar los detalles por servicio de cada proveedor, con su tipo declarado y su orden.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-19.2** · EV · HU-19 \
+  Registrar las asignaciones operativas de proveedores de cada salida, sin costos ni cupos.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-19.3** · EV · HU-19 \
+  Editar los detalles por servicio y las asignaciones desde los formularios de proveedores y de salidas.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+- [ ] **T-HU-19.4** · EV · HU-19 \
+  Renovar los datos de demostración con guías, menús y alérgenos, unidades, asignaciones y salidas regionales.
+  [Inicio:: 25/11/2026] [Fin:: —] [Entrega:: 27/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
+
 ## En curso (WIP 4)
 
 ## En pruebas / QA (WIP 2)
@@ -15,7 +43,7 @@ kanban-plugin: basic
 ## Hecho
 
 - [ ] **T-HU-06.4** · EV · HU-06 \
-  Revalidar la retención web del 50% del cupo al modificar una reserva del canal web.
+  Revalidar la retención web del 70% de los cupos disponibles al modificar una reserva del canal web.
   [Inicio:: 24/11/2026] [Fin:: 24/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
 - [ ] **T-HU-17.4** · EV · HU-17 \
   Ejecutar el barrido de solicitudes vencidas desde la bandeja del personal, sin esperar al cron diario.
@@ -145,8 +173,12 @@ kanban-plugin: basic
   Consultar y actualizar la información de los clientes.
   [Inicio:: 12/11/2026] [Fin:: 18/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Medio] #prio-media
 - [ ] **T-HU-08.1** · EV · HU-08 \
-    Crear el inicio de sesión y validar las credenciales.
-    [Inicio:: 12/11/2026] [Fin:: 17/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Media/Bajo] #prio-media
+  Crear el inicio de sesión y validar las credenciales.
+  [Inicio:: 12/11/2026] [Fin:: 17/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Alto] #prio-alta
+
+- [ ] **T-HU-14.5** · RE · HU-14 \
+  Ajustar pagos, retención web y manifiesto tras las pruebas del ciclo: pagos por partes, retención del 70%, manifiesto web sin superación y avisos flotantes.
+  [Inicio:: 25/11/2026] [Fin:: 25/11/2026] [Entrega:: 26/11/2026] [Costo inicial:: —] [Costo pendiente:: —] [Prioridad y riesgo:: Alta/Medio] #prio-alta
 
 %% kanban:settings
 {

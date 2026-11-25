@@ -78,6 +78,7 @@ obsoleto y no debe volver a introducirse.
 | RN-LUG-03 | Un lugar usado por un paquete no se elimina. | Decisión del proyecto | Clave foránea con `ON DELETE RESTRICT` | Vigente |
 | RN-PAQ-16 | El origen es opcional. El recorrido es `sencillo` o `circuito`; un circuito exige origen y vuelve a él. | Decisión del proyecto | `ck_paquete_circuito` y Zod | Vigente |
 | RN-PAQ-17 | Las paradas del recorrido se ordenan y no se repiten en el mismo paquete. | Decisión del proyecto | `paquete_parada` y `ux_paquete_parada_lugar` | Vigente |
+| RN-PAQ-18 | El itinerario es el relato día por día del paquete: cada día lleva número, título y detalle. Los días se renumeran al reordenar y un paquete activo necesita al menos uno; la columna de texto libre desapareció. | Decisión del proyecto | `paquete_itinerario` y disparador de publicación | Vigente |
 
 ### 5.2 Identidad y contenido
 
@@ -89,7 +90,7 @@ obsoleto y no debe volver a introducirse.
 | RN-PAQ-04 | La descripción es opcional en borrador y obligatoria para publicar. | HU-01 | Disparador de publicación | Vigente |
 | RN-PAQ-05 | La duración es un entero mayor que cero y menor o igual a 365 días. | HU-01, HU-02 | `ck_paquete_duracion` y Zod | Vigente |
 | RN-PAQ-06 | El precio base es mayor que cero. | HU-01 | `ck_paquete_precio` y Zod | Vigente |
-| RN-PAQ-07 | El itinerario es opcional en borrador y obligatorio para publicar. | HU-01, T-HU-01.1 | Disparador de publicación y Zod | Vigente |
+| RN-PAQ-07 | El itinerario es opcional en borrador y obligatorio para publicar: al menos un día en `paquete_itinerario` (RN-PAQ-18). | HU-01, T-HU-01.1 | Disparador de publicación, Zod e interfaz | Vigente |
 | RN-PAQ-08 | Los servicios incluidos son opcionales en borrador y, para publicar, se exige al menos uno marcado. | HU-01 | Disparador de publicación y Zod | Vigente |
 | RN-PAQ-09 | Los servicios marcados son la lista canónica de lo que cubre el precio. Los detalles y las exclusiones son textos opcionales. | Decisión del proyecto | `servicio`, `paquete_servicio`, `servicios_detalle` y `servicios_excluidos` | Vigente |
 | RN-PAQ-10 | Un paquete con salidas o reservas no se elimina: pasa a inactivo y conserva su historial. | HU-01 | Diseño de la API; no hay ruta de borrado | Vigente |
@@ -116,7 +117,7 @@ obsoleto y no debe volver a introducirse.
 | `descripcion` | Opcional | **Obligatorio** | Opcional |
 | `duracion_dias` | Obligatorio (> 0) | Obligatorio (> 0) | Obligatorio (> 0) |
 | `precio_base` | Obligatorio (> 0) | Obligatorio (> 0) | Obligatorio (> 0) |
-| `itinerario` | Opcional | **Obligatorio** | Opcional |
+| `itinerario` (días en `paquete_itinerario`) | Opcional | **Al menos un día** | Opcional |
 | `servicios` | Opcional | **Al menos uno** | Opcional |
 | `servicios_detalle` | Opcional | Opcional | Opcional |
 | `servicios_excluidos` | Opcional | Opcional | Opcional |
@@ -155,6 +156,8 @@ bebidas y actividades recreativas.
 | RN-SAL-07 | El precio de la salida es mayor que cero. | HU-02 | `ck_salida_precio` y `fn_crear_salida` | Vigente |
 | RN-SAL-08 | Toda salida nace en estado `programada` y deja su creación auditada. | HU-02 | `fn_crear_salida` | Vigente |
 | RN-SAL-22 | El código de la salida es único, se genera al crear con el código del paquete y un ordinal por paquete (`PAQUETE-NNN`), y no se edita después. Distingue las salidas de un mismo paquete en la consulta de disponibilidad. | Decisión del proyecto | Disparador `tr_salida_codigo`, `uq_salida_codigo` y `vista_disponibilidad_salida` | Vigente |
+| RN-SAL-23 | Una salida puede registrar asignaciones operativas de proveedores activos con un tipo declarado y una descripción opcional, y el mismo proveedor no se repite en la salida. La capa del paquete es el contrato con su costo; la de la salida dice qué guía conduce y con qué unidad se viaja. Es opcional, sin costos y no cambia el cupo ni el precio. | HU-18, HU-19 | `salida_proveedor`, FK compuesta e interfaz | Vigente |
+| RN-SAL-24 | La ficha de la salida muestra el paquete, el mapa del recorrido, el itinerario por días, los servicios incluidos, sus detalles y las exclusiones, y los proveedores con sus detalles por servicio. El cliente nunca ve costos internos; el personal ve además los costos de los vínculos y el estado de la salida. | HU-18 | API de ficha e interfaz | Vigente |
 
 ### 7.2 Modificación y estados
 
@@ -213,12 +216,12 @@ programada ──▶ confirmada ──▶ realizada
 
 | Historia | Reglas |
 |---|---|
-| HU-01 · Gestión de paquetes | RN-LUG-01 a RN-LUG-03, RN-PAQ-01 a RN-PAQ-17, RN-SER-01 a RN-SER-05 |
-| HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08, RN-SAL-21 y RN-SAL-22 |
+| HU-01 · Gestión de paquetes | RN-LUG-01 a RN-LUG-03, RN-PAQ-01 a RN-PAQ-18, RN-SER-01 a RN-SER-05 |
+| HU-02 · Fechas de salida y cupos | RN-SAL-01 a RN-SAL-08, RN-SAL-21 a RN-SAL-24 |
 | HU-03 · Consulta de disponibilidad | RN-SAL-17 a RN-SAL-19 |
 | HU-09 · Modificar fechas o capacidad | RN-SAL-09 a RN-SAL-16 |
 | HU-08 · Acceso por rol | RN-USU-01, RN-USU-02 |
-| HU-10 · Proveedores y vínculos | RN-PRV-01 a RN-PRV-07 |
+| HU-10 · Proveedores y vínculos | RN-PRV-01 a RN-PRV-08 |
 | HU-05 · Cotizaciones | RN-COT-01 a RN-COT-09 |
 | HU-15 · Cuenta de cliente | RN-USU-02 a RN-USU-05 |
 | HU-06 · Registro de reservas | RN-GEN-04, RN-GEN-05, RN-SAL-14, RN-SAL-18, RN-COT-08 y RN-RES-01 a RN-RES-06, RN-RES-11, RN-RES-12, RN-RES-17 |
@@ -229,6 +232,8 @@ programada ──▶ confirmada ──▶ realizada
 | HU-16 · Avisos de cambios | RN-RES-22 |
 | HU-11 · Reportes | RN-REP-01 a RN-REP-04 |
 | HU-17 · Confirmación y vencimiento de solicitudes | RN-GEN-03, RN-GEN-05, RN-SAL-19 y RN-RES-01, RN-RES-05, RN-RES-07 a RN-RES-10, RN-RES-13, RN-RES-18, RN-RES-19 |
+| HU-18 · Ficha de la salida | RN-LUG-02, RN-SAL-20 a RN-SAL-24, RN-PAQ-18, RN-SER-01 a RN-SER-04 y RN-PRV-06, RN-PRV-08 |
+| HU-19 · Detalles de servicios de proveedores | RN-PRV-02, RN-PRV-04 a RN-PRV-08, RN-SAL-23 |
 
 ## 10. Reglas de usuarios y roles del alcance
 
@@ -251,6 +256,7 @@ programada ──▶ confirmada ──▶ realizada
 | RN-PRV-05 | Solo un proveedor `activo` se vincula a un paquete nuevo. | HU-10 | API de proveedores | Vigente |
 | RN-PRV-06 | Un paquete y un proveedor se vinculan una sola vez; el vínculo guarda uno de los tipos declarados del proveedor, una descripción opcional (`detalle`) y su costo, que no puede ser negativo. Un tipo declarado que está en uso no se retira de la ficha. | HU-10 | PK (`id_paquete`, `id_proveedor`), FK compuesta a `proveedor_tipo`, `ck_paquete_proveedor_costo` y API | Vigente |
 | RN-PRV-07 | Un proveedor puede atender varios paquetes y un paquete puede tener varios proveedores. | HU-10 | `paquete_proveedor` | Vigente |
+| RN-PRV-08 | Cada proveedor registra detalles por cada tipo de servicio que declara, con título obligatorio, descripción y orden: el guía con su certificación e idiomas, el menú con sus platos y sus alérgenos, la unidad con su capacidad. La oferta es del proveedor, no del paquete; al retirar un tipo declarado se retiran sus detalles. | HU-19 | `proveedor_servicio`, FK compuesta y API | Vigente |
 
 ## 12. Cotizaciones
 

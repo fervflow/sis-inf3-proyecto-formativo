@@ -44,7 +44,7 @@ métricas y la ley de Little.
 
 | Entradas | Origen |
 |---|---|
-| 17 historias, 47 pts, 39 tareas | Backlog y CSV |
+| 19 historias, 55 pts, 54 tareas | Backlog y CSV |
 | 1,75 tareas por día, 4,00 h-persona por punto | Tablero |
 | 2 desarrolladores, 4 h por día hábil | Definición del proyecto |
 | 5.000 Bs por mes-persona | Parámetro |

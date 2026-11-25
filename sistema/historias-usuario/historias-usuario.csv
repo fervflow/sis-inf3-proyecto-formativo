@@ -14,6 +14,8 @@ HU-17;Confirmación de solicitudes y control de su vencimiento;Personal;Web;Alta
 HU-09;Modificar fechas o capacidad de una salida;Administrador;Web;Media;Alto;3 pts;2 tareas
 HU-11;Consultar reportes de ocupación y reservas por fecha;Personal;Web;Baja;Medio;2 pts;2 tareas
 HU-13;Solicitud y ejecución de la cancelación de una reserva;Cliente, Personal;Web, Oficina;Media;Alto;3 pts;2 tareas
-HU-14;Registro y validación de anticipos y saldos de una reserva;Cliente, Personal;Web, Oficina;Alta;Medio;3 pts;2 tareas
+HU-14;Registro y validación de anticipos y saldos de una reserva;Cliente, Personal;Web, Oficina;Alta;Medio;3 pts;3 tareas
 HU-16;Avisos de cambios de fecha y capacidad de una salida;Cliente;Web;Baja;Medio;2 pts;2 tareas
-TOTAL;17 historias de usuario;;;;;47 pts;44 tareas
+HU-18;Ficha de la salida;Cliente, Personal;Web;Alta;Medio;5 pts;5 tareas
+HU-19;Detalles de servicios de proveedores;Administrador;Web;Media;Medio;3 pts;4 tareas
+TOTAL;19 historias de usuario;;;;;55 pts;54 tareas
