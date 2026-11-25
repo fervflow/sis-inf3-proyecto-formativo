@@ -159,6 +159,7 @@
         <SalidasFichaSalida
           v-else-if="ficha"
           :ficha="ficha"
+          @solicitar="solicitarDesdeFicha"
           @cerrar="fichaAbierta = false"
           @editar="editarDesdeFicha"
         />
@@ -188,6 +189,7 @@ import type {
   ReservaResumen,
   SalidaAdmin,
   SalidaDisponible,
+  SalidaSolicitud,
 } from '#shared/types/api'
 import type { ClaveMensaje } from '~/i18n'
 
@@ -305,7 +307,7 @@ function recorridoDeSalida(salida: SalidaAdmin): string {
 type PasoSolicitud = 'solicitud' | 'pago'
 
 const paso = ref<PasoSolicitud>('solicitud')
-const salidaSolicitada = ref<SalidaDisponible | null>(null)
+const salidaSolicitada = ref<SalidaSolicitud | null>(null)
 const reservaSolicitada = ref<ReservaResumen | null>(null)
 const formularioCliente = useTemplateRef<{
   reiniciar: () => void
@@ -320,7 +322,7 @@ const tituloModal = computed(() =>
     : t('solicitudes.cliente.titulo'),
 )
 
-function solicitar(salida: SalidaDisponible) {
+function solicitar(salida: SalidaSolicitud) {
   avisoSolicitud.value = null
 
   // Sin sesión no hay solicitud: a ingresar o crear cuenta, con retorno.
@@ -393,6 +395,26 @@ function editarDesdeFicha() {
     (item) => item.idSalida === ficha.value?.idSalida,
   )
   if (salida) abrirEdicion(salida)
+}
+
+/**
+ * Desde la ficha, sigue el mismo flujo de solicitud de las tarjetas:
+ * la ficha ya trae los datos que el formulario de solicitud necesita.
+ */
+function solicitarDesdeFicha() {
+  const cargada = ficha.value
+  if (!cargada) return
+
+  fichaAbierta.value = false
+  solicitar({
+    id_salida: cargada.idSalida,
+    paquete: cargada.paquete,
+    codigo_paquete: cargada.codigoPaquete,
+    fecha_salida: cargada.fechaSalida,
+    fecha_retorno: cargada.fechaRetorno,
+    cupo_disponible: cargada.cupoDisponible,
+    precio: cargada.precio,
+  })
 }
 
 // --- Alta y edición de salidas (administrador) ---------------------------

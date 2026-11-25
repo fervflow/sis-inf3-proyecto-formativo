@@ -69,6 +69,17 @@ export interface SalidaDisponible {
   estado: string
 }
 
+/** Datos de una salida que consume el formulario de solicitud web. */
+export interface SalidaSolicitud {
+  id_salida: number
+  paquete: string
+  codigo_paquete: string
+  fecha_salida: string
+  fecha_retorno: string
+  cupo_disponible: number
+  precio: string
+}
+
 /** Respuesta de la consulta de disponibilidad. */
 export interface RespuestaDisponibilidad {
   salidas: SalidaDisponible[]

@@ -19,6 +19,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  /** La persona quiere solicitar una reserva de esta salida. */
+  solicitar: []
   /** La persona cerró la ficha. */
   cerrar: []
   /** El administrador quiere editar la salida. */
@@ -88,6 +90,22 @@ const colorEstado = computed(() => {
 
 function etiquetaTipo(tipo: TipoProveedor): string {
   return t(`proveedores.tipos.${tipo}` as ClaveMensaje)
+}
+
+/** Icono del tipo de servicio: para el chip del proveedor y las insignias. */
+function iconoTipo(tipo: TipoProveedor): string {
+  switch (tipo) {
+    case 'transporte':
+      return 'i-lucide-bus'
+    case 'hospedaje':
+      return 'i-lucide-bed'
+    case 'guia':
+      return 'i-lucide-user-check'
+    case 'alimentacion':
+      return 'i-lucide-utensils'
+    default:
+      return 'i-lucide-box'
+  }
 }
 
 /** Agrupa los detalles del proveedor bajo su servicio, ya filtrados. */
@@ -347,48 +365,73 @@ function detallesDe(proveedor: ProveedorFicha) {
       <BaseSubtitulo icono="i-lucide-handshake">
         {{ t('salidas.ficha.proveedores') }}
       </BaseSubtitulo>
-      <div
-        v-for="proveedor in ficha.proveedores"
-        :key="proveedor.idProveedor"
-        class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
-            {{ proveedor.nombre }}
-            <UBadge
-              class="ml-1"
-              color="neutral"
-              variant="subtle"
-              :label="etiquetaTipo(proveedor.servicio)"
-            />
-          </p>
-          <p
-            v-if="esPersonal && proveedor.costo"
-            class="tabular-nums text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
-          >
-            {{ t('salidas.ficha.costo', { costo: moneda(proveedor.costo) }) }}
-          </p>
-        </div>
-        <p v-if="proveedor.detalle" class="text-(--vt-texto-sm)">
-          {{ proveedor.detalle }}
-        </p>
-        <ul v-if="detallesDe(proveedor).length > 0" class="mt-2 space-y-1.5">
-          <li
-            v-for="detalle in detallesDe(proveedor)"
-            :key="detalle.titulo"
-            class="border-t border-(--vt-color-borde) pt-1.5 first:border-0 first:pt-0"
-          >
-            <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
-              {{ detalle.titulo }}
-            </p>
-            <p
-              v-if="detalle.detalle"
-              class="whitespace-pre-line text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+      <div class="grid items-start gap-3 sm:grid-cols-2">
+        <div
+          v-for="proveedor in ficha.proveedores"
+          :key="proveedor.idProveedor"
+          class="rounded-(--vt-radio-md) p-3 ring-1 ring-(--vt-color-borde)"
+        >
+          <div class="flex items-start gap-3">
+            <span
+              class="grid size-9 shrink-0 place-items-center rounded-(--vt-radio-md) bg-(--vt-color-marca-100) text-(--vt-color-marca-800)"
             >
-              {{ detalle.detalle }}
+              <UIcon :name="iconoTipo(proveedor.servicio)" class="size-5" />
+            </span>
+
+            <div class="min-w-0 flex-1">
+              <p
+                class="flex flex-wrap items-center gap-1.5 text-(--vt-texto-sm) font-(--vt-texto-peso-medio)"
+              >
+                {{ proveedor.nombre }}
+                <UBadge
+                  color="neutral"
+                  variant="subtle"
+                  :label="etiquetaTipo(proveedor.servicio)"
+                />
+              </p>
+              <p
+                v-if="proveedor.detalle"
+                class="mt-0.5 whitespace-pre-line text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+              >
+                {{ proveedor.detalle }}
+              </p>
+            </div>
+
+            <p
+              v-if="esPersonal && proveedor.costo"
+              class="shrink-0 tabular-nums text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+            >
+              {{ t('salidas.ficha.costo', { costo: moneda(proveedor.costo) }) }}
             </p>
-          </li>
-        </ul>
+          </div>
+
+          <ul
+            v-if="detallesDe(proveedor).length > 0"
+            class="mt-3 space-y-2 border-t border-(--vt-color-borde) pt-2.5"
+          >
+            <li
+              v-for="detalle in detallesDe(proveedor)"
+              :key="detalle.titulo"
+              class="flex items-start gap-2"
+            >
+              <UIcon
+                name="i-lucide-chevron-right"
+                class="mt-1 size-3.5 shrink-0 text-(--vt-color-marca-600)"
+              />
+              <div class="min-w-0">
+                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                  {{ detalle.titulo }}
+                </p>
+                <p
+                  v-if="detalle.detalle"
+                  class="whitespace-pre-line text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+                >
+                  {{ detalle.detalle }}
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
       <p
         v-if="ficha.proveedores.length === 0"
@@ -417,6 +460,7 @@ function detallesDe(proveedor: ProveedorFicha) {
             class="ml-1"
             color="neutral"
             variant="subtle"
+            :icon="iconoTipo(asignacion.servicio)"
             :label="etiquetaTipo(asignacion.servicio)"
           />
           <span v-if="asignacion.detalle" class="text-(--vt-color-texto-suave)">
@@ -442,8 +486,15 @@ function detallesDe(proveedor: ProveedorFicha) {
         @click="emit('cerrar')"
       />
       <UButton
+        v-if="disponible"
+        color="primary"
+        :label="t('disponibilidad.solicitar')"
+        @click="emit('solicitar')"
+      />
+      <UButton
         v-if="esPersonal"
         color="primary"
+        variant="soft"
         :label="t('salidas.ficha.editar')"
         @click="emit('editar')"
       />

@@ -8,15 +8,12 @@
  * Tras registrarla, la vista abre el pago del anticipo (HU-14).
  */
 import type { ClaveMensaje } from '~/i18n'
-import type {
-  ReservaResumen,
-  SalidaDisponible,
-} from '#shared/types/api'
+import type { ReservaResumen, SalidaSolicitud } from '#shared/types/api'
 import { SOLICITUD_WEB_MAXIMO_PASAJEROS } from '#shared/reservas'
 
 const props = defineProps<{
   /** Salida a la que se pide cupo. */
-  salida: SalidaDisponible
+  salida: SalidaSolicitud
 }>()
 
 const emit = defineEmits<{
