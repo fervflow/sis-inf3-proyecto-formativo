@@ -369,21 +369,52 @@ CREATE CONSTRAINT TRIGGER tr_paquete_servicio_publicado
 
 -- ---------------------------------------------------------------------
 -- 8. Paquetes activos que ya no cumplen la regla
+--
+--    La columna `itinerario` desapareció con la actualización del
+--    25/11/2026 (el itinerario pasó a la tabla `paquete_itinerario`):
+--    la comprobación por texto solo se aplica si la columna existe.
 -- ---------------------------------------------------------------------
 
-UPDATE paquete p
-SET estado = 'borrador'
-WHERE p.estado = 'activo'
-  AND (
-      p.id_lugar_destino IS NULL
-      OR p.descripcion IS NULL OR btrim(p.descripcion) = ''
-      OR p.itinerario IS NULL OR btrim(p.itinerario) = ''
-      OR NOT EXISTS (
-          SELECT 1
-          FROM paquete_servicio ps
-          WHERE ps.id_paquete = p.id_paquete
-      )
-  );
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'turismo' AND table_name = 'paquete'
+          AND column_name = 'itinerario'
+    ) THEN
+        UPDATE paquete p
+        SET estado = 'borrador'
+        WHERE p.estado = 'activo'
+          AND (
+              p.id_lugar_destino IS NULL
+              OR p.descripcion IS NULL OR btrim(p.descripcion) = ''
+              OR p.itinerario IS NULL OR btrim(p.itinerario) = ''
+              OR NOT EXISTS (
+                  SELECT 1
+                  FROM paquete_servicio ps
+                  WHERE ps.id_paquete = p.id_paquete
+              )
+          );
+    ELSE
+        UPDATE paquete p
+        SET estado = 'borrador'
+        WHERE p.estado = 'activo'
+          AND (
+              p.id_lugar_destino IS NULL
+              OR p.descripcion IS NULL OR btrim(p.descripcion) = ''
+              OR NOT EXISTS (
+                  SELECT 1 FROM paquete_itinerario pi
+                  WHERE pi.id_paquete = p.id_paquete
+              )
+              OR NOT EXISTS (
+                  SELECT 1
+                  FROM paquete_servicio ps
+                  WHERE ps.id_paquete = p.id_paquete
+              )
+          );
+    END IF;
+END;
+$$;
 
 -- ---------------------------------------------------------------------
 -- 9. Semilla de servicios

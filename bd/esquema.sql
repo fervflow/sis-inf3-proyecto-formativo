@@ -234,6 +234,24 @@ CREATE TABLE proveedor_tipo (
     CONSTRAINT ck_proveedor_tipo CHECK (tipo IN ('transporte', 'hospedaje', 'guia', 'alimentacion', 'otro'))
 );
 
+-- Detalles de cada servicio que declara el proveedor (RN-PRV-08): qué
+-- guía conduce y con qué certificación, qué menú se sirve y sus
+-- alérgenos, qué unidad sale a la ruta. La oferta es del proveedor, no
+-- del paquete, y así se reutiliza en todos los vínculos y salidas.
+CREATE TABLE proveedor_servicio (
+    id_proveedor_servicio BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_proveedor        BIGINT NOT NULL REFERENCES proveedor(id_proveedor) ON DELETE CASCADE,
+    tipo                VARCHAR(20) NOT NULL,
+    titulo              VARCHAR(150) NOT NULL,
+    detalle             TEXT,
+    orden               SMALLINT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_proveedor_servicio_tipo FOREIGN KEY (id_proveedor, tipo)
+        REFERENCES proveedor_tipo (id_proveedor, tipo) ON DELETE CASCADE,
+    CONSTRAINT ck_proveedor_servicio_titulo CHECK (btrim(titulo) <> '')
+);
+
+CREATE INDEX ix_proveedor_servicio ON proveedor_servicio (id_proveedor, tipo, orden);
+
 -- El nombre comercial identifica al proveedor en el catálogo.
 CREATE UNIQUE INDEX ux_proveedor_nombre ON proveedor (lower(btrim(nombre)));
 
@@ -249,9 +267,9 @@ CREATE TABLE paquete (
     descripcion         TEXT,
     duracion_dias       SMALLINT NOT NULL,
     precio_base         NUMERIC(12, 2) NOT NULL,
-    itinerario          TEXT,
     -- Detalles y exclusiones de los servicios. La lista canónica de lo que
-    -- incluye el precio está en `paquete_servicio`.
+    -- incluye el precio está en `paquete_servicio` y el relato día por día
+    -- en `paquete_itinerario`.
     servicios_detalle   TEXT,
     servicios_excluidos TEXT,
     estado              VARCHAR(15) NOT NULL DEFAULT 'borrador',
@@ -282,6 +300,22 @@ CREATE TABLE paquete_parada (
 
 CREATE UNIQUE INDEX ux_paquete_parada_lugar ON paquete_parada (id_paquete, id_lugar);
 
+-- Itinerario del paquete, día por día (HU-01). Cada día lleva título y
+-- detalle; el número de día es la posición en el relato y la interfaz
+-- reordena la lista y renumera al guardar. Un paquete activo necesita al
+-- menos un día, como los servicios.
+CREATE TABLE paquete_itinerario (
+    id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE CASCADE,
+    dia                 SMALLINT NOT NULL,
+    titulo              VARCHAR(150) NOT NULL,
+    detalle             TEXT,
+    PRIMARY KEY (id_paquete, dia),
+    CONSTRAINT ck_paquete_itinerario_dia CHECK (dia > 0),
+    CONSTRAINT ck_paquete_itinerario_titulo CHECK (btrim(titulo) <> '')
+);
+
+CREATE INDEX ix_paquete_itinerario ON paquete_itinerario (id_paquete, dia);
+
 -- Catálogo de servicios que un paquete puede incluir en su precio. Es un
 -- catálogo fijo para el MVP: se amplía con la semilla, no desde la interfaz.
 CREATE TABLE servicio (
@@ -294,7 +328,8 @@ CREATE TABLE servicio (
 );
 
 -- Servicios marcados en un paquete. Son la lista canónica de lo que cubre
--- el precio; el texto del itinerario describe qué ocurre cada día.
+-- el precio; el itinerario de `paquete_itinerario` describe qué ocurre
+-- cada día.
 CREATE TABLE paquete_servicio (
     id_paquete          BIGINT NOT NULL REFERENCES paquete(id_paquete) ON DELETE CASCADE,
     id_servicio         SMALLINT NOT NULL REFERENCES servicio(id_servicio) ON DELETE RESTRICT,
@@ -347,6 +382,20 @@ CREATE TABLE salida (
 CREATE UNIQUE INDEX ux_salida_paquete_fecha ON salida (id_paquete, fecha_salida);
 CREATE INDEX ix_salida_paquete_fecha ON salida (id_paquete, fecha_salida);
 CREATE INDEX ix_salida_fecha ON salida (fecha_salida);
+
+-- Asignación operativa de proveedores a una salida (RN-SAL-23). La
+-- capa del paquete es el contrato con su costo; esta es la de la
+-- salida concreta: qué guía conduce, con qué unidad se viaja. Es
+-- opcional, sin costos y no cambia el cupo ni el precio.
+CREATE TABLE salida_proveedor (
+    id_salida           BIGINT NOT NULL REFERENCES salida(id_salida) ON DELETE CASCADE,
+    id_proveedor        BIGINT NOT NULL REFERENCES proveedor(id_proveedor) ON DELETE RESTRICT,
+    servicio            VARCHAR(20) NOT NULL,
+    detalle             VARCHAR(200),
+    PRIMARY KEY (id_salida, id_proveedor),
+    CONSTRAINT fk_salida_proveedor_servicio FOREIGN KEY (id_proveedor, servicio)
+        REFERENCES proveedor_tipo (id_proveedor, tipo)
+);
 
 -- ---------------------------------------------------------------------
 -- 5. Cotizaciones
@@ -673,21 +722,32 @@ $$ LANGUAGE plpgsql;
 
 -- Un paquete publicado necesita destino, descripción, itinerario y al
 -- menos un servicio. El disparador es diferido: la API inserta el paquete
--- y sus servicios en la misma transacción.
+-- y sus servicios en la misma transacción. El itinerario lo forma la
+-- tabla `paquete_itinerario`: un paquete activo necesita al menos un
+-- día.
 CREATE OR REPLACE FUNCTION fn_validar_paquete_publicado()
 RETURNS TRIGGER
 SET search_path = turismo, public
 AS $$
 DECLARE
     v_servicios INTEGER;
+    v_dias      INTEGER;
 BEGIN
     IF NEW.estado <> 'activo' THEN
         RETURN NEW;
     END IF;
 
     IF NEW.id_lugar_destino IS NULL
-       OR NEW.descripcion IS NULL OR btrim(NEW.descripcion) = ''
-       OR NEW.itinerario IS NULL OR btrim(NEW.itinerario) = '' THEN
+       OR NEW.descripcion IS NULL OR btrim(NEW.descripcion) = '' THEN
+        RAISE EXCEPTION 'paquete_incompleto'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    SELECT count(*) INTO v_dias
+    FROM paquete_itinerario
+    WHERE id_paquete = NEW.id_paquete;
+
+    IF v_dias = 0 THEN
         RAISE EXCEPTION 'paquete_incompleto'
             USING ERRCODE = 'check_violation';
     END IF;
@@ -2087,7 +2147,17 @@ INSERT INTO lugar (codigo, nombre, tipo, direccion, latitud, longitud) VALUES
     ('LCO', 'Laguna Colorada', 'atractivo', 'Potosí, Bolivia',      -22.198000, -67.780000),
     ('TUP', 'Tupiza',          'ciudad',    'Tupiza, Bolivia',      -21.443000, -65.718000),
     ('SUC', 'Sucre',           'ciudad',    'Sucre, Bolivia',       -19.033000, -65.263000),
-    ('LPZ', 'La Paz',          'ciudad',    'La Paz, Bolivia',      -16.500000, -68.150000)
+    ('LPZ', 'La Paz',          'ciudad',    'La Paz, Bolivia',      -16.500000, -68.150000),
+    ('MOC', 'Casa de la Moneda',         'atractivo', 'Potosí, Bolivia', -19.586200, -65.756100),
+    ('TCI', 'Torre de la Compañía',      'atractivo', 'Potosí, Bolivia', -19.587500, -65.754500),
+    ('SFR', 'Convento de San Francisco', 'atractivo', 'Potosí, Bolivia', -19.582100, -65.756900),
+    ('TRE', 'Cementerio de trenes',      'atractivo', 'Uyuni, Bolivia',  -20.470600, -66.835300),
+    ('MER', 'Mercado artesanal de Uyuni','atractivo', 'Uyuni, Bolivia',  -20.462000, -66.826000),
+    ('SMN', 'Géiseres Sol de Mañana',    'atractivo', 'Potosí, Bolivia', -22.569000, -67.764000),
+    ('POL', 'Termas de Polques',         'atractivo', 'Potosí, Bolivia', -22.535000, -67.723000),
+    ('LGV', 'Laguna Verde',              'atractivo', 'Potosí, Bolivia', -22.816700, -67.783300),
+    ('SIL', 'Desierto de Siloli',        'atractivo', 'Potosí, Bolivia', -22.380000, -67.530000),
+    ('ROC', 'Valle de las Rocas',        'atractivo', 'Potosí, Bolivia', -22.299000, -67.617000)
 ON CONFLICT DO NOTHING;
 
 -- ---------------------------------------------------------------------

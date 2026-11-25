@@ -7,7 +7,11 @@
 --
 --  Son datos de trabajo, no parte del esquema: el esquema se crea con
 --  `make db-crear` (bd/esquema.sql) y estos registros se cargan aparte.
---  Son idempotentes: se pueden volver a cargar sin duplicar nada.
+--
+--  ADVERTENCIA: el bloque inicial BORRA los datos del negocio (reservas,
+--  pagos, cotizaciones, salidas, paquetes, proveedores, clientes y las
+--  cuentas de cliente), y los vuelve a crear de cero. Las cuentas
+--  internas (ADMIN, PERSONAL y la de sistema) se conservan intactas.
 --
 --  No contiene datos reales. Clientes, paquetes y proveedores ficticios,
 --  coherentes con la operación de Potosí y su región.
@@ -15,7 +19,34 @@
 SET search_path TO turismo, public;
 
 -- ---------------------------------------------------------------------
--- 1. Proveedores de la operación
+-- 0. Limpieza del negocio
+-- ---------------------------------------------------------------------
+--  Se borra en orden de dependencias. Las cuentas de cliente y sus
+--  sesiones van con ellas; las internas quedan.
+
+DELETE FROM reserva_pasajero;
+DELETE FROM pago;
+DELETE FROM historial_reserva;
+DELETE FROM reserva;
+DELETE FROM cotizacion;
+DELETE FROM historial_salida;
+DELETE FROM salida;
+DELETE FROM paquete;
+DELETE FROM proveedor;
+DELETE FROM pasajero;
+DELETE FROM cliente;
+
+DELETE FROM account
+WHERE user_id IN (
+    SELECT u.id FROM usuario u
+    JOIN rol r ON r.id_rol = u.id_rol
+    WHERE r.codigo = 'CLIENTE'
+);
+DELETE FROM usuario
+WHERE id_rol = (SELECT id_rol FROM rol WHERE codigo = 'CLIENTE');
+
+-- ---------------------------------------------------------------------
+-- 1. Proveedores de la operación, con los detalles de sus servicios
 -- ---------------------------------------------------------------------
 
 INSERT INTO proveedor (nombre, nit, telefono, correo, direccion) VALUES
@@ -23,7 +54,7 @@ INSERT INTO proveedor (nombre, nit, telefono, correo, direccion) VALUES
     ('Hostal Potosí',           NULL,          '+591 71234502', 'reservas@hostalpotosi.bo',    'Plaza 10 de Noviembre, Potosí'),
     ('Guías del Salar',         NULL,          '+591 71234503', 'guias@salar.bo',              'Av. Ferroviaria 20, Uyuni'),
     ('Hotel Jardines de Uyuni', '2055667012',  '+591 71234504', 'hotel@jardinesdeuyuni.bo',    'Calle Potosí 45, Uyuni'),
-    ('Guías de Cerro Rico',     NULL,          '+591 71234505', 'guias@cerrorico.bo',         'Barrio La Merced, Potosí'),
+    ('Guías de Cerro Rico',     NULL,          '+591 71234505', 'guias@cerrorico.bo',          'Barrio La Merced, Potosí'),
     ('4x4 Altiplano Tours',     '3067890123',  '+591 71234506', 'flota@altiplano4x4.bo',       'Av. Circunvalación, Uyuni')
 ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
 
@@ -42,8 +73,299 @@ JOIN (VALUES
 ) AS v(nombre, tipo) ON lower(btrim(pr.nombre)) = lower(btrim(v.nombre))
 ON CONFLICT DO NOTHING;
 
+-- Detalles por servicio (RN-PRV-08): la oferta del proveedor, con los
+-- datos que la ficha de la salida presenta al turista.
+INSERT INTO proveedor_servicio (id_proveedor, tipo, titulo, detalle, orden)
+SELECT pr.id_proveedor, v.tipo, v.titulo, v.detalle, v.orden
+FROM (VALUES
+    ('Transporte Andes S.R.L.', 'transporte',
+     'Bus turístico de dos pisos',
+     E'40 asientos, baño a bordo y calefacción. Reparto de mantas en las\n'
+     || 'rutas de altiplano y parada técnica en Colchani.',
+     10),
+    ('Transporte Andes S.R.L.', 'transporte',
+     'Traslados urbanos en Potosí',
+     'Minibus de 15 asientos para terminales, hoteles y aeropuertos.',
+     20),
+    ('Hostal Potosí', 'hospedaje',
+     'Habitación doble con baño privado',
+     'Desayuno continental incluido, agua caliente 24 horas y calefacción.',
+     10),
+    ('Hostal Potosí', 'alimentacion',
+     'Desayuno buffet del hostal',
+     E'Kalapurka caliente, pan de la zona, café y frutas de estación.\n'
+     || 'Alérgenos: gluten (panes) y lácteos (leche y quesos). '
+     || 'Opción sin gluten bajo pedido con 24 horas de aviso.',
+     10),
+    ('Hostal Potosí', 'alimentacion',
+     'Menú del día del recorrido',
+     E'Sopa de quinua, pique a lo pobre o picante de pollo, refresco de '
+     || 'mocochinchi.\nAlérgenos: gluten y huevo. Opción vegetariana y '
+     || 'apta para celíacos con aviso de 24 horas.',
+     20),
+    ('Guías del Salar', 'guia',
+     'Guía titular del salar',
+     E'Carlos Quispe Mamani, certificado por la COLOFIR de Uyuni. '
+     || 'Español e inglés, 9 años de experiencia en el salar y curso '
+     || 'de primeros auxilios en altura.',
+     10),
+    ('Guías del Salar', 'guia',
+     'Guía conductor del circuito de lagunas',
+     'Marcelo Huanca, licencia profesional A-2. Español y aymara, '
+     || 'manejo en altura sobre los 4.800 m.',
+     20),
+    ('Guías del Salar', 'guia',
+     'Kit de seguridad del grupo',
+     'Botiquín de altura, cilindro de oxígeno portátil, radio VHF y '
+     || 'mascarillas contra el viento del salar.',
+     30),
+    ('Hotel Jardines de Uyuni', 'hospedaje',
+     'Habitación triple con baño privado',
+     'Calefacción por salamandra, agua caliente solar y balón de '
+     || 'oxígeno en recepción.',
+     10),
+    ('Hotel Jardines de Uyuni', 'alimentacion',
+     'Cena del refugio',
+     E'Sopa de maní, trucha del Poopó o lomo de res, té de coca.\n'
+     || 'Alérgenos: maní (frutos secos) y pescado en el menú '
+     || 'alternativo. Avisar las alergias al reservar.',
+     10),
+    ('Guías de Cerro Rico', 'guia',
+     'Guía de mina certificado',
+     E'Rogelio Vargas, exminero con 15 años dentro del Cerro Rico, '
+     || 'certificado por el CAJMI de Potosí. Español e inglés. '
+     || 'Cascos, linternas y ropa de trabajo provistas.',
+     10),
+    ('4x4 Altiplano Tours', 'transporte',
+     'Toyota Land Cruiser 4x4',
+     '6 asientos, techo panorámico, calefacción, botiquín, dos ruedas '
+     || 'de repuesto y radio satelital.',
+     10),
+    ('4x4 Altiplano Tours', 'transporte',
+     'Remolque de equipaje',
+     'Hasta 4 maletas grandes para los circuitos de 4 días.',
+     20)
+) AS v(nombre, tipo, titulo, detalle, orden)
+JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.nombre))
+ON CONFLICT DO NOTHING;
+
 -- ---------------------------------------------------------------------
--- 2. Cuentas de cliente de prueba
+-- 2. Paquetes turísticos
+-- ---------------------------------------------------------------------
+--  Tres paquetes activos de la operación de Potosí, con itinerario día
+--  por día (RN-PAQ-18), servicios incluidos y proveedores con costos
+--  internos.
+
+INSERT INTO paquete (
+    codigo, nombre, id_lugar_destino, id_lugar_origen, tipo_recorrido,
+    descripcion, duracion_dias, precio_base,
+    servicios_detalle, servicios_excluidos, estado,
+    id_usuario_creador
+)
+SELECT
+    v.codigo, v.nombre,
+    (SELECT id_lugar FROM lugar WHERE codigo = v.destino),
+    (SELECT id_lugar FROM lugar WHERE codigo = v.origen),
+    v.tipo_recorrido, v.descripcion, v.duracion, v.precio,
+    v.detalle, v.excluidos, 'borrador',
+    (SELECT id FROM usuario WHERE email = 'erick.vel@vizcacha.tours')
+FROM (VALUES
+    (
+        'SAL-2026-001', 'Salar de Uyuni e Isla Incahuasi',
+        'SAL', 'POT', 'sencillo',
+        E'Tres días de altiplano: viaje Potosí–Uyuni, el salar más grande '
+        || 'del mundo y la isla de cactus gigantes. Incluye noche en Uyuni '
+        || 'y guía especializado.',
+        3, 1250.00,
+        'El transporte en bus turístico, una noche de hotel en Uyuni, '
+        || 'almuerzo en la isla, guía y entradas.',
+        'Cena del primer día y gastos personales.'
+    ),
+    (
+        'CER-2026-001', 'Potosí histórico y Cerro Rico',
+        'CER', 'POT', 'sencillo',
+        E'Dos días por la ciudad imperial: Casa de la Moneda, torres de la '
+        || 'Compañía de Jesús y visita a una mina cooperativista del '
+        || 'Cerro Rico con guía especializado.',
+        2, 480.00,
+        'Almuerzo de ambos días, guía y entradas a museos y mina.',
+        'Transporte fuera de la ciudad y equipo personal de la mina.'
+    ),
+    (
+        'LCO-2026-001', 'Circuito Uyuni y lagunas de colores',
+        'LCO', 'UYU', 'circuito',
+        E'Cuatro días en 4x4 desde Uyuni: salar, isla Incahuasi, lagunas '
+        || 'Colorada y Verde, geyseres y termas. El circuito vuelve a Uyuni.',
+        4, 1950.00,
+        'Transporte en 4x4, alojamiento en refugios, pensión completa, '
+        || 'guía conductor y entradas.',
+        'Bolsas de dormir y propinas.'
+    )
+) AS v(codigo, nombre, destino, origen, tipo_recorrido, descripcion,
+       duracion, precio, detalle, excluidos)
+ON CONFLICT (codigo) DO NOTHING;
+
+-- Itinerario día por día (RN-PAQ-18).
+INSERT INTO paquete_itinerario (id_paquete, dia, titulo, detalle)
+SELECT p.id_paquete, v.dia, v.titulo, v.detalle
+FROM (VALUES
+    ('SAL-2026-001', 1,
+     'Potosí–Uyuni por el altiplano',
+     E'Salida 08:00 desde la oficina de Potosí. Parada técnica en '
+     || 'Colchani y visita al cementerio de trenes. Tarde libre en Uyuni '
+     || 'y noche en el hotel.'),
+    ('SAL-2026-001', 2,
+     'Salar de Uyuni e Isla Incahuasi',
+     E'Ingreso al salar al amanecer, fotos de perspectiva y ajedrez de '
+     || 'sales. Almuerzo en la isla de cactus gigantes y regreso al '
+     || 'hotel.'),
+    ('SAL-2026-001', 3,
+     'Mercado artesanal y regreso',
+     E'Mercado artesanal de Uyuni, visita al museo del ferrocarril si '
+     || 'está abierto y bus de retorno a Potosí.'),
+    ('CER-2026-001', 1,
+     'Centro histórico imperial',
+     E'Casa de la Moneda, torre de la Compañía de Jesús, convento de '
+     || 'San Francisco y mirador del arco Cobija.'),
+    ('CER-2026-001', 2,
+     'El Cerro Rico por dentro',
+     E'Visita a la mina cooperativista con guía exminero, mercado de '
+     || 'los mineros y ceremonia al Tío.'),
+    ('LCO-2026-001', 1,
+     'Salar e Isla Incahuasi',
+     E'Ingreso al salar, isla de cactus y primera noche en refugio '
+     || 'salarino.'),
+    ('LCO-2026-001', 2,
+     'Desierto de Siloli y Valle de las Rocas',
+     'Árbol de piedra, formaciones rocosas y lagunas de colores al '
+     || 'atardecer.'),
+    ('LCO-2026-001', 3,
+     'Géiseres y termas',
+     'Géiseres Sol de Mañana, baño en las termas de Polques y Laguna '
+     || 'Verde al amanecer.'),
+    ('LCO-2026-001', 4,
+     'Regreso por el altiplano',
+     'Valle de las Rocas, estación rocosa de los dátones y regreso a '
+     || 'Uyuni.')
+) AS v(codigo, dia, titulo, detalle)
+JOIN paquete p ON p.codigo = v.codigo
+ON CONFLICT (id_paquete, dia) DO NOTHING;
+
+-- Paradas del recorrido, en orden (RN-PAQ-17). El origen y el destino
+-- del paquete no se repiten aquí.
+INSERT INTO paquete_parada (id_paquete, id_lugar, orden)
+SELECT p.id_paquete, l.id_lugar, v.orden
+FROM (VALUES
+    ('SAL-2026-001', 'UYU', 1),
+    ('SAL-2026-001', 'TRE', 2),
+    ('SAL-2026-001', 'INC', 3),
+    ('CER-2026-001', 'MOC', 1),
+    ('CER-2026-001', 'TCI', 2),
+    ('CER-2026-001', 'SFR', 3),
+    ('LCO-2026-001', 'INC', 1),
+    ('LCO-2026-001', 'SIL', 2),
+    ('LCO-2026-001', 'ROC', 3),
+    ('LCO-2026-001', 'SMN', 4),
+    ('LCO-2026-001', 'POL', 5),
+    ('LCO-2026-001', 'LGV', 6)
+) AS v(codigo, lugar, orden)
+JOIN paquete p ON p.codigo = v.codigo
+JOIN lugar l ON l.codigo = v.lugar
+ON CONFLICT (id_paquete, orden) DO NOTHING;
+
+INSERT INTO paquete_servicio (id_paquete, id_servicio)
+SELECT p.id_paquete, s.id_servicio
+FROM (VALUES
+    ('SAL-2026-001', 'transporte'),
+    ('SAL-2026-001', 'alojamiento'),
+    ('SAL-2026-001', 'almuerzo'),
+    ('SAL-2026-001', 'guia'),
+    ('SAL-2026-001', 'entradas'),
+    ('CER-2026-001', 'transporte'),
+    ('CER-2026-001', 'almuerzo'),
+    ('CER-2026-001', 'guia'),
+    ('CER-2026-001', 'entradas'),
+    ('LCO-2026-001', 'transporte'),
+    ('LCO-2026-001', 'alojamiento'),
+    ('LCO-2026-001', 'desayuno'),
+    ('LCO-2026-001', 'almuerzo'),
+    ('LCO-2026-001', 'cena'),
+    ('LCO-2026-001', 'guia'),
+    ('LCO-2026-001', 'entradas')
+) AS v(codigo, servicio)
+JOIN paquete p ON p.codigo = v.codigo
+JOIN servicio s ON s.codigo = v.servicio
+ON CONFLICT DO NOTHING;
+
+-- Con itinerario, paradas y servicios completos, los paquetes se
+-- publican: el disparador diferido de publicación vuelve a validar el
+-- contenido mínimo.
+UPDATE paquete SET estado = 'activo'
+WHERE codigo IN ('SAL-2026-001', 'CER-2026-001', 'LCO-2026-001');
+
+INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, detalle, costo)
+SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.detalle, v.costo
+FROM (VALUES
+    ('SAL-2026-001', 'Transporte Andes S.R.L.',  'transporte', 'Bus turístico Potosí–Uyuni',   180.00),
+    ('SAL-2026-001', 'Hotel Jardines de Uyuni',  'hospedaje',  'Una noche con desayuno',       220.00),
+    ('SAL-2026-001', 'Guías del Salar',          'guia',       'Guía de salar, dos jornadas',  260.00),
+    ('CER-2026-001', 'Guías de Cerro Rico',      'guia',       'Visita guiada a la mina',       90.00),
+    ('CER-2026-001', 'Hostal Potosí',            'alimentacion', 'Almuerzos del recorrido',     60.00),
+    ('LCO-2026-001', '4x4 Altiplano Tours',      'transporte', 'Vehículo 4x4 con conductor',   900.00),
+    ('LCO-2026-001', 'Guías del Salar',          'guia',       'Guía conductor del circuito',  350.00)
+) AS v(codigo, proveedor, servicio, detalle, costo)
+JOIN paquete p ON p.codigo = v.codigo
+JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.proveedor))
+ON CONFLICT (id_paquete, id_proveedor) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 3. Salidas programadas
+-- ---------------------------------------------------------------------
+--  Se crean con `fn_crear_salida` para que queden auditadas y con su
+--  retorno derivado de la duración del paquete.
+
+SELECT fn_crear_salida(
+    p.id_paquete, v.desde, v.hasta, v.cupo, v.precio,
+    (SELECT id FROM usuario WHERE email = 'erick.vel@vizcacha.tours'),
+    v.punto
+)
+FROM (VALUES
+    ('SAL-2026-001', DATE '2026-12-04', DATE '2026-12-06', 16, 1250.00,
+     'Oficina Vizcacha Tours, calle Ayacucho 145, Potosí'),
+    ('SAL-2026-001', DATE '2026-12-18', DATE '2026-12-20', 14, 1250.00,
+     'Oficina Vizcacha Tours, calle Ayacucho 145, Potosí'),
+    ('CER-2026-001', DATE '2026-11-28', DATE '2026-11-29', 12, 480.00,
+     'Plaza 10 de Noviembre, frente a la Casa de la Moneda'),
+    ('LCO-2026-001', DATE '2027-01-08', DATE '2027-01-11', 10, 1950.00,
+     'Terminal de buses de Uyuni')
+) AS v(codigo, desde, hasta, cupo, precio, punto)
+JOIN paquete p ON p.codigo = v.codigo
+WHERE NOT EXISTS (
+    SELECT 1 FROM salida s
+    WHERE s.id_paquete = p.id_paquete AND s.fecha_salida = v.desde
+);
+
+-- Asignaciones operativas de la salida (RN-SAL-23): el guía titular y
+-- la unidad concreta de cada salida demostrada.
+INSERT INTO salida_proveedor (id_salida, id_proveedor, servicio, detalle)
+SELECT s.id_salida, pr.id_proveedor, v.servicio, v.detalle
+FROM (VALUES
+    ('SAL-2026-001', DATE '2026-12-04', 'Guías del Salar',         'guia',
+     'Guía titular: Carlos Quispe Mamani'),
+    ('SAL-2026-001', DATE '2026-12-04', 'Transporte Andes S.R.L.', 'transporte',
+     'Unidad asignada: bus de dos pisos, placa P-120ABC'),
+    ('LCO-2026-001', DATE '2027-01-08', 'Guías del Salar',         'guia',
+     'Guía conductor: Marcelo Huanca'),
+    ('LCO-2026-001', DATE '2027-01-08', '4x4 Altiplano Tours',     'transporte',
+     'Unidad asignada: Land Cruiser, placa P-4X4-889')
+) AS v(codigo, desde, proveedor, servicio, detalle)
+JOIN paquete p ON p.codigo = v.codigo
+JOIN salida s ON s.id_paquete = p.id_paquete AND s.fecha_salida = v.desde
+JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.proveedor))
+ON CONFLICT (id_salida, id_proveedor) DO NOTHING;
+
+-- ---------------------------------------------------------------------
+-- 4. Cuentas de cliente de prueba
 -- ---------------------------------------------------------------------
 --  Cuentas de prueba con la contraseña «prueba1234»: dos clientes con
 --  ficha vinculada (para el flujo web) y un asesor de personal (para la
@@ -98,139 +420,6 @@ INSERT INTO cliente (
     ('NIT', '102345678', 'Colegio Don Bosco', 'Potosí',
      'colegio.donbosco@gmail.com', '+591 72244556', 'Calle Oruro 210, Potosí')
 ON CONFLICT (tipo_documento, numero_documento) DO NOTHING;
-
--- ---------------------------------------------------------------------
--- 3. Paquetes turísticos
--- ---------------------------------------------------------------------
-
-INSERT INTO paquete (
-    codigo, nombre, id_lugar_destino, id_lugar_origen, tipo_recorrido,
-    descripcion, duracion_dias, precio_base, itinerario,
-    servicios_detalle, servicios_excluidos, estado,
-    id_usuario_creador
-)
-SELECT
-    v.codigo, v.nombre,
-    (SELECT id_lugar FROM lugar WHERE codigo = v.destino),
-    (SELECT id_lugar FROM lugar WHERE codigo = v.origen),
-    v.tipo_recorrido, v.descripcion, v.duracion, v.precio, v.itinerario,
-    v.detalle, v.excluidos, 'borrador',
-    (SELECT id FROM usuario WHERE email = 'erick.vel@vizcacha.tours')
-FROM (VALUES
-    (
-        'SAL-2026-001', 'Salar de Uyuni e Isla Incahuasi',
-        'SAL', 'POT', 'sencillo',
-        E'Tres días de altiplano: viaje Potosí–Uyuni, el salar más grande '
-        || 'del mundo y la isla de cactus gigantes. Incluye noche en Uyuni '
-        || 'y guía especializado.',
-        3, 1250.00,
-        E'Día 1: salida de Potosí, llegada a Uyuni y paseo por el cementerio '
-        || 'de trenes.\nDía 2: Salar de Uyuni e Isla Incahuasi.\n'
-        || 'Día 3: mercado artesanal de Uyuni y regreso a Potosí.',
-        'El transporte en bus turístico, una noche de hotel en Uyuni, '
-        || 'almuerzo en la isla, guía y entradas.',
-        'Cena del primer día y gastos personales.'
-    ),
-    (
-        'CER-2026-001', 'Potosí histórico y Cerro Rico',
-        'CER', 'POT', 'sencillo',
-        E'Dos días por la ciudad imperial: Casa de la Moneda, torres de la '
-        || 'Compañía de Jesús y visita a una mina cooperativista del '
-        || 'Cerro Rico con guía especializado.',
-        2, 480.00,
-        E'Día 1: centro histórico, Casa de la Moneda y mirador.\n'
-        || 'Día 2: visita a la mina del Cerro Rico y mercado de los mineros.',
-        'Almuerzo de ambos días, guía y entradas a museos y mina.',
-        'Transporte fuera de la ciudad y equipo personal de la mina.'
-    ),
-    (
-        'LCO-2026-001', 'Circuito Uyuni y lagunas de colores',
-        'LCO', 'UYU', 'circuito',
-        E'Cuatro días en 4x4 desde Uyuni: salar, isla Incahuasi, lagunas '
-        || 'Colorada y Verde, geyseres y termas. El circuito vuelve a Uyuni.',
-        4, 1950.00,
-        E'Día 1: salar e Isla Incahuasi, noche en refugio.\n'
-        || 'Día 2: lagunas y desierto de Siloli.\n'
-        || 'Día 3: geyseres, termas y Laguna Verde.\n'
-        || 'Día 4: valle de las Rocas y regreso a Uyuni.',
-        'Transporte en 4x4, alojamiento en refugios, pensión completa, '
-        || 'guía conductor y entradas.',
-        'Bolsas de dormir y propinas.'
-    )
-) AS v(codigo, nombre, destino, origen, tipo_recorrido, descripcion,
-       duracion, precio, itinerario, detalle, excluidos)
-ON CONFLICT (codigo) DO NOTHING;
-
-INSERT INTO paquete_servicio (id_paquete, id_servicio)
-SELECT p.id_paquete, s.id_servicio
-FROM (VALUES
-    ('SAL-2026-001', 'transporte'),
-    ('SAL-2026-001', 'alojamiento'),
-    ('SAL-2026-001', 'almuerzo'),
-    ('SAL-2026-001', 'guia'),
-    ('SAL-2026-001', 'entradas'),
-    ('CER-2026-001', 'transporte'),
-    ('CER-2026-001', 'almuerzo'),
-    ('CER-2026-001', 'guia'),
-    ('CER-2026-001', 'entradas'),
-    ('LCO-2026-001', 'transporte'),
-    ('LCO-2026-001', 'alojamiento'),
-    ('LCO-2026-001', 'desayuno'),
-    ('LCO-2026-001', 'almuerzo'),
-    ('LCO-2026-001', 'cena'),
-    ('LCO-2026-001', 'guia'),
-    ('LCO-2026-001', 'entradas')
-) AS v(codigo, servicio)
-JOIN paquete p ON p.codigo = v.codigo
-JOIN servicio s ON s.codigo = v.servicio
-ON CONFLICT DO NOTHING;
-
--- Con los servicios vinculados, los paquetes se publican: el disparador
--- de publicación vuelve a validar el contenido mínimo.
-UPDATE paquete SET estado = 'activo'
-WHERE codigo IN ('SAL-2026-001', 'CER-2026-001', 'LCO-2026-001');
-
-INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, detalle, costo)
-SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.detalle, v.costo
-FROM (VALUES
-    ('SAL-2026-001', 'Transporte Andes S.R.L.',  'transporte', 'Bus turístico Potosí–Uyuni',   180.00),
-    ('SAL-2026-001', 'Hotel Jardines de Uyuni',  'hospedaje',  'Una noche con desayuno',       220.00),
-    ('SAL-2026-001', 'Guías del Salar',          'guia',       'Guía de salar, dos jornadas',  260.00),
-    ('CER-2026-001', 'Guías de Cerro Rico',      'guia',       'Visita guiada a la mina',       90.00),
-    ('CER-2026-001', 'Hostal Potosí',            'alimentacion', 'Almuerzos del recorrido',     60.00),
-    ('LCO-2026-001', '4x4 Altiplano Tours',      'transporte', 'Vehículo 4x4 con conductor',   900.00),
-    ('LCO-2026-001', 'Guías del Salar',          'guia',       'Guía conductor del circuito',  350.00)
-) AS v(codigo, proveedor, servicio, detalle, costo)
-JOIN paquete p ON p.codigo = v.codigo
-JOIN proveedor pr ON lower(btrim(pr.nombre)) = lower(btrim(v.proveedor))
-ON CONFLICT (id_paquete, id_proveedor) DO NOTHING;
-
--- ---------------------------------------------------------------------
--- 4. Salidas programadas
--- ---------------------------------------------------------------------
---  Se crean con `fn_crear_salida` para que queden auditadas y con su
---  retorno derivado de la duración del paquete.
-
-SELECT fn_crear_salida(
-    p.id_paquete, v.desde, v.hasta, v.cupo, v.precio,
-    (SELECT id FROM usuario WHERE email = 'erick.vel@vizcacha.tours'),
-    v.punto
-)
-FROM (VALUES
-    ('SAL-2026-001', DATE '2026-12-04', DATE '2026-12-06', 16, 1250.00,
-     'Oficina Vizcacha Tours, calle Ayacucho 145, Potosí'),
-    ('SAL-2026-001', DATE '2026-12-18', DATE '2026-12-20', 14, 1250.00,
-     'Oficina Vizcacha Tours, calle Ayacucho 145, Potosí'),
-    ('CER-2026-001', DATE '2026-11-28', DATE '2026-11-29', 12, 480.00,
-     'Plaza 10 de Noviembre, frente a la Casa de la Moneda'),
-    ('LCO-2026-001', DATE '2027-01-08', DATE '2027-01-11', 10, 1950.00,
-     'Terminal de buses de Uyuni')
-) AS v(codigo, desde, hasta, cupo, precio, punto)
-JOIN paquete p ON p.codigo = v.codigo
-WHERE NOT EXISTS (
-    SELECT 1 FROM salida s
-    WHERE s.id_paquete = p.id_paquete AND s.fecha_salida = v.desde
-);
 
 -- ---------------------------------------------------------------------
 -- 5. Reservas y pagos de demostración

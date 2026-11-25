@@ -45,13 +45,16 @@ CREATE SCHEMA turismo;
 | `pasajero` | Personas que viajan en una reserva. | `id_cliente` → `cliente`; documento único. |
 | `proveedor` | Transporte, hospedaje, guías y otros servicios. | `nombre` único normalizado; `estado` restringido por `CHECK`. |
 | `proveedor_tipo` | Tipos de servicio que declara un proveedor (uno o varios). | PK compuesta (`id_proveedor`, `tipo`); `tipo` restringido por `CHECK`. |
+| `proveedor_servicio` | Detalles de cada servicio declarado del proveedor (RN-PRV-08): guía con su certificación e idiomas, menú con sus alérgenos, unidad con su capacidad. | FK compuesta a `proveedor_tipo` con `ON DELETE CASCADE`; título obligatorio y no vacío; `orden` para presentarlos. |
 | `lugar` | Catálogo reutilizable de lugares, con coordenadas opcionales. | `codigo` único en mayúsculas; nombre normalizado único; `latitud` y `longitud` válidas o ambas nulas. |
 | `paquete` | Catálogo de paquetes turísticos. | `codigo` único y en mayúsculas; `id_lugar_destino` e `id_lugar_origen` → `lugar`; `id_usuario_creador` e `id_usuario_actualizacion` → `usuario`; el estado `activo` exige destino, descripción, itinerario y al menos un servicio. |
 | `paquete_parada` | Paradas del recorrido, en orden. | PK compuesta (`id_paquete`, `orden`); un lugar no se repite en el mismo paquete. |
+| `paquete_itinerario` | Itinerario del paquete, día por día, con título y detalle (RN-PAQ-18). | PK compuesta (`id_paquete`, `dia`); título obligatorio y no vacío; un paquete activo necesita al menos un día. |
 | `servicio` | Catálogo fijo de servicios que un paquete puede incluir. | `codigo` único en minúsculas; se amplía con la semilla, no desde la interfaz. |
 | `paquete_servicio` | Servicios incluidos en el precio de un paquete. | PK compuesta (`id_paquete`, `id_servicio`). |
 | `paquete_proveedor` | Servicio y costo de un proveedor en un paquete. | PK compuesta (`id_paquete`, `id_proveedor`); `servicio` es uno de los tipos declarados del proveedor (FK compuesta a `proveedor_tipo`); `detalle` opcional y `costo >= 0`. |
 | `salida` | Fecha, cupo y precio de una salida concreta. | `codigo` propio y único, derivado del código del paquete con un ordinal por paquete (RN-SAL-22); `id_paquete` → `paquete`; `cupo_maximo > 0`; `precio > 0` y puede diferir del precio base del paquete; única por paquete y fecha. |
+| `salida_proveedor` | Asignación operativa de un proveedor a una salida (RN-SAL-23): qué guía conduce, con qué unidad se viaja. | PK compuesta (`id_salida`, `id_proveedor`); `servicio` es uno de los tipos declarados del proveedor (FK compuesta); `detalle` opcional; sin costos. |
 | `cotizacion` | Propuesta económica para un cliente y una salida. | `id_cliente`, `id_salida`, `id_usuario`; `numero` único; `subtotal` y `total` generados; `condiciones` y `observaciones` opcionales. |
 | `reserva` | Reserva de cupos para una salida. | `id_cliente`, `id_salida`; `id_cotizacion` opcional y único. |
 | `reserva_pasajero` | Pasajeros incluidos en cada reserva. | PK compuesta (`id_reserva`, `id_pasajero`). |
@@ -175,9 +178,9 @@ por sí misma.
     cuentas se pueden desactivar o bloquear (`usuario.estado`) sin borrar
     su historial, porque nada se borra.
 15. **Un paquete activo tiene contenido mínimo.** El disparador diferido
-    `tr_paquete_publicado` exige destino principal, descripción, itinerario
-    y al menos un servicio en `paquete_servicio`. El borrador puede quedar
-    incompleto.
+    `tr_paquete_publicado` exige destino principal, descripción, al menos
+    un día en `paquete_itinerario` y al menos un servicio en
+    `paquete_servicio`. El borrador puede quedar incompleto.
 16. **El destino es un lugar y el recorrido es una lista de paradas.**
     `paquete.id_lugar_destino` es el destino comercial; `id_lugar_origen`
     es el punto de partida y `paquete_parada` guarda las paradas en orden.
@@ -185,8 +188,9 @@ por sí misma.
     repetir el lugar.
 17. **Los servicios son la lista de lo que cubre el precio.**
     `paquete_servicio` guarda las prestaciones marcadas; `servicios_detalle`
-    y `servicios_excluidos` son textos opcionales. El itinerario es el
-    relato día por día y no se sustituye con las casillas.
+    y `servicios_excluidos` son textos opcionales. El itinerario vive en
+    `paquete_itinerario`, día por día con título y detalle
+    (RN-PAQ-18), y no se sustituye con las casillas.
 18. **Una salida pertenece a un paquete activo y respeta su duración.** La
     función `fn_crear_salida` valida el estado del paquete, que la fecha de
     retorno no sea anterior a la de salida y que la duración coincida con

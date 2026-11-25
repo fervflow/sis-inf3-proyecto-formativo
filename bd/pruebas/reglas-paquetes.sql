@@ -71,12 +71,22 @@ ON CONFLICT (codigo) DO NOTHING;
 
 INSERT INTO turismo.paquete (
     codigo, nombre, id_lugar_destino, descripcion, duracion_dias, precio_base,
-    itinerario, estado
+    estado
 )
-SELECT 'PRB-04', 'Completo', id_lugar, 'Descripción', 3, 100,
-       'Día 1, día 2 y día 3', 'borrador'
+SELECT 'PRB-04', 'Completo', id_lugar, 'Descripción', 3, 100, 'borrador'
 FROM turismo.lugar
 WHERE codigo = 'POT';
+
+INSERT INTO turismo.paquete_itinerario (id_paquete, dia, titulo, detalle)
+SELECT p.id_paquete, v.dia, v.titulo, v.detalle
+FROM turismo.paquete p
+JOIN (VALUES
+    (1, 'Día uno de prueba', 'Salida temprana.'),
+    (2, 'Día dos de prueba', 'Visita al atractivo.'),
+    (3, 'Día tres de prueba', 'Retorno.')
+) AS v(dia, titulo, detalle) ON true
+WHERE p.codigo = 'PRB-04'
+ON CONFLICT (id_paquete, dia) DO NOTHING;
 
 INSERT INTO turismo.paquete_servicio (id_paquete, id_servicio)
 SELECT p.id_paquete, s.id_servicio
@@ -434,6 +444,162 @@ BEGIN
     END IF;
 
     RAISE NOTICE 'OK: las salidas llevan código propio con ordinal por paquete';
+END;
+$$;
+
+-- 14. Itinerario por días (RN-PAQ-18): un paquete activo necesita al
+--     menos un día, y los días se renumeran al reemplazar la lista.
+DO $$
+DECLARE
+    v_paquete   BIGINT;
+    v_salida    BIGINT;
+    v_dias      INT;
+BEGIN
+    INSERT INTO paquete (codigo, nombre, id_lugar_destino, descripcion,
+                         duracion_dias, precio_base, estado)
+    VALUES ('FIT', 'Paquete de prueba de itinerario',
+            (SELECT id_lugar FROM lugar WHERE codigo = 'POT'),
+            'Dos días de prueba.', 2, 100, 'borrador')
+    RETURNING id_paquete INTO v_paquete;
+
+    INSERT INTO paquete_servicio (id_paquete, id_servicio)
+    SELECT v_paquete, id_servicio FROM servicio LIMIT 1;
+
+    -- Publicar sin itinerario se rechaza (disparador diferido).
+    BEGIN
+        UPDATE paquete SET estado = 'activo' WHERE id_paquete = v_paquete;
+        RAISE EXCEPTION 'FALLO: se publicó un paquete sin itinerario';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: publicar sin itinerario se rechaza';
+    END;
+
+    -- Con al menos un día, la publicación procede.
+    INSERT INTO paquete_itinerario (id_paquete, dia, titulo, detalle)
+    VALUES (v_paquete, 1, 'Día de prueba', 'Caminata por la ciudad.'),
+           (v_paquete, 2, 'Día de museos', 'Casa de la Moneda.');
+    UPDATE paquete SET estado = 'activo' WHERE id_paquete = v_paquete;
+
+    SELECT count(*) INTO v_dias FROM paquete_itinerario
+    WHERE id_paquete = v_paquete;
+    IF v_dias <> 2 THEN
+        RAISE EXCEPTION 'FALLO: el itinerario quedó incompleto (%)', v_dias;
+    END IF;
+
+    -- Una salida del paquete publicado se crea sin problema.
+    v_salida := fn_crear_salida(
+        v_paquete, CURRENT_DATE + 20, CURRENT_DATE + 21, 10, 100, 'u-prueba',
+        'Punto de prueba'
+    );
+    IF v_salida IS NULL THEN
+        RAISE EXCEPTION 'FALLO: la salida del paquete con itinerario no se creó';
+    END IF;
+
+    RAISE NOTICE 'OK: el itinerario por días respalda la publicación (RN-PAQ-18)';
+END;
+$$;
+
+-- 15. Detalles por servicio del proveedor (RN-PRV-08): la FK compuesta
+--     solo acepta tipos declarados, y retirar el tipo los lleva.
+DO $$
+DECLARE
+    v_proveedor BIGINT;
+    v_detalles  INT;
+BEGIN
+    INSERT INTO proveedor (nombre, telefono)
+    VALUES ('Proveedores de Prueba S.R.L.', '+591 70000099')
+    RETURNING id_proveedor INTO v_proveedor;
+
+    INSERT INTO proveedor_tipo (id_proveedor, tipo)
+    VALUES (v_proveedor, 'guia');
+
+    BEGIN
+        INSERT INTO proveedor_servicio (id_proveedor, tipo, titulo, detalle, orden)
+        VALUES (v_proveedor, 'transporte', 'Detalle sin tipo declarado', NULL, 10);
+        RAISE EXCEPTION 'FALLO: se aceptó un detalle de un tipo no declarado';
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            RAISE NOTICE 'OK: el detalle exige un tipo declarado (RN-PRV-08)';
+    END;
+
+    INSERT INTO proveedor_servicio (id_proveedor, tipo, titulo, detalle, orden)
+    VALUES (v_proveedor, 'guia', 'Guía de prueba', 'Idiomas y certificación.', 10);
+
+    BEGIN
+        INSERT INTO proveedor_servicio (id_proveedor, tipo, titulo)
+        VALUES (v_proveedor, 'guia', '   ');
+        RAISE EXCEPTION 'FALLO: se aceptó un detalle sin título';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: el detalle necesita título';
+    END;
+
+    DELETE FROM proveedor_tipo WHERE id_proveedor = v_proveedor AND tipo = 'guia';
+
+    SELECT count(*) INTO v_detalles
+    FROM proveedor_servicio WHERE id_proveedor = v_proveedor;
+    IF v_detalles <> 0 THEN
+        RAISE EXCEPTION 'FALLO: retirar el tipo dejó detalles huérfanos (%)', v_detalles;
+    END IF;
+
+    RAISE NOTICE 'OK: los detalles siguen al tipo declarado que los respalda';
+END;
+$$;
+
+-- 16. Asignaciones operativas de la salida (RN-SAL-23): solo proveedores
+--     activos con el tipo declarado, y siguen a la salida que las guarda.
+DO $$
+DECLARE
+    v_proveedor BIGINT;
+    v_paquete   BIGINT;
+    v_salida    BIGINT;
+    v_asignadas INT;
+BEGIN
+    INSERT INTO proveedor (nombre, telefono)
+    VALUES ('Guías de Prueba del Salar', '+591 70000098')
+    RETURNING id_proveedor INTO v_proveedor;
+
+    INSERT INTO proveedor_tipo (id_proveedor, tipo)
+    VALUES (v_proveedor, 'guia');
+
+    INSERT INTO paquete (codigo, nombre, id_lugar_destino, descripcion,
+                         duracion_dias, precio_base, estado)
+    VALUES ('FIS', 'Salidas de prueba con asignaciones',
+            (SELECT id_lugar FROM lugar WHERE codigo = 'POT'),
+            'Un día de prueba.', 1, 100, 'borrador')
+    RETURNING id_paquete INTO v_paquete;
+
+    INSERT INTO paquete_itinerario (id_paquete, dia, titulo)
+    VALUES (v_paquete, 1, 'Día único de prueba');
+    INSERT INTO paquete_servicio (id_paquete, id_servicio)
+    SELECT v_paquete, id_servicio FROM servicio LIMIT 1;
+
+    UPDATE paquete SET estado = 'activo' WHERE id_paquete = v_paquete;
+
+    v_salida := fn_crear_salida(
+        v_paquete, CURRENT_DATE + 30, CURRENT_DATE + 30, 10, 100, 'u-prueba',
+        'Punto de prueba'
+    );
+
+    BEGIN
+        INSERT INTO salida_proveedor (id_salida, id_proveedor, servicio)
+        VALUES (v_salida, v_proveedor, 'transporte');
+        RAISE EXCEPTION 'FALLO: se aceptó una asignación de un tipo no declarado';
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            RAISE NOTICE 'OK: la asignación exige un tipo declarado (RN-SAL-23)';
+    END;
+
+    INSERT INTO salida_proveedor (id_salida, id_proveedor, servicio, detalle)
+    VALUES (v_salida, v_proveedor, 'guia', 'Guía titular de la salida de prueba');
+
+    SELECT count(*) INTO v_asignadas
+    FROM salida_proveedor WHERE id_salida = v_salida;
+    IF v_asignadas <> 1 THEN
+        RAISE EXCEPTION 'FALLO: la asignación no quedó guardada';
+    END IF;
+
+    RAISE NOTICE 'OK: la salida guarda sus asignaciones operativas';
 END;
 $$;
 
