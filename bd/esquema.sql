@@ -455,8 +455,8 @@ CREATE TABLE reserva_pasajero (
 
 -- ---------------------------------------------------------------------
 -- 7. Pagos
---    Se permite un anticipo y un saldo por reserva. La restricción
---    UNIQUE (id_reserva, tipo) impide duplicar cualquiera de los dos.
+--    Puede haber varios pagos por tipo: el tope real es el saldo
+--    pendiente, aplicado por fn_registrar_pago (RN-PAG-02 y RN-PAG-05).
 -- ---------------------------------------------------------------------
 
 CREATE TABLE pago (
@@ -474,7 +474,8 @@ CREATE TABLE pago (
     id_usuario_validacion TEXT REFERENCES usuario(id) ON DELETE SET NULL,
     fecha_validacion    TIMESTAMPTZ,
     observacion         VARCHAR(200),
-    CONSTRAINT uq_pago_reserva_tipo UNIQUE (id_reserva, tipo),
+    -- Puede haber varios pagos por tipo (RN-PAG-02): el tope real lo
+    -- aplica fn_registrar_pago, que no deja superar el saldo pendiente.
     CONSTRAINT ck_pago_tipo CHECK (tipo IN ('anticipo', 'saldo')),
     CONSTRAINT ck_pago_monto CHECK (monto > 0),
     CONSTRAINT ck_pago_metodo CHECK
@@ -771,6 +772,9 @@ DECLARE
     v_cupo_maximo SMALLINT;
     v_ocupados    INT;
     v_retenidos   INT;
+    v_confirmados INT;
+    v_retenidos_personal INT;
+    v_disponible  INT;
     v_id_reserva  BIGINT;
 BEGIN
     IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
@@ -803,9 +807,14 @@ BEGIN
     END IF;
 
     -- Tope global de retención (RN-RES-16): las solicitudes web pendientes
-    -- vigentes no retienen más de la mitad del cupo, para que una avalancha
-    -- de formularios no bloquee la venta. Las pendientes del canal personal
-    -- no cuentan: hay una persona atendida detrás. Confirmar libera espacio.
+    -- vigentes no retienen en conjunto más del 70% de los cupos
+    -- disponibles, para que una avalancha de formularios no bloquee la
+    -- venta. La base del porcentaje son los cupos aún no confirmados ni
+    -- retenidos por el canal personal; los pendientes web no suman a esa
+    -- base porque son justamente lo que se limita. Mientras haya cupo
+    -- real, queda siempre un cupo solicitable por web (mínimo 1). Las
+    -- pendientes del canal personal no cuentan para el tope: hay una
+    -- persona atendida detrás. Confirmar libera espacio.
     IF p_origen = 'web' THEN
         SELECT COALESCE(SUM(r.cantidad_pasajeros), 0)::INT INTO v_retenidos
         FROM reserva r
@@ -814,7 +823,24 @@ BEGIN
           AND r.estado = 'pendiente'
           AND (r.fecha_expiracion IS NULL OR r.fecha_expiracion > now());
 
-        IF v_retenidos + p_cantidad > (v_cupo_maximo + 1) / 2 THEN
+        SELECT COALESCE(SUM(r.cantidad_pasajeros)
+                    FILTER (WHERE r.estado = 'confirmada'), 0)::INT,
+               COALESCE(SUM(r.cantidad_pasajeros)
+                    FILTER (WHERE r.estado = 'pendiente'
+                              AND r.origen = 'personal'
+                              AND (r.fecha_expiracion IS NULL
+                                   OR r.fecha_expiracion > now())), 0)::INT
+        INTO v_confirmados, v_retenidos_personal
+        FROM reserva r
+        WHERE r.id_salida = p_id_salida;
+
+        v_disponible := v_cupo_maximo - v_confirmados - v_retenidos_personal;
+        IF v_disponible < 0 THEN
+            v_disponible := 0;
+        END IF;
+
+        IF v_retenidos + p_cantidad
+           > GREATEST(1, FLOOR(v_disponible::NUMERIC * 0.7)::INT) THEN
             RAISE EXCEPTION 'La salida tiene demasiadas solicitudes pendientes de confirmación; consulta con la agencia'
                 USING ERRCODE = 'check_violation';
         END IF;
@@ -888,6 +914,7 @@ DECLARE
     v_minimo      NUMERIC(12, 2);
     v_cantidad    SMALLINT;
     v_pasajeros   INT;
+    v_anticipo_validado NUMERIC(12, 2);
 BEGIN
     SELECT r.estado, r.fecha_expiracion, round(r.monto_total * 0.30, 2),
            r.cantidad_pasajeros
@@ -925,15 +952,17 @@ BEGIN
     END IF;
 
     -- Anticipo validado (RN-RES-18): la reserva nace de una solicitud
-    -- respaldada. El mínimo lo comprobó fn_registrar_pago al registrar el
-    -- anticipo; aquí basta con exigir que exista y esté validado.
-    IF NOT EXISTS (
-        SELECT 1 FROM pago pg
-        WHERE pg.id_reserva = p_id_reserva
-          AND pg.tipo = 'anticipo'
-          AND pg.estado = 'validado'
-          AND pg.monto >= v_minimo
-    ) THEN
+    -- respaldada. El mínimo lo comprobó fn_registrar_pago al registrar
+    -- cada anticipo; aquí se exige que la suma de los anticipos
+    -- validados cubra el mínimo del total vigente, de modo que un
+    -- manifiesto que creció se respalde con un anticipo adicional.
+    SELECT COALESCE(SUM(pg.monto), 0) INTO v_anticipo_validado
+    FROM pago pg
+    WHERE pg.id_reserva = p_id_reserva
+      AND pg.tipo = 'anticipo'
+      AND pg.estado = 'validado';
+
+    IF v_anticipo_validado < v_minimo THEN
         RAISE EXCEPTION 'La reserva % no tiene el anticipo mínimo validado (30%%)', p_id_reserva
             USING ERRCODE = 'check_violation';
     END IF;
@@ -992,6 +1021,9 @@ DECLARE
     v_precio            NUMERIC(12, 2);
     v_ocupados_otros    INT;
     v_retenidos         INT;
+    v_confirmados       INT;
+    v_retenidos_personal INT;
+    v_disponible        INT;
     v_nuevo_monto       NUMERIC(12, 2);
     v_comprometido      NUMERIC(12, 2);
 BEGIN
@@ -1036,9 +1068,13 @@ BEGIN
 
     -- Retención del canal web (RN-RES-16), revalidada al modificar la
     -- reserva (T-HU-06.4): las solicitudes web pendientes vigentes de la
-    -- salida no retienen en conjunto más de la mitad del cupo. La propia
-    -- reserva no se cuenta, porque su cantidad nueva entra en el cálculo;
-    -- las pendientes del canal personal no cuentan para el tope.
+    -- salida no retienen en conjunto más del 70% de los cupos
+    -- disponibles. La base del porcentaje son los cupos aún no
+    -- confirmados ni retenidos por el canal personal; los pendientes web
+    -- no suman a esa base porque son lo que se limita, y la propia
+    -- reserva no se cuenta, porque su cantidad nueva entra en el
+    -- cálculo. Las pendientes del canal personal no cuentan para el
+    -- tope.
     IF v_origen = 'web' AND v_estado = 'pendiente' THEN
         SELECT COALESCE(SUM(r.cantidad_pasajeros), 0)::INT INTO v_retenidos
         FROM reserva r
@@ -1048,7 +1084,24 @@ BEGIN
           AND r.estado = 'pendiente'
           AND (r.fecha_expiracion IS NULL OR r.fecha_expiracion > now());
 
-        IF v_retenidos + p_cantidad > (v_cupo + 1) / 2 THEN
+        SELECT COALESCE(SUM(r.cantidad_pasajeros)
+                    FILTER (WHERE r.estado = 'confirmada'), 0)::INT,
+               COALESCE(SUM(r.cantidad_pasajeros)
+                    FILTER (WHERE r.estado = 'pendiente'
+                              AND r.origen = 'personal'
+                              AND (r.fecha_expiracion IS NULL
+                                   OR r.fecha_expiracion > now())), 0)::INT
+        INTO v_confirmados, v_retenidos_personal
+        FROM reserva r
+        WHERE r.id_salida = p_salida;
+
+        v_disponible := v_cupo - v_confirmados - v_retenidos_personal;
+        IF v_disponible < 0 THEN
+            v_disponible := 0;
+        END IF;
+
+        IF v_retenidos + p_cantidad
+           > GREATEST(1, FLOOR(v_disponible::NUMERIC * 0.7)::INT) THEN
             RAISE EXCEPTION 'La salida tiene demasiadas solicitudes pendientes de confirmación; consulta con la agencia'
                 USING ERRCODE = 'check_violation';
         END IF;
@@ -1171,14 +1224,16 @@ SET search_path = turismo, public
 AS $$
 DECLARE
     v_estado      VARCHAR(15);
+    v_origen      VARCHAR(15);
     v_id_cliente  BIGINT;
     v_salida      BIGINT;
+    v_cantidad_actual INT;
     v_pasajero    JSONB;
     v_id_pasajero BIGINT;
     v_cantidad    INT;
 BEGIN
-    SELECT r.estado, r.id_cliente, r.id_salida
-    INTO v_estado, v_id_cliente, v_salida
+    SELECT r.estado, r.origen, r.id_cliente, r.id_salida, r.cantidad_pasajeros
+    INTO v_estado, v_origen, v_id_cliente, v_salida, v_cantidad_actual
     FROM reserva r
     WHERE r.id_reserva = p_id_reserva
     FOR UPDATE;
@@ -1196,6 +1251,16 @@ BEGIN
     IF jsonb_array_length(p_pasajeros) = 0 THEN
         RAISE EXCEPTION 'El manifiesto necesita al menos un pasajero'
             USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- En el canal web el manifiesto no declara más pasajeros que los
+    -- solicitados (RN-RES-21): el cliente puede reducir su grupo, no
+    -- ampliarlo; el canal personal sí puede ampliarlo y la base
+    -- revalida cupos y monto.
+    IF v_origen = 'web'
+       AND jsonb_array_length(p_pasajeros) > v_cantidad_actual THEN
+        RAISE EXCEPTION 'El manifiesto no puede declarar más pasajeros que los solicitados (%)',
+            v_cantidad_actual USING ERRCODE = 'check_violation';
     END IF;
 
     DELETE FROM reserva_pasajero WHERE id_reserva = p_id_reserva;
@@ -1633,9 +1698,9 @@ $$ LANGUAGE plpgsql;
 -- cuenta nace en estado 'registrado' y no cuenta como abonado hasta que
 -- el personal lo valida (RN-PAG-04); el que registra el personal nace
 -- 'validado' (RN-PAG-04). Aplica el anticipo mínimo del 30% (RN-PAG-01),
--- exige un anticipo previo para el saldo y el tope del saldo pendiente
--- (RN-PAG-05), y solo admite pagos sobre reservas pendientes o
--- confirmadas (RN-PAG-06).
+-- exige un anticipo previo para el saldo, admite pagos parciales del
+-- saldo (RN-PAG-02 y RN-PAG-05) y solo admite pagos sobre reservas
+-- pendientes o confirmadas (RN-PAG-06).
 CREATE OR REPLACE FUNCTION fn_registrar_pago(
     p_id_reserva  BIGINT,
     p_tipo        VARCHAR,
@@ -1692,12 +1757,24 @@ BEGIN
     v_pendiente := v_monto_total - v_comprometido;
     v_minimo := round(v_monto_total * 0.30, 2);
 
+    -- El mínimo del 30% (RN-PAG-01) aplica al primer anticipo de la
+    -- reserva; los anticipos adicionales solo respetan el saldo
+    -- pendiente (RN-PAG-05), de modo que se pueda respaldar de nuevo
+    -- una reserva cuyo total creció con el manifiesto.
     IF p_tipo = 'anticipo' THEN
-        IF p_monto < v_minimo THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM pago pg
+            WHERE pg.id_reserva = p_id_reserva
+              AND pg.tipo = 'anticipo'
+              AND pg.estado <> 'anulado'
+        ) AND p_monto < v_minimo THEN
             RAISE EXCEPTION 'El anticipo no puede ser menor al 30%% del total (mínimo %, recibido %)',
                 v_minimo, p_monto USING ERRCODE = 'check_violation';
         END IF;
     ELSE
+        -- El saldo puede ser parcial (RN-PAG-05): cada pago reduce el
+        -- pendiente y puede haber varios hasta cubrirlo. Solo exige que
+        -- exista un anticipo previo no anulado (RN-PAG-05).
         IF NOT EXISTS (
             SELECT 1 FROM pago pg
             WHERE pg.id_reserva = p_id_reserva
@@ -1706,11 +1783,6 @@ BEGIN
         ) THEN
             RAISE EXCEPTION 'El saldo exige un anticipo previo de la reserva'
                 USING ERRCODE = 'check_violation';
-        END IF;
-
-        IF p_monto <> v_pendiente THEN
-            RAISE EXCEPTION 'El saldo debe pagar el resto completo de la reserva (% pendiente)',
-                v_pendiente USING ERRCODE = 'check_violation';
         END IF;
     END IF;
 
@@ -1881,6 +1953,8 @@ GROUP BY s.id_salida, s.id_paquete, p.codigo, p.nombre, p.estado,
 -- Saldo de cada reserva a partir del anticipo y del saldo registrados.
 -- El saldo pendiente se calcula sobre los pagos validados por el personal:
 -- un pago solo registrado por el cliente todavía no se considera cobrado.
+-- Puede haber varios pagos por tipo (RN-PAG-02): anticipo y saldo pagado
+-- suman todos los pagos no anulados de su tipo.
 CREATE OR REPLACE VIEW vista_saldo_reserva AS
 SELECT
     r.id_reserva,
@@ -1888,8 +1962,8 @@ SELECT
     r.id_cliente,
     r.id_salida,
     r.monto_total,
-    COALESCE(MAX(pg.monto) FILTER (WHERE pg.tipo = 'anticipo' AND pg.estado <> 'anulado'), 0) AS anticipo,
-    COALESCE(MAX(pg.monto) FILTER (WHERE pg.tipo = 'saldo' AND pg.estado <> 'anulado'), 0) AS saldo_pagado,
+    COALESCE(SUM(pg.monto) FILTER (WHERE pg.tipo = 'anticipo' AND pg.estado <> 'anulado'), 0) AS anticipo,
+    COALESCE(SUM(pg.monto) FILTER (WHERE pg.tipo = 'saldo' AND pg.estado <> 'anulado'), 0) AS saldo_pagado,
     COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado <> 'anulado'), 0) AS total_pagado,
     COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'validado'), 0) AS total_validado,
     r.monto_total - COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'validado'), 0) AS saldo_pendiente,

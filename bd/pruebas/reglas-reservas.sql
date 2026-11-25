@@ -303,10 +303,10 @@ END;
 $$;
 
 -- 8. Tope global de retención: las solicitudes web pendientes vigentes de
---    una salida no retienen más de la mitad del cupo (RN-RES-16). La
---    salida de prueba tiene 20 lugares; el tope web es 10. Al llegar aquí
---    hay 5 confirmadas y 5 pendientes del canal personal, que no cuentan
---    para la retención web.
+--    una salida no retienen más del 70% de los cupos disponibles
+--    (RN-RES-16). La salida tiene 20 lugares; al llegar aquí hay 5
+--    confirmadas y 5 pendientes del canal personal, así que la base
+--    disponible es 10 y el tope web es 7 (floor de 10 × 0.7).
 DO $$
 DECLARE
     v_salida BIGINT;
@@ -314,7 +314,7 @@ BEGIN
     SELECT id_salida INTO v_salida FROM salida
     WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB');
 
-    -- Tres solicitudes web de 3 pasajeros: 9 de los 10 lugares retenibles.
+    -- Dos solicitudes web de 3 pasajeros: 6 de los 7 lugares retenibles.
     PERFORM fn_crear_reserva(
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0001'),
         v_salida, 3, 'web', 'u-prueba');
@@ -322,22 +322,24 @@ BEGIN
     PERFORM fn_crear_reserva(
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0003'),
         v_salida, 3, 'web', 'u-prueba');
+    RAISE NOTICE 'OK: la avalancha retiene 6 de los 7 lugares web';
 
-    PERFORM fn_crear_reserva(
-        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0004'),
-        v_salida, 3, 'web', 'u-prueba');
-    RAISE NOTICE 'OK: la avalancha retiene 9 de los 10 lugares web';
-
-    -- Un quinto cliente no puede retener 2 más: 9 + 2 superan el tope.
+    -- Un tercer cliente no puede retener 3 más: 6 + 3 superan el tope.
     BEGIN
         PERFORM fn_crear_reserva(
-            (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0005'),
-            v_salida, 2, 'web', 'u-prueba');
-        RAISE EXCEPTION 'FALLO: la retención web superó la mitad del cupo';
+            (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0004'),
+            v_salida, 3, 'web', 'u-prueba');
+        RAISE EXCEPTION 'FALLO: la retención web superó el 70%% del cupo';
     EXCEPTION
         WHEN check_violation THEN
-            RAISE NOTICE 'OK: la avalancha de solicitudes web no retiene más de la mitad del cupo';
+            RAISE NOTICE 'OK: la avalancha de solicitudes web no retiene más del 70%% del cupo';
     END;
+
+    -- El último cupo retenible se admite.
+    PERFORM fn_crear_reserva(
+        (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0004'),
+        v_salida, 1, 'web', 'u-prueba');
+    RAISE NOTICE 'OK: el último cupo del tope web se admite';
 
     -- El personal sigue vendiendo aunque la retención web esté al tope.
     PERFORM fn_crear_reserva(
@@ -647,13 +649,14 @@ END;
 $$;
 
 
--- 14. La retención web (RN-RES-16) se revalida al modificar una reserva
---     del canal web (T-HU-06.4): crecer el manifiesto no puede llevar la
---     retención pendiente web más allá de la mitad del cupo. La salida
---     tiene 10 lugares; el tope web es 5.
+-- 14. El manifiesto del canal web no declara más pasajeros que los
+--     solicitados (RN-RES-21) y la retención web (RN-RES-16) se
+--     revalida al modificar una reserva del canal web (T-HU-06.4). La
+--     salida tiene 10 lugares; el tope web es floor(10 × 0.7) = 7.
 DO $$
 DECLARE
     v_salida  BIGINT;
+    v_otra    BIGINT;
     v_a       BIGINT;
     v_b       BIGINT;
     v_cantidad SMALLINT;
@@ -677,8 +680,9 @@ BEGIN
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0002'),
         v_salida, 2, 'web', 'u-prueba');
 
-    -- Retenidos: 4 de los 5 lugares web. Hacer crecer el manifiesto de A
-    -- a 4 pasajeros dejaría la retención en 2 + 4 = 6: se rechaza.
+    -- Retenidos: 4 de los 7 lugares web. El manifiesto web no puede
+    -- declarar más pasajeros que los solicitados: crecerlo a 4 se
+    -- rechaza (RN-RES-21), antes de tocar la retención.
     BEGIN
         PERFORM fn_guardar_manifiesto(
             v_a,
@@ -694,10 +698,10 @@ BEGIN
             ),
             'u-prueba'
         );
-        RAISE EXCEPTION 'FALLO: la modificación web superó la retención del cupo';
+        RAISE EXCEPTION 'FALLO: el manifiesto web declaró más pasajeros que los solicitados';
     EXCEPTION
         WHEN check_violation THEN
-            RAISE NOTICE 'OK: la retención web se revalida al modificar la solicitud';
+            RAISE NOTICE 'OK: el manifiesto web no supera la cantidad solicitada';
     END;
 
     -- Reducir el manifiesto de A a 1 deja la retención en 2 + 1 = 3: pasa.
@@ -718,13 +722,36 @@ BEGIN
             v_cantidad, v_monto;
     END IF;
 
-    -- La reserva B sigue pendiente: la retención de B sola es 2 de 5.
-    SELECT estado INTO v_estado FROM reserva WHERE id_reserva = v_b;
+    -- La retención también se revalida al cambiar de salida: en una
+    -- salida de 2 cupos el tope web es floor(2 × 0.7) = 1 y la reserva
+    -- de 2 pasajeros no cabe en ella.
+    INSERT INTO salida (
+        id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
+    )
+    SELECT id_paquete, CURRENT_DATE + 45, CURRENT_DATE + 46, 2, 100, 'programada'
+    FROM paquete WHERE codigo = 'PRB';
+
+    SELECT id_salida INTO v_otra FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
+      AND fecha_salida = CURRENT_DATE + 45;
+
+    BEGIN
+        PERFORM fn_actualizar_reserva(v_b, v_otra, 'u-prueba');
+        RAISE EXCEPTION 'FALLO: la modificación web superó la retención del cupo';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: la retención web se revalida al modificar la solicitud';
+    END;
+
+    -- La reserva B sigue pendiente en su salida original.
+    SELECT estado, id_salida INTO v_estado, v_salida
+    FROM reserva WHERE id_reserva = v_b;
+
     IF v_estado <> 'pendiente' THEN
         RAISE EXCEPTION 'FALLO: la otra solicitud web cambió de estado (%)', v_estado;
     END IF;
 
-    RAISE NOTICE 'OK: la retención web del 50%% se respeta al modificar';
+    RAISE NOTICE 'OK: la retención web del 70%% se respeta al modificar';
 END;
 $$;
 
@@ -742,12 +769,12 @@ BEGIN
     INSERT INTO salida (
         id_paquete, fecha_salida, fecha_retorno, cupo_maximo, precio, estado
     )
-    SELECT id_paquete, CURRENT_DATE + 45, CURRENT_DATE + 46, 10, 100, 'programada'
+    SELECT id_paquete, CURRENT_DATE + 50, CURRENT_DATE + 51, 10, 100, 'programada'
     FROM paquete WHERE codigo = 'PRB';
 
     SELECT id_salida INTO v_salida FROM salida
     WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRB')
-      AND fecha_salida = CURRENT_DATE + 45;
+      AND fecha_salida = CURRENT_DATE + 50;
 
     v_reserva := fn_crear_reserva(
         (SELECT id_cliente FROM cliente WHERE numero_documento = 'PRB-0001'),

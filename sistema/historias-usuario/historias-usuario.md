@@ -313,10 +313,10 @@ sistema no pueda cumplir.
 
 ### HU-14 · Registro y validación de anticipos y saldos de una reserva
 
-- El anticipo no puede ser menor al 30% del monto de la reserva; pagar la
-  totalidad se registra como un anticipo por el monto completo.
-- Solo puede existir un anticipo y un saldo por reserva; el saldo paga el
-  resto completo y ningún pago supera el saldo pendiente.
+- El primer anticipo no puede ser menor al 30% del monto de la reserva;
+  pagar la totalidad se registra como un anticipo por el monto completo.
+- Puede haber varios pagos por tipo; el saldo se paga por partes y ningún
+  pago supera el saldo pendiente.
 - El pago se registra con tipo (anticipo o saldo), importe, fecha, método y
   referencia; solo las reservas pendientes o confirmadas admiten pagos.
 - Por la web el pago se emula con banca móvil o código QR: la pasarela
@@ -438,8 +438,8 @@ En el tablero, el programador A aparece como **EV** y el programador B como
   que excedan la capacidad.
 - **T-HU-06.3** Guardar la reserva en estado pendiente con su fecha de
   vencimiento y reflejar la ocupación en la disponibilidad.
-- **T-HU-06.4** Revalidar la retención web del 50% del cupo al modificar una
-  reserva del canal web.
+- **T-HU-06.4** Revalidar la retención web del 70% de los cupos disponibles
+  al modificar una reserva del canal web.
 
 ### HU-12 · Registro de pasajeros y vinculación a una reserva
 

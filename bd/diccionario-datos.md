@@ -138,8 +138,9 @@ por sí misma.
    validación se hace en la transacción, antes del `UPDATE` de `salida`.
 4. **Una cotización puede originar una reserva o no.** `id_cotizacion` es
    opcional y único cuando existe.
-5. **Solo un anticipo y un saldo por reserva.** La restricción
-   `UNIQUE (id_reserva, tipo)` lo garantiza.
+5. **Varios pagos por tipo y tope por saldo.** No hay restricción de
+   unicidad por tipo: `fn_registrar_pago` aplica el tope real, que es no
+   superar el saldo pendiente de la reserva.
 6. **Los cambios quedan auditados.** `historial_reserva` e
    `historial_salida` registran usuario, fecha y valores anterior/nuevo.
 7. **Los pagos son informativos.** No se conecta ninguna pasarela bancaria.
@@ -265,7 +266,7 @@ confirmar la reserva, porque el plazo deja de correr.
 | Vista | Uso |
 |---|---|
 | `vista_disponibilidad_salida` | Consulta de cupos para HU-03, HU-05 y HU-06. Separa pasajeros pendientes de confirmados, expone `cupo_disponible_sin_pendientes` y el `estado_paquete`/`estado` de la salida para que la consulta pública filtre. Excluye las solicitudes cuyo plazo venció, aunque su estado guardado siga siendo `pendiente`. |
-| `vista_saldo_reserva` | Anticipo, saldo pagado, total validado y saldo pendiente para HU-07 y HU-14. El saldo pendiente se calcula sobre los pagos validados. |
+| `vista_saldo_reserva` | Anticipo, saldo pagado, total validado y saldo pendiente para HU-07 y HU-14. Anticipo y saldo pagado suman todos los pagos no anulados de su tipo; el saldo pendiente se calcula sobre los pagos validados. |
 | `vista_reservas_por_fecha` | Reporte de ocupación y reservas por fecha para HU-11. Distingue pendientes, confirmadas y vencidas. |
 
 ## Supuestos de esta versión

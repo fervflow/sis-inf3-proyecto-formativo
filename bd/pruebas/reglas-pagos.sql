@@ -1,6 +1,7 @@
 -- =====================================================================
 --  Pruebas de las reglas de pagos (HU-14) y del anticipo de la
---  confirmación (HU-17, RN-RES-18).
+--  confirmación (HU-17, RN-RES-18). Con RN-PAG-02 y RN-PAG-05, puede
+--  haber varios pagos por tipo y el saldo se paga por partes.
 --
 --  Uso:
 --    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f bd/pruebas/reglas-pagos.sql
@@ -36,7 +37,8 @@ INSERT INTO turismo.cliente (tipo_documento, numero_documento, nombres, apellido
 VALUES ('CI', 'PRP-0001', 'Prueba', 'Uno',   'prp1@prueba.bo'),
        ('CI', 'PRP-0002', 'Prueba', 'Dos',   'prp2@prueba.bo'),
        ('CI', 'PRP-0003', 'Prueba', 'Tres',  'prp3@prueba.bo'),
-       ('CI', 'PRP-0005', 'Prueba', 'Cinco', 'prp5@prueba.bo');
+       ('CI', 'PRP-0005', 'Prueba', 'Cinco', 'prp5@prueba.bo'),
+       ('CI', 'PRP-0006', 'Prueba', 'Seis',  'prp6@prueba.bo');
 
 -- 1. El anticipo menor al 30% se rechaza; el exacto se acepta y nace
 --    'registrado' (RN-PAG-01 y RN-PAG-04).
@@ -84,7 +86,8 @@ BEGIN
 END;
 $$;
 
--- 2. Un segundo anticipo para la misma reserva se rechaza (RN-PAG-02).
+-- 2. Un segundo pago del mismo tipo se admite dentro del saldo
+--    pendiente; el que lo supera se rechaza (RN-PAG-02 y RN-PAG-05).
 DO $$
 DECLARE
     v_reserva BIGINT;
@@ -95,14 +98,21 @@ BEGIN
         WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRP'))
       AND cantidad_pasajeros = 5;
 
+    -- La reserva tiene un anticipo de 150 sobre un total de 500: queda
+    -- pendiente 350 y un segundo pago cabe dentro de él.
+    PERFORM fn_registrar_pago(
+        v_reserva, 'anticipo', 200, 'qr', 'u-prueba', 'MOCK-QR-03', NULL, false
+    );
+    RAISE NOTICE 'OK: el segundo pago del mismo tipo se admite (RN-PAG-02)';
+
     BEGIN
         PERFORM fn_registrar_pago(
-            v_reserva, 'anticipo', 200, 'qr', 'u-prueba', 'MOCK-QR-03', NULL, false
+            v_reserva, 'saldo', 200, 'efectivo', 'u-prueba', NULL, NULL, true
         );
-        RAISE EXCEPTION 'FALLO: se aceptó un segundo anticipo';
+        RAISE EXCEPTION 'FALLO: se aceptó un pago que supera el saldo pendiente';
     EXCEPTION
-        WHEN unique_violation THEN
-            RAISE NOTICE 'OK: el segundo anticipo se rechaza';
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: el pago que supera el saldo pendiente se rechaza';
     END;
 END;
 $$;
@@ -182,20 +192,27 @@ BEGIN
             RAISE NOTICE 'OK: el saldo mayor al pendiente se rechaza';
     END;
 
-    BEGIN
-        PERFORM fn_registrar_pago(
-            v_reserva, 'saldo', 200, 'efectivo', 'u-prueba', NULL, NULL, true
-        );
-        RAISE EXCEPTION 'FALLO: se aceptó un saldo menor al pendiente';
-    EXCEPTION
-        WHEN check_violation THEN
-            RAISE NOTICE 'OK: el saldo parcial se rechaza: debe pagar el resto completo';
-    END;
+    -- El saldo puede pagarse por partes (RN-PAG-05): cada pago reduce
+    -- el pendiente y pueden sumarse varios hasta cubrirlo.
+    PERFORM fn_registrar_pago(
+        v_reserva, 'saldo', 100, 'efectivo', 'u-prueba', NULL, NULL, true
+    );
+    RAISE NOTICE 'OK: el saldo parcial se admite (RN-PAG-05)';
 
     PERFORM fn_registrar_pago(
-        v_reserva, 'saldo', 300, 'transferencia', 'u-prueba', NULL, NULL, true
+        v_reserva, 'saldo', 200, 'transferencia', 'u-prueba', NULL, NULL, true
     );
-    RAISE NOTICE 'OK: el saldo paga el resto exacto de la reserva';
+    RAISE NOTICE 'OK: otro pago parcial cubre el resto del saldo';
+
+    BEGIN
+        PERFORM fn_registrar_pago(
+            v_reserva, 'saldo', 1, 'efectivo', 'u-prueba', NULL, NULL, true
+        );
+        RAISE EXCEPTION 'FALLO: se aceptó un pago sobre el saldo ya cubierto';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: pagar de más del saldo pendiente se rechaza';
+    END;
 END;
 $$;
 
@@ -282,6 +299,66 @@ BEGIN
     END IF;
 
     RAISE NOTICE 'OK: con el anticipo validado, la confirmación procede';
+END;
+$$;
+
+-- 7. La confirmación suma los anticipos validados (RN-RES-18): si el
+--    manifiesto crece y el total sube, un anticipo adicional restablece
+--    el respaldo y la confirmación procede.
+DO $$
+DECLARE
+    v_salida  BIGINT;
+    v_cliente BIGINT;
+    v_reserva BIGINT;
+    v_id_pago BIGINT;
+    v_id_pago2 BIGINT;
+BEGIN
+    SELECT id_salida INTO v_salida FROM salida
+    WHERE id_paquete = (SELECT id_paquete FROM paquete WHERE codigo = 'PRP');
+    SELECT id_cliente INTO v_cliente FROM cliente
+    WHERE numero_documento = 'PRP-0006';
+
+    -- Una reserva de 1 pasajero: total 100 y anticipo mínimo 30.
+    v_reserva := fn_crear_reserva(v_cliente, v_salida, 1, 'personal', 'u-prueba');
+
+    v_id_pago := fn_registrar_pago(
+        v_reserva, 'anticipo', 30, 'qr', 'u-prueba', 'MOCK-QR-07', NULL, false
+    );
+    PERFORM fn_validar_pago(v_id_pago, 'u-prueba');
+
+    -- El manifiesto del personal amplía el grupo a 2: el total pasa a
+    -- 200 y el mínimo a 60 (RN-RES-21).
+    PERFORM fn_guardar_manifiesto(
+        v_reserva,
+        jsonb_build_array(
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'PAS-101', 'nombres', 'Prueba', 'apellidos', 'Dos'),
+            jsonb_build_object('tipo_documento', 'CI', 'numero_documento',
+                               'PAS-102', 'nombres', 'Prueba', 'apellidos', 'Tres')
+        ),
+        'u-prueba'
+    );
+
+    BEGIN
+        PERFORM fn_confirmar_reserva(v_reserva, 'u-prueba');
+        RAISE EXCEPTION 'FALLO: se confirmó con el anticipo por debajo del nuevo mínimo';
+    EXCEPTION
+        WHEN check_violation THEN
+            RAISE NOTICE 'OK: tras crecer el total, el anticipo previo ya no alcanza';
+    END;
+
+    -- Un segundo anticipo restablece el respaldo: 30 + 30 = 60 (RN-PAG-02).
+    v_id_pago2 := fn_registrar_pago(
+        v_reserva, 'anticipo', 30, 'efectivo', 'u-prueba', NULL, NULL, true
+    );
+
+    PERFORM fn_confirmar_reserva(v_reserva, 'u-prueba');
+
+    IF (SELECT estado FROM reserva WHERE id_reserva = v_reserva) <> 'confirmada' THEN
+        RAISE EXCEPTION 'FALLO: la confirmación con anticipos sumados no ocurrió';
+    END IF;
+
+    RAISE NOTICE 'OK: la suma de anticipos validados respalda la confirmación';
 END;
 $$;
 
