@@ -31,11 +31,30 @@ INSERT INTO cliente (
     ('CI', '87654321', 'Luis', 'Mamani', 'luis.mamani@example.com', '+591 70000012')
 ON CONFLICT (tipo_documento, numero_documento) DO NOTHING;
 
-INSERT INTO proveedor (nombre, tipo, nit, telefono, correo, direccion) VALUES
-    ('Transporte Andes S.R.L.', 'transporte', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
-    ('Hostal Potosí',           'hospedaje',  NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
-    ('Guías del Salar',         'guia',       NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
-ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
+-- La columna `proveedor.tipo` desapareció con la migración de tipos de
+-- proveedor, que corre después en el orden alfabético: la semilla se
+-- adapta a la forma que tenga la base.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'turismo' AND table_name = 'proveedor'
+          AND column_name = 'tipo'
+    ) THEN
+        INSERT INTO proveedor (nombre, tipo, nit, telefono, correo, direccion) VALUES
+            ('Transporte Andes S.R.L.', 'transporte', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
+            ('Hostal Potosí',           'hospedaje',  NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
+            ('Guías del Salar',         'guia',       NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
+        ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
+    ELSE
+        INSERT INTO proveedor (nombre, nit, telefono, correo, direccion) VALUES
+            ('Transporte Andes S.R.L.', '3025561008', '+591 70000001', 'contacto@transporteandes.bo', 'Potosí, Bolivia'),
+            ('Hostal Potosí',           NULL,         '+591 70000002', 'reservas@hostalpotosi.bo',   'Potosí, Bolivia'),
+            ('Guías del Salar',         NULL,         '+591 70000003', 'guias@salar.bo',             'Uyuni, Bolivia')
+        ON CONFLICT (lower(btrim(nombre))) DO NOTHING;
+    END IF;
+END;
+$$;
 
 INSERT INTO paquete_proveedor (id_paquete, id_proveedor, servicio, costo)
 SELECT p.id_paquete, pr.id_proveedor, v.servicio, v.costo

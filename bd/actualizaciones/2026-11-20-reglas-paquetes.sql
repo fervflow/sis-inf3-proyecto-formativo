@@ -540,39 +540,62 @@ $$ LANGUAGE plpgsql;
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------
 -- 8. Vista de disponibilidad con el estado del paquete
+--
+--    La recreación es condicional: si la base ya tiene una versión más
+--    nueva de la vista (con más columnas), Postgres rechazaría una
+--    recreación que baste columnas («cannot drop columns from view»).
 -- ---------------------------------------------------------------------
 
-CREATE OR REPLACE VIEW vista_disponibilidad_salida AS
-SELECT
-    s.id_salida,
-    s.id_paquete,
-    p.codigo AS codigo_paquete,
-    p.nombre AS paquete,
-    s.fecha_salida,
-    s.fecha_retorno,
-    s.cupo_maximo,
-    COALESCE(SUM(r.cantidad_pasajeros)
-        FILTER (WHERE r.estado IN ('pendiente', 'confirmada')
-                  AND (r.estado <> 'pendiente'
-                       OR r.fecha_expiracion IS NULL
-                       OR r.fecha_expiracion > now())), 0)::INT AS pasajeros_ocupados,
-    COALESCE(SUM(r.cantidad_pasajeros)
-        FILTER (WHERE r.estado = 'pendiente'
-                  AND (r.fecha_expiracion IS NULL OR r.fecha_expiracion > now())), 0)::INT AS pasajeros_pendientes,
-    COALESCE(SUM(r.cantidad_pasajeros)
-        FILTER (WHERE r.estado = 'confirmada'), 0)::INT AS pasajeros_confirmados,
-    (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
-        FILTER (WHERE r.estado IN ('pendiente', 'confirmada')
-                  AND (r.estado <> 'pendiente'
-                       OR r.fecha_expiracion IS NULL
-                       OR r.fecha_expiracion > now())), 0))::INT AS cupo_disponible,
-    (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
-        FILTER (WHERE r.estado = 'confirmada'), 0))::INT AS cupo_disponible_sin_pendientes,
-    s.precio,
-    s.estado,
-    p.estado AS estado_paquete
-FROM salida s
-JOIN paquete p ON p.id_paquete = s.id_paquete
-LEFT JOIN reserva r ON r.id_salida = s.id_salida
-GROUP BY s.id_salida, s.id_paquete, p.codigo, p.nombre, p.estado,
-         s.fecha_salida, s.fecha_retorno, s.cupo_maximo, s.precio, s.estado;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.views
+        WHERE table_schema = 'turismo'
+          AND table_name = 'vista_disponibilidad_salida'
+    )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'turismo'
+          AND table_name = 'vista_disponibilidad_salida'
+          AND column_name = 'cupo_disponible_sin_pendientes'
+    ) THEN
+        DROP VIEW vista_disponibilidad_salida;
+        CREATE VIEW vista_disponibilidad_salida AS
+        SELECT
+            s.id_salida,
+            s.id_paquete,
+            p.codigo AS codigo_paquete,
+            p.nombre AS paquete,
+            s.fecha_salida,
+            s.fecha_retorno,
+            s.cupo_maximo,
+            COALESCE(SUM(r.cantidad_pasajeros)
+                FILTER (WHERE r.estado IN ('pendiente', 'confirmada')
+                          AND (r.estado <> 'pendiente'
+                               OR r.fecha_expiracion IS NULL
+                               OR r.fecha_expiracion > now())), 0)::INT AS pasajeros_ocupados,
+            COALESCE(SUM(r.cantidad_pasajeros)
+                FILTER (WHERE r.estado = 'pendiente'
+                          AND (r.fecha_expiracion IS NULL OR r.fecha_expiracion > now())), 0)::INT AS pasajeros_pendientes,
+            COALESCE(SUM(r.cantidad_pasajeros)
+                FILTER (WHERE r.estado = 'confirmada'), 0)::INT AS pasajeros_confirmados,
+            (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
+                FILTER (WHERE r.estado IN ('pendiente', 'confirmada')
+                          AND (r.estado <> 'pendiente'
+                               OR r.fecha_expiracion IS NULL
+                               OR r.fecha_expiracion > now())), 0))::INT AS cupo_disponible,
+            (s.cupo_maximo - COALESCE(SUM(r.cantidad_pasajeros)
+                FILTER (WHERE r.estado = 'confirmada'), 0))::INT AS cupo_disponible_sin_pendientes,
+            s.precio,
+            s.estado,
+            p.estado AS estado_paquete
+        FROM salida s
+        JOIN paquete p ON p.id_paquete = s.id_paquete
+        LEFT JOIN reserva r ON r.id_salida = s.id_salida
+        GROUP BY s.id_salida, s.id_paquete, p.codigo, p.nombre, p.estado,
+                 s.fecha_salida, s.fecha_retorno, s.cupo_maximo, s.precio, s.estado;
+    END IF;
+END
+$$;

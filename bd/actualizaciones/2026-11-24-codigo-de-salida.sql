@@ -16,7 +16,7 @@
 -- =====================================================================
 SET search_path TO turismo, public;
 
-ALTER TABLE salida ADD COLUMN codigo VARCHAR(30);
+ALTER TABLE salida ADD COLUMN IF NOT EXISTS codigo VARCHAR(30);
 
 -- Relleno de las salidas existentes: ordinal por paquete, en orden de
 -- fecha de salida e identificador.
@@ -43,6 +43,7 @@ END;
 $$;
 
 ALTER TABLE salida ALTER COLUMN codigo SET NOT NULL;
+ALTER TABLE salida DROP CONSTRAINT IF EXISTS uq_salida_codigo;
 ALTER TABLE salida ADD CONSTRAINT uq_salida_codigo UNIQUE (codigo);
 
 -- Asignación del código al insertar (RN-SAL-22). El bloqueo del
@@ -73,7 +74,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER tr_salida_codigo
+CREATE OR REPLACE TRIGGER tr_salida_codigo
     BEFORE INSERT ON salida
     FOR EACH ROW EXECUTE FUNCTION fn_asignar_codigo_salida();
 
