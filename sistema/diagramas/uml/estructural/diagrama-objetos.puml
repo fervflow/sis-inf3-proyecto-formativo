@@ -53,9 +53,13 @@ object "Cliente · Luis Mamani" as CLI_MAMANI {
 object "Proveedor · Transporte Andes S.R.L." as PROV_ANDES {
   idProveedor = 1
   nombre = "Transporte Andes S.R.L."
-  tipo = "transporte"
   nit = "3025561008"
   estado = "activo"
+}
+
+object "ProveedorTipo · transporte" as PROV_TIPO_AND {
+  idProveedor = 1
+  tipo = "transporte"
 }
 
 object "Paquete · Uros del Titicaca" as PAQ_UROS {
@@ -67,9 +71,15 @@ object "Paquete · Uros del Titicaca" as PAQ_UROS {
   descripcion = "Tres días en las islas del Titicaca"
   duracionDias = 3
   precioBase = 850.00
-  itinerario = "Día 1: llegada y desayuno. Día 2: islas. Día 3: retorno."
   serviciosDetalle = "Transporte, alojamiento y guía"
   estado = "activo"
+}
+
+object "PaqueteItinerario · Día 2" as ITIN_DIA2 {
+  idPaquete = 1
+  dia = 2
+  titulo = "Navegación por las islas Uros"
+  detalle = "Salida en lancha, visita a las islas y almuerzo incluido."
 }
 
 object "Lugar · Lago Titicaca" as LUGAR_TITICACA {
@@ -96,19 +106,28 @@ object "PaqueteServicio · Uros" as PAQ_SERV_UROS {
 object "PaqueteProveedor · Traslado ida y vuelta" as PP_ANDES {
   idPaquete = 1
   idProveedor = 1
-  servicio = "Traslado ida y vuelta"
+  tipo = "transporte"
+  detalle = "Traslado ida y vuelta"
   costo = 140.00
 }
 
 object "Salida · Uros del Titicaca · 12/12/2026" as SAL_UROS_12 {
   idSalida = 4
   idPaquete = 1
+  codigo = "TIT-2026-001-002"
   fechaSalida = "2026-12-12"
   fechaRetorno = "2026-12-14"
   cupoMaximo = 12
   precio = 890.00
   puntoEncuentro = "Plaza 25 de Mayo, 08:00"
   estado = "programada"
+}
+
+object "SalidaProveedor · Unidad asignada" as SP_ANDES {
+  idSalida = 4
+  idProveedor = 1
+  tipo = "transporte"
+  detalle = "Unidad TOY-452, 40 asientos"
 }
 
 object "Cotizacion · COT-2026-0041" as COT_0041 {
@@ -179,8 +198,8 @@ object "Pago · Anticipo" as PAG_ANTICIPO {
   idReserva = 117
   tipo = "anticipo"
   monto = 500.00
-  metodo = "transferencia"
-  referencia = "OP-9931"
+  metodo = "qr"
+  referencia = "MOCK-QR-8452"
   fechaPago = "2026-11-10 10:40"
   idUsuario = "u-12"
   estado = "registrado"
@@ -227,14 +246,19 @@ ROL_PERSONAL -- USU_ROCA
 USU_MAMANI -- CLI_MAMANI : "> cuenta
 
 ' --- Catalogo --------------------------------------------------------
+PROV_ANDES -- PROV_TIPO_AND : "> declara"
 PROV_ANDES -- PP_ANDES : "> aporta"
+PAQ_UROS -- ITIN_DIA2 : relata
 PAQ_UROS -- PP_ANDES : incluye
+PP_ANDES -- PROV_TIPO_AND : usa
 PAQ_UROS -- LUGAR_TITICACA : destino
 PAQ_UROS -- PAQ_SERV_UROS : marca
 SERV_DESAYUNO -- PAQ_SERV_UROS : se incluye en
 PAQ_UROS -- SAL_UROS_12 : "> programa"
 USU_ROCA -- PAQ_UROS : "> crea"
 USU_ROCA -- SAL_UROS_12 : "> gestiona"
+SAL_UROS_12 -- SP_ANDES : asigna
+SP_ANDES -- PROV_TIPO_AND : usa
 
 ' --- Cotizacion ------------------------------------------------------
 CLI_MAMANI -- COT_0041 : "> recibe"
@@ -273,7 +297,9 @@ note bottom of RES_0117
 end note
 
 note bottom of PAG_ANTICIPO
-  Registrado por el cliente. Queda en estado
+  Registrado por el cliente desde la web con la
+  pasarela simulada (QR): la referencia la
+  genera la simulación. Queda en estado
   "registrado" hasta que el personal lo valida,
   de modo que todavia no se considera cobrado.
 end note

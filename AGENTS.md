@@ -6,7 +6,7 @@ Guía operativa para agentes y modelos que trabajen en este repositorio.
 Este archivo es el punto de entrada. El detalle está en los documentos del
 índice final.
 
-Última actualización: 2026-11-20.
+Última actualización: 2026-11-25.
 
 ## Qué es este proyecto
 
@@ -21,7 +21,7 @@ documento LaTeX está en `informe/`; el diseño del sistema, en `sistema/`.
 |---|---|
 | Agencia | **Vizcacha Tours**, Potosí (ficticia) |
 | Problema científico | ¿Cómo mejorar la consistencia del proceso de reservas de paquetes turísticos en Vizcacha Tours de la ciudad de Potosí durante la gestión 2026? |
-| Objetivo general | Desarrollar un sistema web de gestión de reservas que mejore la consistencia del proceso de venta y reserva de paquetes turísticos en Vizcacha Tours de la ciudad de Potosí. |
+| Objetivo general | Desarrollar un sistema web de gestión de reservas que mejore la consistencia del proceso de venta de paquetes turísticos en Vizcacha Tours de la ciudad de Potosí. |
 | Población | 8 trabajadores + 50 clientes = 58 personas; censo (población ≤ 60) |
 | Entregable | `entregables/Informe de Proyecto Formativo - Sistema de Gestión de Paquetes Turísticos y Reservas.pdf` |
 | Documento maestro | `main.tex` |

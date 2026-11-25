@@ -69,11 +69,24 @@ package "Catalogo" {
   class Proveedor {
     - idProveedor : BIGINT
     - nombre : String
-    - tipo : TipoProveedor
     - nit : String
     - estado : EstadoProveedor
     + guardar() : void
     + actualizar() : void
+  }
+
+  class ProveedorTipo {
+    - idProveedor : BIGINT
+    - tipo : TipoProveedor
+    + declarar(tipo) : void
+  }
+
+  class ProveedorServicio {
+    - idProveedorServicio : BIGINT
+    - titulo : String
+    - detalle : String
+    - orden : SMALLINT
+    + listarPorTipo(tipo) : List<ProveedorServicio>
   }
 
   class Paquete {
@@ -86,7 +99,6 @@ package "Catalogo" {
     - descripcion : String
     - duracionDias : Integer
     - precioBase : Decimal
-    - itinerario : String
     - serviciosDetalle : String
     - serviciosExcluidos : String
     - estado : EstadoPaquete
@@ -94,6 +106,14 @@ package "Catalogo" {
     + validarContenidoPublicable() : Boolean
     + guardar() : void
     + activar() : void
+  }
+
+  class PaqueteItinerario {
+    - idPaquete : BIGINT
+    - dia : SMALLINT
+    - titulo : String
+    - detalle : String
+    + renumerar(dias) : void
   }
 
   class Lugar {
@@ -133,13 +153,15 @@ package "Catalogo" {
   class PaqueteProveedor {
     - idPaquete : BIGINT
     - idProveedor : BIGINT
-    - servicio : String
+    - tipo : TipoProveedor
+    - detalle : String
     - costo : Decimal
     + costoServicios() : Decimal
   }
 
   class Salida {
     - idSalida : BIGINT
+    - codigo : String
     - fechaSalida : Date
     - fechaRetorno : Date
     - cupoMaximo : Integer
@@ -151,6 +173,14 @@ package "Catalogo" {
     + aplicarCambios(cambios) : void
     + verificarCupo(cantidad) : Boolean
     + contarPasajerosActivos() : Integer
+  }
+
+  class SalidaProveedor {
+    - idSalida : BIGINT
+    - idProveedor : BIGINT
+    - tipo : TipoProveedor
+    - detalle : String
+    + asignar(idSalida, proveedor) : void
   }
 }
 
@@ -335,6 +365,8 @@ package "Enumeraciones" {
     efectivo
     transferencia
     tarjeta
+    banca_movil
+    qr
     otro
   }
   enum EstadoPago {
@@ -361,11 +393,15 @@ package "Enumeraciones" {
 Rol -[hidden]-> Usuario
 Usuario -[hidden]-> Cliente
 Cliente -[hidden]-> Pasajero
+Proveedor -[hidden]-> ProveedorTipo
+ProveedorTipo -[hidden]-> ProveedorServicio
 Proveedor -[hidden]-> PaqueteProveedor
 Lugar -[hidden]-> PaqueteParada
 PaqueteParada -[hidden]-> Servicio
 Servicio -[hidden]-> PaqueteServicio
+Paquete -[hidden]-> PaqueteItinerario
 Paquete -[hidden]-> Salida
+Salida -[hidden]-> SalidaProveedor
 Salida -[hidden]-> Cotizacion
 Cotizacion -[hidden]-> Reserva
 Reserva -[hidden]-> Pago
@@ -396,7 +432,11 @@ Cliente "1" <-- "0..*" Cotizacion : "> recibe
 Cliente "1" <-- "0..*" Reserva : "> solicita
 
 ' --- Relaciones del catalogo -----------------------------------------
-Proveedor "1" <-- "0..*" PaqueteProveedor : "> aporta
+Proveedor "1" *-- "1..*" ProveedorTipo : declara
+ProveedorTipo "1" *-- "0..*" ProveedorServicio : detalla
+PaqueteProveedor "0..*" --> "1" ProveedorTipo : usa
+Paquete "1" *-- "0..*" PaqueteItinerario : relata
+Proveedor "1" <-- "0..*" PaqueteProveedor : "> aporta"
 Paquete "1" *-- "0..*" PaqueteProveedor : incluye
 Paquete "0..*" --> "1" Lugar : destino
 Paquete "0..*" --> "0..1" Lugar : origen
@@ -409,11 +449,13 @@ Paquete "1" <-- "0..*" Salida : "> programa
 ' --- Relaciones de la operacion --------------------------------------
 Salida "1" <-- "0..*" Cotizacion : "> cotiza
 Salida "1" <-- "0..*" Reserva : "> reserva
+Salida "1" *-- "0..*" SalidaProveedor : opera
+SalidaProveedor "0..*" --> "1" ProveedorTipo : asigna
 Salida "1" <-- "0..*" Notificacion : "> avisa
 Cotizacion "0..1" <-- "0..*" Reserva : "> origina
 Reserva "1" *-- "0..*" ReservaPasajero : incluye
 Pasajero "1" <-- "0..*" ReservaPasajero : "> viaja
-Reserva "1" <-- "0..1..2" Pago : "> paga
+Reserva "1" <-- "0..*" Pago : "> paga
 Reserva "1" <-- "0..*" HistorialReserva : "> audita
 Salida "1" <-- "0..*" HistorialSalida : "> audita
 
@@ -462,5 +504,13 @@ end note
 note bottom of Notificacion
   Aviso al cliente cuando cambia la fecha o la
   capacidad de su salida (HU-16).
+end note
+
+note bottom of SalidaProveedor
+  Asignación operativa de la salida (RN-SAL-23):
+  qué guía conduce y con qué unidad se viaja.
+  Es opcional, sin costos, y no cambia el cupo
+  ni el precio; el contrato con su costo vive
+  en el vínculo del paquete.
 end note
 @enduml

@@ -14,6 +14,10 @@
 
 \usepackage{entornos-apa}
 
+%% El índice muestra capítulos numerados "III." y "A."; la caja del
+%% número por omisión es corta para esos rótulos.
+\setlength{\cftchapnumwidth}{2.8em}
+
 \input{informe/configuracion/metadatos}
 \input{informe/configuracion/portada}
 
@@ -41,6 +45,14 @@
 %% ---------------------------- Cuerpo ---------------------------------
 \iniciarCuerpo
 
+%% ---------------------------------------------------------------------
+%%  Formato de la cátedra: las secciones preliminares van sin número y
+%%  la propuesta es el único capítulo numerado (CAPÍTULO III, 3.1 a 3.4).
+%% ---------------------------------------------------------------------
+\makeatletter
+\titleformat{\chapter}[hang]{\normalfont\bfseries}{}{0pt}{}[\@afterindenttrue]
+\makeatother
+
 \input{informe/capitulos/01-introduccion}
 \input{informe/capitulos/02-antecedentes}
 \input{informe/capitulos/03-situacion-problematica}
@@ -48,15 +60,24 @@
 \input{informe/capitulos/05-objeto-estudio}
 \input{informe/capitulos/07-objetivos}
 \input{informe/capitulos/08-poblacion-muestra}
+\input{informe/capitulos/08b-metodos-investigacion}
 \input{informe/capitulos/09-justificacion-social}
 \input{informe/capitulos/10-alcances-sistema}
 \input{informe/capitulos/11-limites-proyecto}
+
+%% La propuesta recupera el número de capítulo: CAPÍTULO III con 3.1 a 3.4.
+\makeatletter
+\titleformat{\chapter}[hang]{\normalfont\bfseries}{CAPÍTULO \thechapter.}{0.6em}{}[\@afterindenttrue]
+\makeatother
+\renewcommand{\thechapter}{\Roman{chapter}}
+\setcounter{chapter}{2}
+
+\input{informe/capitulos/12-propuesta}
 
 %% --------------------------- Finales ---------------------------------
 \iniciarSeccionesFinales
 \input{informe/finales/referencias}
 \clearpage
-\input{informe/finales/glosario}
 \input{informe/finales/anexos}
 
 \end{document}

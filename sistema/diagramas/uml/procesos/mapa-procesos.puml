@@ -12,6 +12,7 @@ skinparam swimlaneWidth 230
 |Cliente|
 start
 :Consulta paquetes, fechas y cupos\n(HU-03);
+:Abre la ficha de la salida:\nmapa, itinerario, servicios\ny proveedores (HU-18);
 if (¿Tiene cuenta de cliente?) then (no)
   :Abre su cuenta con correo y\ndocumento (HU-15);
 endif
@@ -57,6 +58,7 @@ legend right
   HU-04 Ficha del cliente
   HU-12 Pasajeros
   HU-10 Proveedores
+  HU-19 Detalles de servicios
   HU-11 Reportes
   HU-15 Cuenta de cliente
 end legend

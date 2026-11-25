@@ -11,14 +11,14 @@ editarlos hay que respetar el modelo de este documento.
 
 | Carpeta | Contenido |
 |---|---|
-| `uml/secuencia/` | Los 13 flujos completos de HU-01 a HU-07, HU-09 y HU-11 a HU-17 (salvo HU-08, que no lo requiere) |
+| `uml/secuencia/` | Los 14 flujos completos de HU-01 a HU-07, HU-09 y HU-11 a HU-17 (salvo HU-08, que no lo requiere) |
 | `uml/secuencia-light/` | Versiones resumidas de esos 10 |
 | `uml/secuencia-comunes/` | 5 subflujos reutilizables, sin actor ni interfaz |
 | `uml/secuencia-fusionados/` | 2 variantes que combinan historias |
 | `uml/estructural/` | Clases, objetos, componentes y despliegue, completos y simplificados |
-| `uml/casos-uso/` | Casos de uso con sus `include` y `extend` |
-| `uml/procesos/` | Mapa de actividades, flujo del tablero y proceso de estimación |
-| `tikz/` | Árbol de problemas del Anexo A |
+| `uml/casos-uso/` | Casos de uso con sus `include` y `extend` (15 casos que agrupan las 19 historias) |
+| `uml/procesos/` | Mapa de actividades con calles, proceso de negocio de entrada-proceso-salida, estados de la reserva, flujo del tablero y proceso de estimación |
+| `tikz/` | Árbol de problemas de la sección Situación problemática |
 | `estilos/` | `tema-apa.puml`, el tema visual |
 | `otros/` | DER, arquitectura y mockups |
 | `ejemplos-plantilla/` | Ejemplos heredados, ajenos al sistema |
@@ -70,7 +70,7 @@ estructurales y el de casos de uso usan «Tipo · Descripción».
 
 `make verificar` ejecuta dos comprobaciones:
 
-- `sistema/verificar-uml.py` revisa los 39 `.puml` de `uml/` y detecta participantes
+- `sistema/verificar-uml.py` revisa los 42 `.puml` de `uml/` y detecta participantes
   usados sin declarar, declarados sin mensajes, entidades o tablas con una
   sola línea de vida, y clases u objetos fuera de toda relación.
 - `sistema/verificar-rutas.py` comprueba que las rutas citadas existan y que

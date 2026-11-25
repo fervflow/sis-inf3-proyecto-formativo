@@ -74,24 +74,34 @@ Los detalles de implementación de la clase están en `docs/GUIA-LATEX.md`.
 
 ## Orden del documento
 
+Formato de la cátedra: carátula e índices al inicio, **secciones
+preliminares sin numerar** y la propuesta como único capítulo numerado
+(**CAPÍTULO III**, con subsecciones 3.1 a 3.4).
+
 `main.tex` incluye, en este orden:
 
 | # | Sección | Archivo |
 |---|---|---|
+| 0 | Resumen | `informe/preliminares/resumen.tex` |
 | 1 | Introducción | `informe/capitulos/01-introduccion.tex` |
 | 2 | Antecedentes | `informe/capitulos/02-antecedentes.tex` |
-| 3 | Situación problemática | `informe/capitulos/03-situacion-problematica.tex` |
+| 3 | Situación problemática (con el árbol de problemas como figura) | `informe/capitulos/03-situacion-problematica.tex` |
 | 4 | Problema científico | `informe/capitulos/04-problema-cientifico.tex` |
 | 5 | Objeto de estudio y campo de acción | `informe/capitulos/05-objeto-estudio.tex` |
 | 6 | Objetivos | `informe/capitulos/07-objetivos.tex` |
 | 7 | Población y muestra | `informe/capitulos/08-poblacion-muestra.tex` |
-| 8 | Justificación social | `informe/capitulos/09-justificacion-social.tex` |
-| 9 | Alcances del sistema | `informe/capitulos/10-alcances-sistema.tex` |
-| 10 | Límites del proyecto | `informe/capitulos/11-limites-proyecto.tex` |
+| 8 | Métodos de investigación | `informe/capitulos/08b-metodos-investigacion.tex` |
+| 9 | Justificación social | `informe/capitulos/09-justificacion-social.tex` |
+| 10 | Alcances del sistema | `informe/capitulos/10-alcances-sistema.tex` |
+| 11 | Límites del proyecto | `informe/capitulos/11-limites-proyecto.tex` |
+| 12 | CAPÍTULO III: la propuesta (marco referencial, estimación, proceso de negocio, Kanban y diagramas) | `informe/capitulos/12-propuesta.tex` |
 
-`capitulos/06-variables.tex` no se incluye. Después de las secciones van
-`finales/referencias.tex`, `finales/glosario.tex` y
-`finales/anexos.tex` → `anexos/A-arbol-problemas.tex`.
+Las secciones preliminares usan `\capituloSinNumero{...}` (definido en
+`entornos-apa.sty`) y sus subsecciones usan `\section*{...}`. El capítulo de
+la propuesta recupera la numeración en `main.tex` (contador en 3, rótulo
+`CAPÍTULO III`). Después van `finales/referencias.tex` y
+`finales/anexos.tex` → `anexos/A-estimacion.tex` (Anexo A: estimación de
+costos). El glosario y el árbol como anexo quedan como respaldo, sin incluir.
 
 ## Flujo de trabajo
 
@@ -125,9 +135,9 @@ Los ejemplos completos están en `docs/GUIA-LATEX.md`.
 |---|---|
 | Pre-texto | Portada, resumen, índices |
 | Capítulo I: Marco teórico | Sección 2 (Antecedentes) |
-| Capítulo II: Diagnóstico | Sección 3 y Anexo A |
-| Capítulo III: Propuesta | Secciones 4 a 10 |
-| Post-texto | Referencias, glosario y anexos |
+| Capítulo II: Diagnóstico | Sección 3 (con el árbol de problemas) |
+| Capítulo III: Propuesta | CAPÍTULO III (`12-propuesta.tex`) y Anexo A |
+| Post-texto | Referencias y anexos |
 
 ## Documentos relacionados
 

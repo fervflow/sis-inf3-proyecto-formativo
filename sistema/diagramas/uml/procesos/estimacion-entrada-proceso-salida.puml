@@ -8,7 +8,7 @@ hide circle
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
 
-rectangle "Alcance del sistema\n17 historias de usuario\n47 pts · 39 tareas" as E1 <<entrada>>
+rectangle "Alcance del sistema\n19 historias de usuario\n55 pts · 54 tareas" as E1 <<entrada>>
 rectangle "Ritmo medido\n1,75 tareas por dia\n4,00 h-persona por punto" as E2 <<entrada>>
 rectangle "Condiciones del equipo\n2 desarrolladores\n4 h por dia habil" as E3 <<entrada>>
 rectangle "Tarifa\n5.000 Bs por\nmes-persona" as E4 <<entrada>>
@@ -21,9 +21,9 @@ rectangle "Proceso de estimacion" {
   rectangle "Plazo\nhoras-persona / horas\npor dia de equipo" as P5
 }
 
-rectangle "Esfuerzo total\n188 horas-persona\n1,18 mes-persona" as S1 <<salida>>
-rectangle "Costo estimado\n5.875 Bs" as S2 <<salida>>
-rectangle "Cierre estimado\n15/12/2026\n2,35 ventanas" as S3 <<salida>>
+rectangle "Esfuerzo total\n220 horas-persona\n1,38 mes-persona" as S1 <<salida>>
+rectangle "Costo estimado\n6.875 Bs" as S2 <<salida>>
+rectangle "Cierre estimado\n07/01/2027\n2,75 ventanas" as S3 <<salida>>
 rectangle "Costo del MVP\n2.500 Bs\n(ventana 1)" as S4 <<salida>>
 
 E1 --> P1

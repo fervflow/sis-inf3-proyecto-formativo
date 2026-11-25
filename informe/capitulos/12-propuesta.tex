@@ -1,0 +1,627 @@
+%% Capítulo de la propuesta: CAPÍTULO III con subsecciones 3.1 a 3.4
+%% (formato de la cátedra). El número de capítulo lo fija main.tex.
+\chapter{Sistema web para la gestión de paquetes turísticos y reservas}
+\label{cap:propuesta}
+
+\section*{Antecedentes del capítulo}
+
+Vizcacha Tours, agencia turística de Potosí, atiende solicitudes de viajes
+por diferentes canales: la oficina, las llamadas telefónicas, los mensajes y
+las redes sociales. La necesidad de disponer de información uniforme sobre
+paquetes, fechas, cupos y reservas motivó el desarrollo de una solución web
+que centraliza el proceso y apoya al personal en la confirmación de las
+solicitudes.
+
+\section{Marco referencial}
+
+\textbf{Sistema de información transaccional (TPS).} Es un sistema orientado
+al registro y procesamiento de las operaciones del negocio. En Vizcacha Tours
+se aplica a las reservas, los cupos y los pagos, donde la consistencia de las
+transacciones resulta esencial.
+
+\textbf{Gestión de reservas turísticas.} Comprende la solicitud, la
+disponibilidad, la asignación de plazas y la confirmación de servicios. Las
+plataformas citadas en la introducción \parencite{amadeusGDS,ezus}
+constituyen referencias funcionales, sin que se contemple integrarlas al
+sistema local.
+
+\textbf{Kanban y STATIK.} Kanban permite gestionar el flujo de trabajo
+mediante la visualización, los límites de trabajo en curso y la mejora
+continua; STATIK es el procedimiento de seis pasos para diseñar un sistema
+Kanban ajustado al contexto del servicio \parencite{kanbanGuia}.
+
+\textbf{Modelado UML.} El Lenguaje Unificado de Modelado permite representar
+la estructura y el comportamiento del sistema mediante casos de uso, clases,
+objetos, actividades, secuencias, componentes y despliegue
+\parencite{omgUml}.
+
+\textbf{Estimación de software.} COCOMO básico relaciona el tamaño estimado
+del producto con el esfuerzo y la duración esperados \parencite{boehm1981}.
+La estimación ágil emplea el tamaño relativo de las historias y el ritmo
+observado en el propio trabajo.
+
+\textbf{Seguridad y experiencia de usuario.} El diseño considera permisos por
+rol, protección de credenciales, validación de datos y facilidad de uso, en
+concordancia con las recomendaciones de OWASP Foundation
+\parencite{owasp2025} y de ISO 9241-210 \parencite{iso9241}.
+
+\subsection{Herramientas para el desarrollo}
+
+Se utilizó Kanban como método de gestión del flujo de trabajo, con el tablero
+del repositorio para visualizar las historias, limitar el trabajo en curso e
+identificar bloqueos. Las herramientas tecnológicas empleadas se resumen en
+la tabla~\ref{tab:herramientas}.
+
+\begin{tablaapa}{tab:herramientas}{Herramientas de desarrollo}
+\small
+\begin{tabular}{@{}p{4.6cm}p{10.4cm}@{}}
+\toprule
+Herramienta & Aplicación \\
+\midrule
+Kanban (tablero del repositorio) & Backlog, tarjetas, responsables, límites
+de trabajo en curso y seguimiento. \\
+Visual Studio Code & Edición y depuración del código. \\
+HTML, CSS y JavaScript & Interfaz web adaptable a celulares y
+computadoras. \\
+Nuxt 4 / Nitro (Node.js 22) & Lógica de negocio, autenticación y API del
+sistema. \\
+PostgreSQL (Neon) & Persistencia relacional y transacciones para controlar
+los cupos. \\
+GitHub & Control de versiones y revisión de cambios. \\
+PlantUML & Modelado del proceso y del diseño técnico. \\
+Pruebas de API y navegador & Pruebas unitarias, de integración y de
+aceptación. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\section{Estimación del esfuerzo y los costos}
+
+La estimación se elaboró con dos enfoques complementarios. El primero,
+COCOMO básico \parencite{boehm1981}, parte de un tamaño hipotético de 3.000
+líneas de código y sirve como hipótesis de planificación. El segundo es la
+estimación ágil, que emplea los datos reales del proyecto: las 19 historias
+del backlog, con 55 puntos de historia y 54 tareas, y el ritmo medido en el
+tablero durante la primera ventana de trabajo, de 4,00 horas-persona por
+punto de historia. Con la tarifa declarada de 5.000 bolivianos por
+mes-persona, el alcance completo equivale a 1,38 mes-persona y 6.875 Bs, de
+los cuales 2.500 Bs corresponden al producto mínimo viable de la primera
+ventana (HU-08, HU-01 y HU-04). Las tareas de corrección identificadas
+durante las pruebas se registraron dentro de las historias correspondientes,
+de modo que el ritmo medido las absorbe sin requerir una estimación
+separada; la proyección se recalcula al cierre de cada ventana. Los
+supuestos, los cálculos y el resumen comparativo se presentan en el Anexo~A.
+
+\section{Descripción del proceso de negocio}
+
+\subsection{Diagrama de entrada y salida}
+
+Las entradas provienen de los usuarios y del personal de la agencia. El
+sistema procesa los datos de manera centralizada, verifica los permisos y la
+disponibilidad, y genera los resultados que respaldan la atención al cliente
+(figura~\ref{fig:ips-negocio}).
+
+\begin{figuraapa}{fig:ips-negocio}{Diagrama de entrada, proceso y salida del proceso de reservas}
+  \incluirDiagrama{procesos/negocio-entrada-proceso-salida}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+El cliente consulta paquetes y disponibilidad por internet o en la oficina.
+Si requiere una cotización, el personal la prepara. Una solicitud genera una
+reserva pendiente; el sistema verifica los cupos dentro de una transacción y
+registra los pasajeros. Cuando corresponde, se registra un anticipo con la
+pasarela simulada y el personal lo valida antes de confirmar. Si vence el
+plazo o se aprueba una cancelación, los cupos retenidos se liberan por
+cálculo y el sistema comunica los cambios dentro de la propia plataforma.
+
+Las reglas principales del proceso son cinco: no permitir sobreventa;
+mantener una sola fuente de disponibilidad, calculada y no almacenada;
+retener los cupos mediante una operación transaccional que bloquea la fila de
+la salida; no confirmar automáticamente por el solo registro del pago; y
+conservar la trazabilidad de las modificaciones, las cancelaciones y los
+vencimientos.
+
+\subsection{Diagrama de actividades con calles}
+
+El diagrama con calles muestra las responsabilidades del cliente, del
+personal, del administrador y del sistema durante la consulta, la solicitud,
+la verificación y la confirmación de las reservas
+(figura~\ref{fig:calles-negocio}).
+
+\begin{figuraapa}{fig:calles-negocio}{Proceso de negocio por actor}
+  \incluirDiagrama{procesos/mapa-procesos}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+\section{Desarrollo de la propuesta: metodología Kanban}
+
+\subsection{Roles Kanban}
+
+Las responsabilidades se distribuyeron entre los dos universitarios y un
+representante de Vizcacha Tours, conforme a la tabla~\ref{tab:roles}.
+
+\begin{tablaapa}{tab:roles}{Roles Kanban}
+\small
+\begin{tabular}{@{}p{3.4cm}p{4.6cm}p{6.6cm}@{}}
+\toprule
+Rol & Responsable & Funciones \\
+\midrule
+Propietario del servicio & Representante de Vizcacha Tours &
+Priorizar necesidades, validar reglas y aceptar entregables. \\
+Gestor de operaciones & Carmen Nelinda Ozuna Villca &
+Coordinar el flujo, los límites de trabajo en curso, los bloqueos y las
+revisiones. \\
+Equipo de trabajo & Roberto Carlos Ereño Acuña y Erick Fernando Velasco
+Flores & Analizar, diseñar, programar, probar, documentar y corregir. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\subsection{Identificación de actores y responsabilidades}
+
+Los actores del sistema y sus responsabilidades se resumen en la
+tabla~\ref{tab:actores}. Representan roles del sistema, no necesariamente
+personas distintas: la confirmación final, la validación de los pagos y la
+ejecución de las cancelaciones corresponden al personal autorizado.
+
+\begin{tablaapa}{tab:actores}{Actores y responsabilidades}
+\small
+\begin{tabular}{@{}p{3.6cm}p{11cm}@{}}
+\toprule
+Actor & Responsabilidad en el sistema \\
+\midrule
+Administrador & Gestiona paquetes, proveedores, salidas, fechas y
+capacidades; administra los detalles de servicios de los proveedores. \\
+Personal de agencia & Consulta la disponibilidad, registra clientes,
+cotiza, administra reservas, valida pagos, confirma solicitudes y consulta
+reportes. \\
+Cliente / turista & Crea su cuenta, consulta paquetes, salidas y fichas de
+salida, solicita reservas, registra pasajeros y pagos, solicita la
+cancelación y consulta avisos. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\subsection{Políticas de trabajo}
+
+Cada tarjeta lleva identificador, responsable, criterios de aceptación y
+fechas de registro. Las columnas del tablero tienen límites de trabajo en
+curso (4 en «En curso», 2 en «En pruebas / QA» y 1 en «Listo para
+producción») y aplican una política de extracción: el equipo toma tareas
+nuevas solo cuando existe capacidad disponible. Las tareas terminadas pasan a
+revisión y se publican cuando cumplen los criterios de su historia; los
+bloqueos se marcan en el tablero y se revisan diariamente, y la aceptación
+corresponde al propietario del servicio.
+
+\subsection{Historias de usuario}
+
+Se conserva el listado del equipo, con su orden, prioridad, riesgo,
+estimación y número de tareas. El backlog quedó formado por 19 historias,
+55 puntos de historia y 54 tareas (tablas~\ref{tab:hus-1}
+y~\ref{tab:hus-2}).
+
+\begin{tablaapa}{tab:hus-1}{Historias de usuario}
+\small
+\begin{tabular}{@{}p{1.15cm}p{5.2cm}p{3.5cm}p{2.1cm}p{2.1cm}@{}}
+\toprule
+ID & Historia & Actor / canal & Prioridad / riesgo & Pts / tareas \\
+\midrule
+HU-08 & Iniciar sesión y acceder según el rol & Personal, Cliente / Web &
+Alta / Alto & 3 pts / 3 tareas \\
+HU-15 & Abrir una cuenta de cliente y acceder a su información & Cliente /
+Web & Media / Alto & 3 pts / 3 tareas \\
+HU-01 & Gestión de paquetes turísticos & Administrador / Web & Alta / Medio
+& 3 pts / 3 tareas \\
+HU-02 & Registro de fechas de salida y cupos & Administrador / Web & Alta /
+Alto & 2 pts / 2 tareas \\
+HU-03 & Consulta de disponibilidad & Cliente, Personal / Web, Oficina &
+Alta / Medio & 2 pts / 2 tareas \\
+HU-04 & Registro y actualización de la ficha del cliente & Personal / Web,
+Oficina & Media / Medio & 2 pts / 2 tareas \\
+HU-10 & Registrar proveedores y vincularlos a los paquetes & Administrador /
+Web & Media / Bajo & 2 pts / 2 tareas \\
+HU-05 & Elaboración de cotizaciones & Personal / Web, Oficina & Baja / Medio
+& 3 pts / 3 tareas \\
+HU-06 & Registro de reservas con validación de cupos & Personal, Cliente /
+Web, Oficina & Alta / Alto & 5 pts / 4 tareas \\
+HU-12 & Registro de pasajeros y vinculación a una reserva & Personal,
+Cliente / Web & Media / Medio & 3 pts / 2 tareas \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia a partir del backlog del proyecto.}
+\end{tablaapa}
+
+\begin{tablaapa}{tab:hus-2}{Historias de usuario (continuación)}
+\small
+\begin{tabular}{@{}p{1.15cm}p{5.2cm}p{3.5cm}p{2.1cm}p{2.1cm}@{}}
+\toprule
+ID & Historia & Actor / canal & Prioridad / riesgo & Pts / tareas \\
+\midrule
+HU-07 & Seguimiento y actualización de reservas & Personal / Web & Media /
+Medio & 3 pts / 4 tareas \\
+HU-17 & Confirmación de solicitudes y control de su vencimiento & Personal /
+Web & Alta / Alto & 3 pts / 4 tareas \\
+HU-09 & Modificar fechas o capacidad de una salida & Administrador / Web &
+Media / Alto & 3 pts / 2 tareas \\
+HU-11 & Consultar reportes de ocupación y reservas por fecha & Personal /
+Web & Baja / Medio & 2 pts / 2 tareas \\
+HU-13 & Solicitud y ejecución de la cancelación de una reserva & Cliente,
+Personal / Web, Oficina & Media / Alto & 3 pts / 2 tareas \\
+HU-14 & Registro y validación de anticipos y saldos de una reserva &
+Cliente, Personal / Web, Oficina & Alta / Medio & 3 pts / 3 tareas \\
+HU-16 & Avisos de cambios de fecha y capacidad de una salida & Cliente / Web
+& Baja / Medio & 2 pts / 2 tareas \\
+HU-18 & Ficha de la salida & Cliente, Personal / Web & Alta / Medio &
+5 pts / 5 tareas \\
+HU-19 & Detalles de servicios de proveedores & Administrador / Web & Media /
+Medio & 3 pts / 4 tareas \\
+\midrule
+\multicolumn{4}{@{}p{12.05cm}}{Total: 19 historias, 55 puntos de historia y
+54 tareas.} & \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia a partir del backlog del proyecto.}
+\end{tablaapa}
+
+\subsubsection{Criterios de aceptación}
+
+Cada historia tiene criterios de aceptación verificables, apoyados en las
+reglas de negocio del sistema (tablas~\ref{tab:criterios-1}
+y~\ref{tab:criterios-2}).
+
+\begin{tablaapa}{tab:criterios-1}{Criterios de aceptación}
+\small
+\begin{tabular}{@{}p{1.3cm}p{13cm}@{}}
+\toprule
+Historia & Criterio verificable \\
+\midrule
+HU-08 & Credenciales válidas y permisos según rol; el acceso no autorizado
+se rechaza y queda registrado. \\
+HU-15 & Cuenta única por ficha de cliente; el cliente solo consulta sus
+propios datos. \\
+HU-01 & Paquetes con código generado, datos obligatorios y estados borrador,
+activo e inactivo; solo el activo se ofrece. \\
+HU-02 & Salida con fecha válida, capacidad positiva y precio; el cupo se
+calcula y un paquete no tiene dos salidas el mismo día. \\
+HU-03 & La web y la oficina muestran el mismo cupo disponible, calculado con
+las reservas pendientes y confirmadas vigentes. \\
+HU-04 & Ficha con documento y correo únicos, sin duplicados; una ficha puede
+existir sin cuenta de usuario. \\
+HU-10 & Proveedores con tipos declarados; el vínculo con el paquete no se
+repite y conserva el costo. \\
+HU-05 & Cotización con número único, importe calculado según salida y
+pasajeros, y plazo de validez; no descuenta cupo ni crea reserva. \\
+HU-06 & Solicitud pendiente solo si hay cupos, dentro de una transacción con
+bloqueo de fila; sin sobreventa y con vencimiento a 24 horas. \\
+HU-12 & Pasajeros vinculados a la reserva; la cantidad registrada coincide
+con la declarada y el documento no se repite. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\begin{tablaapa}{tab:criterios-2}{Criterios de aceptación (continuación)}
+\small
+\begin{tabular}{@{}p{1.3cm}p{13cm}@{}}
+\toprule
+Historia & Criterio verificable \\
+\midrule
+HU-07 & Solo los estados permitidos cambian, con registro de cambios;
+modificar la salida o la cantidad vuelve a verificar los cupos. \\
+HU-17 & Confirmación solo del personal, con anticipo validado y manifiesto
+completo; las solicitudes vencidas se rechazan y liberan el cupo. \\
+HU-09 & La capacidad nueva no es menor a los pasajeros comprometidos; el
+cambio queda auditado y genera aviso. \\
+HU-11 & Ocupación y reservas filtradas por fecha o periodo, con las mismas
+cifras que la consulta de disponibilidad. \\
+HU-13 & El cliente solicita la cancelación; el personal la ejecuta con
+motivo y fecha, y libera el cupo una sola vez. \\
+HU-14 & Anticipo no menor al 30\% del monto; el pago web queda registrado
+hasta que el personal lo valida y ningún pago supera el saldo. \\
+HU-16 & Aviso interno al cliente afectado, con el valor anterior, el nuevo y
+la fecha del cambio. \\
+HU-18 & Ficha de la salida con mapa, itinerario, servicios y proveedores; el
+cliente no ve costos internos. \\
+HU-19 & Detalles por servicio del proveedor con título y orden; las
+asignaciones operativas de la salida no tienen costos. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\subsection{Diagrama de casos de uso}
+
+Las 19 historias del backlog se agrupan en 15 casos de uso del sistema, de
+modo que cada caso representa lo que el actor quiere conseguir y no las
+tareas internas (figura~\ref{fig:casos-uso}). La consulta, la solicitud de
+reserva y el pago pueden provenir del cliente con cuenta o de la atención del
+personal, y en ambos casos terminan en el mismo proceso validado. El turista
+solicita reservas y registra pagos; el personal conserva la confirmación, la
+validación de los pagos y las cancelaciones; el administrador mantiene el
+catálogo. Gestionar la reserva es el caso general que extienden la
+confirmación, la cancelación y el registro de pagos: el registro del pago del
+cliente no equivale a su validación por el personal. La ficha de la salida
+(HU-18), con el mapa del recorrido, el itinerario y los detalles de los
+servicios de los proveedores (HU-19), forma parte de la consulta de
+disponibilidad.
+
+\begin{landscape}
+\thispagestyle{paisaje}
+\begin{figuraapa}{fig:casos-uso}{Casos de uso del sistema}
+  \incluirDiagrama{casos-uso/casos-uso}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+\end{landscape}
+
+\subsection{Lista de backlog y tarjetas Kanban}
+
+El flujo de trabajo comienza con la identificación de necesidades y su
+registro en el backlog. Se seleccionan las historias considerando la
+prioridad, el riesgo y las dependencias; cada tarjeta define sus criterios y
+sus tareas antes de pasar a progreso, donde se realiza el análisis, el
+diseño y la programación. En pruebas se verifica la funcionalidad y, una vez
+comprobada y publicada, la tarjeta llega a hecho. Si falla, retorna a
+progreso cuando exista capacidad.
+
+\subsubsection{Backlog y orden de implementación}
+
+El backlog se organizó en cinco bloques de implementación, con el orden
+resumido en la tabla~\ref{tab:backlog}. La primera ventana de trabajo
+construyó como producto mínimo viable el acceso por rol, el catálogo de
+paquetes y la ficha del cliente (HU-08, HU-01 y HU-04), y las historias
+HU-18 y HU-19, incorporadas después de las pruebas del ciclo, quedaron en
+«Por hacer» al cierre del periodo.
+
+\begin{tablaapa}{tab:backlog}{Backlog y orden de implementación}
+\small
+\begin{tabular}{@{}p{3.4cm}p{5.6cm}p{5.6cm}@{}}
+\toprule
+Bloque & Historias & Resultado esperado \\
+\midrule
+1. Acceso y catálogo & HU-08, HU-15, HU-01, HU-02, HU-03, HU-18 & Acceso,
+paquetes, consulta de cupos y ficha de la salida. \\
+2. Atención & HU-04, HU-10, HU-19, HU-05 & Clientes, proveedores, detalles
+de servicios y cotizaciones. \\
+3. Reserva & HU-06, HU-12, HU-07, HU-17 & Solicitud, pasajeros, seguimiento
+y confirmación. \\
+4. Cambios y pagos & HU-09, HU-13, HU-14 & Cambios, cancelación y validación
+de pagos. \\
+5. Información & HU-11, HU-16 & Reportes y avisos internos. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+Aunque HU-14 figura en el cuarto bloque, la confirmación de una reserva
+requiere el pago validado, de modo que ninguna historia quedó por terminada
+hasta integrar esa validación. El orden se ajustó en las reuniones de
+reposición cuando las dependencias entre historias lo exigieron.
+
+\subsubsection{Tablero Kanban y límites WIP}
+
+El tablero de trabajo tiene cinco columnas con límites de trabajo en curso,
+que son los que imponen la política de extracción y el ritmo del equipo
+(figura~\ref{fig:flujo-kanban}). El estado del tablero al cierre de la
+primera ventana, el 25 de noviembre de 2026, se resume en la
+tabla~\ref{tab:tablero}: el backlog original quedó completo en «Hecho» y solo
+las historias nuevas HU-18 y HU-19 permanecen en «Por hacer».
+
+\begin{tablaapa}{tab:tablero}{Tablero Kanban al 25 de noviembre de 2026}
+\small
+\begin{tabular}{@{}p{4.6cm}p{1.6cm}p{7.8cm}@{}}
+\toprule
+Columna & WIP & Tarjetas al 25/11/2026 \\
+\midrule
+Por hacer & --- & 9: HU-18 (5 tareas) y HU-19 (4 tareas). \\
+En curso & 4 & Sin tarjetas. \\
+En pruebas / QA & 2 & Sin tarjetas. \\
+Listo para producción & 1 & Sin tarjetas. \\
+Hecho & --- & 45: las 17 historias del backlog original, incluidas las
+tareas de ajuste detectadas en las pruebas. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia a partir del tablero del proyecto.}
+\end{tablaapa}
+
+\begin{figuraapa}{fig:flujo-kanban}{Flujo de tarjetas Kanban}
+  \incluirDiagrama{procesos/flujo-tablero-kanban}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+Con el ritmo observado, de 1,75 tareas por día de equipo, la ley de Little
+relaciona el límite de trabajo en curso con el tiempo de ciclo: con cuatro
+tarjetas en curso, cada tarea tarda en promedio 2,29 días en atravesar el
+sistema. El equipo revisa semanalmente el tablero, mide el tiempo de ciclo y
+la cantidad de historias terminadas, y ajusta los límites según la capacidad
+real de los dos integrantes.
+
+\subsubsection{Aplicación del método STATIK}
+
+STATIK (Systems Thinking Approach to Introducing Kanban) es el procedimiento
+de seis pasos para diseñar un sistema Kanban ajustado a un servicio
+\parencite{kanbanGuia}. Se aplicó de manera iterativa, considerando la
+demanda de Vizcacha Tours y la capacidad del equipo, conforme a la
+tabla~\ref{tab:statik}.
+
+\begin{tablaapa}{tab:statik}{Aplicación de STATIK}
+\small
+\begin{tabular}{@{}p{4.2cm}p{10cm}@{}}
+\toprule
+Paso & Aplicación al proyecto \\
+\midrule
+1. Identificar fuentes de insatisfacción & Diferencias de cupos entre
+canales, demoras de confirmación y dificultades de coordinación
+identificadas en el diagnóstico. \\
+2. Analizar la demanda & 19 historias clasificadas por actor, canal,
+prioridad, riesgo y dependencia. \\
+3. Analizar la capacidad & Dos integrantes con 4 horas por día; ritmo medido
+de 4,00 horas-persona por punto y 1,75 tareas por día. \\
+4. Modelar el flujo & Cinco columnas: por hacer, en curso, en pruebas,
+listo para producción y hecho. \\
+5. Identificar clases de servicio & Estándar para las historias; urgente
+para fallas críticas de cupos o seguridad, previa autorización. \\
+6. Diseñar el sistema Kanban & Tablero con límites de 4, 2 y 1; política de
+extracción; reglas de entrada y salida; reuniones de seguimiento. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia con \textcite{kanbanGuia}.}
+\end{tablaapa}
+
+\subsubsection{Análisis} Las actividades de análisis y sus resultados se
+resumen en la tabla~\ref{tab:analisis}.
+
+\begin{tablaapa}{tab:analisis}{Actividades de análisis}
+\small
+\begin{tabular}{@{}p{7.2cm}p{7.2cm}@{}}
+\toprule
+Actividad & Resultado \\
+\midrule
+Entrevistas y revisión autorizada de registros & Necesidades y reglas del
+proceso documentadas. \\
+Precisar reglas de cupos, vencimientos y permisos & Catálogo de reglas de
+negocio y criterios de aceptación. \\
+Validar el alcance de HU-06, HU-14 y HU-17 & Estados y validaciones definidos
+para los dos canales. \\
+Revisar el boceto con la docente & Casos de uso y modelo de datos
+ajustados. \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\subsubsection{Diseño} Las actividades de diseño y sus resultados se resumen
+en la tabla~\ref{tab:diseno}.
+
+\begin{tablaapa}{tab:diseno}{Actividades de diseño}
+\small
+\begin{tabular}{@{}p{5.2cm}p{4.6cm}p{4.6cm}@{}}
+\toprule
+Actividad & Desarrollo & Salida \\
+\midrule
+Arquitectura y prototipos & Modelar componentes, clases y pantallas & Diseño
+aprobado \\
+Datos y reglas & Definir claves, transacciones y estados & Esquema
+relacional \\
+Pruebas & Diseñar escenarios de concurrencia, permisos y vencimiento &
+Casos de prueba \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia.}
+\end{tablaapa}
+
+\subsection{Diagrama de clases y objetos}
+
+El modelo de clases representa las entidades del negocio y sus asociaciones
+(figura~\ref{fig:clases}). El paquete pertenece al catálogo de lugares,
+declara su itinerario día por día y sus servicios incluidos; la salida
+pertenece a un paquete y mantiene la capacidad programada. Una reserva se
+vincula a un cliente y a una salida; los pagos y los pasajeros se relacionan
+con la reserva. Los proveedores declaran sus tipos de servicio y sus
+detalles, se vinculan a los paquetes con su costo y se asignan a las salidas
+como asignaciones operativas. La disponibilidad se calcula a partir de los
+compromisos vigentes y no se almacena, al igual que el saldo pendiente, que
+se calcula sobre los pagos validados.
+
+\begin{landscape}
+\thispagestyle{paisaje}
+\begin{figuraapa}{fig:clases}{Diagrama de clases del sistema}
+  \incluirDiagrama{estructural/diagrama-clases}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+\end{landscape}
+
+\subsubsection{Diagrama de objetos}
+
+El ejemplo muestra, en un instante concreto, una reserva pendiente de dos
+pasajeros para una salida con capacidad de doce plazas, originada en una
+cotización aceptada y con un anticipo registrado con la pasarela simulada que
+aún no ha sido validado (figura~\ref{fig:objetos}). Los datos son ficticios
+y no corresponden a registros reales de la agencia.
+
+\begin{landscape}
+\thispagestyle{paisaje}
+\begin{figuraapa}{fig:objetos}{Diagrama de objetos: solicitud de reserva y anticipo}
+  \incluirDiagrama{estructural/diagrama-objetos}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+\end{landscape}
+
+\subsection{Diagramas del sistema}
+
+\subsubsection{Diagrama de secuencia}
+
+Las figuras~\ref{fig:secuencia-hu06} y~\ref{fig:secuencia-hu17} muestran dos
+flujos representativos del sistema: el registro de una reserva con la
+validación de cupos dentro de una transacción, por cualquiera de los dos
+canales (HU-06), y la confirmación de las solicitudes con su control de
+vencimiento (HU-17). El resto de los flujos del sistema sigue el mismo patrón
+de interfaz, control, entidad y tabla, con el bloqueo de la fila de la
+salida y el registro auditado de cada cambio.
+
+\begin{figuraapa}{fig:secuencia-hu06}{Secuencia: registro de la reserva con validación de cupos (HU-06)}
+  \incluirDiagrama{secuencia/hu-06-registrar-reserva}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+\begin{figuraapa}{fig:secuencia-hu17}{Secuencia: confirmación de solicitudes y vencimiento (HU-17)}
+  \incluirDiagrama{secuencia/hu-17-confirmar-solicitudes}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+\subsubsection{Diagrama de actividades}
+
+La figura~\ref{fig:estados-reserva} resume el ciclo de vida de una reserva y
+las condiciones que gobiernan cada transición: el plazo de 24 horas, el
+anticipo validado, el manifiesto completo y la ejecución del personal.
+
+\begin{figuraapa}{fig:estados-reserva}{Gestión de los estados de la reserva}
+  \incluirDiagrama{procesos/estados-reserva}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+\subsubsection{Diagrama de componentes}
+
+El sistema se organiza en tres capas (figura~\ref{fig:componentes}): la
+interfaz web, que llama a la API del servidor y a la autenticación; el
+servidor, con sus rutas, validaciones y servicios; y la base de datos, donde
+las reglas críticas de cupos, pagos y confirmación viven en funciones
+almacenadas que la aplicación invoca sin reimplementarlas.
+
+\begin{figuraapa}{fig:componentes}{Componentes del sistema}
+  \incluirDiagrama{estructural/diagrama-componentes}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+\subsubsection{Diagrama de despliegue}
+
+El despliegue propuesto (figura~\ref{fig:despliegue}) distribuye la interfaz
+y las funciones del servidor en una plataforma en la nube, con la base de
+datos PostgreSQL administrada en Neon y accesos diferenciados: la aplicación
+opera mediante una conexión con agrupador y el equipo de desarrollo aplica el
+esquema por conexión directa. El cobro se emula con la pasarela simulada y
+los avisos se muestran dentro de las pantallas del sistema.
+
+\begin{figuraapa}{fig:despliegue}{Despliegue del sistema}
+  \incluirDiagrama{estructural/diagrama-despliegue}
+  \nota{Fuente: elaboración propia.}
+\end{figuraapa}
+
+\subsection{Validación del sistema}
+
+Las reglas de negocio se verificaron con pruebas automatizadas sobre la base
+de datos, que cubren la gestión de paquetes y salidas, la validación de
+cupos, los anticipos, la confirmación, el vencimiento, la modificación, la
+cancelación y la finalización de reservas; cada prueba termina en
+\texttt{ROLLBACK}, de modo que no altera los datos. Además se ejecutaron
+pruebas de API y de navegador para el acceso por rol y para los flujos de
+consulta, y las tareas atravesaron la columna de pruebas del tablero antes de
+publicarse. Entre los escenarios comprobados está la reserva concurrente del
+último cupo, que la transacción con bloqueo de fila resuelve sin sobreventa.
+
+Quedan pendientes de validación las historias HU-18 y HU-19, incorporadas al
+alcance después de las pruebas del ciclo. Los indicadores previstos para la
+próxima revisión son el tiempo de confirmación, las discrepancias de cupos y
+la cantidad de solicitudes atendidas.

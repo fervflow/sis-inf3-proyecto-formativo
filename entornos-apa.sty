@@ -77,6 +77,17 @@
   \addcontentsline{toc}{chapter}{#1}%
 }
 
+%% Capitulo sin numero: mismo aspecto que \chapter (izquierda, negrita,
+%% sin salto de pagina) pero sin numero y con entrada en el indice.
+%% Formato de la cátedra: solo la propuesta lleva "CAPÍTULO III".
+%% El \label{...} de cada archivo va detrás de la llamada, no dentro.
+%% Uso: \capituloSinNumero{Introducción}
+\newcommand{\capituloSinNumero}[1]{%
+  \chapter*{#1}%
+  \phantomsection
+  \addcontentsline{toc}{chapter}{#1}%
+}
+
 %% ---------------------------------------------------------------------
 %%  Insercion de diagramas UML generados con PlantUML
 %%  \incluirDiagrama[ancho]{ruta/relativa/sin-extension}

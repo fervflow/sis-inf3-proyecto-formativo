@@ -1,0 +1,60 @@
+@startuml
+title Estados de la reserva · Ciclo de vida del proceso de reservas
+' Ciclo de vida de una reserva: nace pendiente en los dos canales con
+' vencimiento a 24 horas; la confirma el personal con el anticipo
+' validado y el manifiesto completo; finaliza con la salida realizada,
+' vence fuera de plazo o se cancela por solicitud del cliente ejecutada
+' por el personal (RN-RES-01, RN-RES-05, RN-RES-07, RN-RES-08, RN-RES-09,
+' RN-RES-14, RN-RES-18, RN-RES-19 y RN-PAG-08).
+hide circle
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  FontSize 11
+  FontName Arial
+}
+skinparam ArrowColor #333333
+skinparam ArrowFontSize 10
+
+state "Pendiente\ncupo retenido, vence en 24 h" as Pendiente
+state "Confirmada" as Confirmada
+state "Finalizada" as Finalizada
+state "Vencida" as Vencida
+state "Cancelada" as Cancelada
+
+[*] --> Pendiente : se registra la reserva en el canal del\npersonal o como solicitud web con cuenta (HU-06)
+Pendiente --> Confirmada : el personal confirma dentro del plazo, con el\nanticipo validado (RN-RES-18) y el manifiesto\ncompleto (RN-RES-19); audita y limpia el vencimiento (HU-17)
+Confirmada --> Finalizada : la salida pasa a realizada y el viaje se concretó (HU-07)
+Pendiente --> Vencida : vence el plazo sin confirmarse; deja de ocupar\ncupo por cálculo y queda auditada (RN-RES-05, RN-RES-09)
+Pendiente --> Cancelada : el cliente solicita la cancelación y el personal\nla ejecuta con motivo y fecha (HU-13)
+Confirmada --> Cancelada : el cliente solicita la cancelación y el personal\nla ejecuta con motivo y fecha (HU-13)
+Vencida --> [*]
+Cancelada --> [*]
+Finalizada --> [*]
+
+note bottom of Pendiente
+  La validación de cupos corre dentro de una
+  transacción que bloquea la fila de la salida;
+  dos registros simultáneos no superan la
+  capacidad (RN-RES-02).
+end note
+
+note bottom of Vencida
+  Una solicitud vencida no puede confirmarse
+  después: el cliente registra una nueva si la
+  salida sigue disponible (RN-RES-08).
+end note
+
+note bottom of Cancelada
+  La cancelación es lógica: conserva el
+  historial y libera los cupos por cálculo.
+  La devolución sigue los tramos de RN-PAG-07
+  y se ejecuta fuera del sistema.
+end note
+
+note bottom of Confirmada
+  El pago registrado por el cliente no confirma
+  nada por sí solo: la confirmación exige el
+  anticipo validado (RN-PAG-08).
+end note
+@enduml

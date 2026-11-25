@@ -1,6 +1,6 @@
 @startuml
 title Diagrama de casos de uso · Sistema de gestión de paquetes turísticos y reservas
-' Los 17 casos de uso del backlog se agrupan en 14 casos de uso del
+' Los 19 casos de uso del backlog se agrupan en 15 casos de uso del
 ' sistema: lo que el actor quiere conseguir, no las tareas internas.
 left to right direction
 actor "Cliente" as CLI
@@ -12,24 +12,26 @@ usecase "Abrir cuenta de cliente" as UC2
 usecase "Administrar la oferta" as UC3
 usecase "Programar y modificar salidas" as UC4
 usecase "Consultar disponibilidad" as UC5
-usecase "Elaborar cotización" as UC6
-usecase "Registrar reserva" as UC7
-usecase "Registrar pasajeros" as UC8
-usecase "Gestionar la reserva" as UC9
-usecase "Confirmar solicitudes" as UC10
-usecase "Cancelar reserva" as UC11
-usecase "Registrar y validar pagos" as UC12
-usecase "Consultar reportes" as UC13
-usecase "Recibir avisos de cambios" as UC14
+usecase "Ver la ficha de la salida" as UC6
+usecase "Elaborar cotización" as UC7
+usecase "Registrar reserva" as UC8
+usecase "Registrar pasajeros" as UC9
+usecase "Gestionar la reserva" as UC10
+usecase "Confirmar solicitudes" as UC11
+usecase "Cancelar reserva" as UC12
+usecase "Registrar y validar pagos" as UC13
+usecase "Consultar reportes" as UC14
+usecase "Recibir avisos de cambios" as UC15
 
 CLI -- UC1
 CLI -- UC2
 CLI -- UC5
-CLI -- UC7
+CLI -- UC6
 CLI -- UC8
-CLI -- UC11
+CLI -- UC9
 CLI -- UC12
-CLI -- UC14
+CLI -- UC13
+CLI -- UC15
 
 PER -- UC1
 PER -- UC5
@@ -41,23 +43,34 @@ PER -- UC10
 PER -- UC11
 PER -- UC12
 PER -- UC13
+PER -- UC14
 
 ADM -- UC1
 ADM -- UC3
 ADM -- UC4
-ADM -- UC13
+ADM -- UC14
 
 ' --- Relaciones entre casos de uso ------------------------------------
-UC6 ..> UC5 : <<include>>
 UC7 ..> UC5 : <<include>>
-UC7 ..> UC8 : <<include>>
-UC13 ..> UC5 : <<include>>
-UC10 ..> UC9 : <<extend>>
-UC11 ..> UC9 : <<extend>>
-UC12 ..> UC9 : <<extend>>
-UC14 ..> UC4 : <<extend>>
+UC8 ..> UC5 : <<include>>
+UC8 ..> UC9 : <<include>>
+UC14 ..> UC5 : <<include>>
+UC6 ..> UC5 : <<include>>
+UC11 ..> UC10 : <<extend>>
+UC12 ..> UC10 : <<extend>>
+UC13 ..> UC10 : <<extend>>
+UC15 ..> UC4 : <<extend>>
 
-note right of UC9
+note right of UC6
+  La ficha de la salida muestra el paquete,
+  el mapa del recorrido, el itinerario por
+  días, los servicios incluidos y los
+  proveedores con sus detalles por servicio
+  (HU-18, HU-19). El cliente nunca ve
+  costos internos.
+end note
+
+note right of UC10
   Gestionar la reserva es el caso
   general. Tres acciones lo
   extienden con su precondición:

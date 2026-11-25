@@ -257,7 +257,9 @@ function Convertir-DiagramasPng {
             '\usepackage{tikz}',
             '\usetikzlibrary{arrows.meta,positioning,calc}',
             '\begin{document}',
-            "\input{$arbolTikz}",
+            # TeX se come las barras invertidas de la ruta absoluta de
+            # Windows: se pasa con barras normales.
+            "\input{$($arbolTikz.Replace('\', '/'))}",
             '\end{document}'
         ) -join "`n"
 

@@ -713,5 +713,6 @@ iteraciones, porque todavía no se ha definido una velocidad de referencia.
   plan de entrega.
 - Revisar la estimación de HU-06, que concentra 5 de los 55 puntos y cuatro
   tareas, por ser la historia de mayor riesgo y alcance.
-- Elaborar el diagrama de secuencia de HU-17, que no tiene
-  representación propia en `sistema/diagramas/uml/secuencia/`.
+- ~~Elaborar el diagrama de secuencia de HU-17, que no tiene
+  representación propia en `sistema/diagramas/uml/secuencia/`.~~ Hecho el
+  25/11/2026: `secuencia/hu-17-confirmar-solicitudes.puml`.

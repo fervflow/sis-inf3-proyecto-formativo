@@ -1,0 +1,112 @@
+@startuml
+title HU-17 · Confirmación de solicitudes y control de su vencimiento
+' El personal ve las solicitudes pendientes de ambos canales con su
+' vencimiento y el estado de su anticipo. La confirma dentro del plazo
+' con el anticipo validado y el manifiesto completo; fuera de plazo la
+' solicitud se vence y libera el cupo por cálculo (RN-RES-05, RN-RES-08,
+' RN-RES-09, RN-RES-18 y RN-RES-19).
+hide footbox
+autonumber
+skinparam maxMessageSize 175
+
+actor "Cliente" as TUR
+actor "Personal" as PER
+boundary "IU-17 · Bandeja de solicitudes" as UI <<interfaz>>
+control "ControlReservas" as CTRL <<control>>
+entity "Reserva" as E_RESERVA <<entidad>>
+entity "Pago" as E_PAGO <<entidad>>
+entity "HistorialReserva" as E_HISTORIAL <<entidad>>
+database "reserva" as T_RESERVA <<tabla>>
+database "pago" as T_PAGO <<tabla>>
+database "historial_reserva" as T_HISTORIAL <<tabla>>
+
+TUR -> UI : consulta el estado de su solicitud\n(Mis reservas)
+UI -> CTRL : consultarSolicitud(idReserva)
+CTRL -> E_RESERVA : obtener(idReserva)
+E_RESERVA -> T_RESERVA : SELECT estado, fecha_expiracion
+T_RESERVA --> E_RESERVA : solicitud pendiente
+E_RESERVA --> CTRL : estado y vencimiento
+CTRL --> UI : estado y plazo restante
+UI --> TUR : su solicitud sigue pendiente
+
+PER -> UI : abre la bandeja de solicitudes pendientes
+UI -> CTRL : listarPendientes()
+CTRL -> E_RESERVA : obtenerPendientes()
+E_RESERVA -> T_RESERVA : SELECT ... WHERE estado = 'pendiente'\nORDER BY fecha_expiracion
+T_RESERVA --> E_RESERVA : solicitudes de ambos canales
+CTRL -> E_PAGO : estadoAnticipo(idReserva)
+E_PAGO -> T_PAGO : SELECT SUM(monto) WHERE tipo = 'anticipo'\nAND estado = 'validado'
+T_PAGO --> E_PAGO : anticipo validado
+E_PAGO --> CTRL : anticipo y saldo pendiente
+CTRL --> UI : bandeja con vencimiento y anticipo
+UI --> PER : listado ordenado por vencimiento
+
+alt Confirmar la solicitud
+    PER -> UI : confirma la solicitud
+    UI -> CTRL : confirmarReserva(idReserva)
+
+    group Transacción de confirmación
+        CTRL -> E_RESERVA : bloquear(idReserva)
+        E_RESERVA -> T_RESERVA : SELECT ... FOR UPDATE
+        T_RESERVA --> E_RESERVA : reserva actual
+
+        alt Vencida fuera de plazo
+            CTRL -> E_RESERVA : marcarVencida()
+            E_RESERVA -> T_RESERVA : UPDATE estado = 'vencida'
+            E_RESERVA -> E_HISTORIAL : registrarCambio('pendiente', 'vencida', usuario)
+            E_HISTORIAL -> T_HISTORIAL : INSERT ...
+            E_HISTORIAL --> CTRL : intento auditado
+            CTRL --> UI : error «La solicitud ya venció»
+            UI --> PER : confirmación rechazada (RN-RES-08)
+        else Anticipo no validado o manifiesto incompleto
+            CTRL --> UI : error «Falta el anticipo validado\no el manifiesto está incompleto»
+            UI --> PER : mostrar el motivo
+        else Confirmación válida
+            CTRL -> E_RESERVA : confirmar()
+            E_RESERVA -> T_RESERVA : UPDATE estado = 'confirmada',\nfecha_expiracion = NULL
+            E_RESERVA -> E_HISTORIAL : registrarCambio('pendiente', 'confirmada', usuario)
+            E_HISTORIAL -> T_HISTORIAL : INSERT ...
+            T_HISTORIAL --> E_HISTORIAL : id_historial
+            E_HISTORIAL --> CTRL : confirmación auditada
+            CTRL --> UI : reserva confirmada
+            UI --> PER : confirmación registrada
+            UI --> TUR : su reserva quedó confirmada
+        end
+    end
+else Vencer las solicitudes fuera de plazo (barrido)
+    PER -> UI : ejecuta el barrido de vencidas
+    UI -> CTRL : vencerPendientes()
+    CTRL -> E_RESERVA : vencerFueraDePlazo()
+    E_RESERVA -> T_RESERVA : UPDATE estado = 'vencida' WHERE estado = 'pendiente'\nAND fecha_expiracion < now()
+    T_RESERVA --> E_RESERVA : solicitudes vencidas
+    E_RESERVA -> E_HISTORIAL : registrarCambio(por cada una)
+    E_HISTORIAL -> T_HISTORIAL : INSERT ...
+    T_HISTORIAL --> E_HISTORIAL : id_historial
+    E_HISTORIAL --> CTRL : barrido auditado
+    CTRL --> UI : solicitudes vencidas
+    UI --> PER : cupos liberados
+end
+
+note right of E_RESERVA
+    El vencimiento no ejecuta una liberación
+    aparte: la vista de disponibilidad deja de
+    contar la solicitud vencida (RN-SAL-19).
+    El barrido es limpieza y lo corre el cron
+    diario o el personal desde la bandeja
+    (RN-RES-09).
+end note
+
+note right of E_PAGO
+    Confirmar exige el anticipo validado del
+    mínimo del 30% (RN-RES-18 y RN-PAG-01);
+    sin él, la confirmación se rechaza.
+end note
+
+note right of E_HISTORIAL
+    La confirmación exige el manifiesto
+    completo: los pasajeros registrados
+    igualan la cantidad declarada (RN-RES-19).
+    Toda transición queda auditada con el
+    usuario y la fecha (RN-RES-10).
+end note
+@enduml

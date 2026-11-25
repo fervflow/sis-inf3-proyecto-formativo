@@ -1,0 +1,73 @@
+@startuml
+title Proceso de negocio de reservas · Entradas, proceso y salidas
+' Diagrama de entrada-proceso-salida del proceso de negocio que centraliza
+' el sistema: las entradas llegan por los dos canales (atencion del personal
+' y solicitud del cliente con cuenta); el proceso aplica las reglas de cupos,
+' pagos y confirmacion; las salidas son la informacion que consume la
+' agencia y el cliente.
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+rectangle "Consultas y solicitudes\npor los dos canales\n(oficina y web con cuenta)" as E1 <<entrada>>
+rectangle "Datos del cliente\ny de los pasajeros" as E2 <<entrada>>
+rectangle "Pago del anticipo\n(pasarela simulada\nbanca movil o QR)" as E3 <<entrada>>
+rectangle "Cambios de fecha\no de capacidad\nde una salida" as E4 <<entrada>>
+
+rectangle "Proceso de negocio: gestión de reservas" {
+  rectangle "Verificar cupos en una\ntransaccion con bloqueo\nde fila" as P1
+  rectangle "Registrar la reserva\npendiente con\nvencimiento de 24 h" as P2
+  rectangle "Validar el pago\n(registra el cliente,\nvalida el personal)" as P3
+  rectangle "Confirmar dentro del plazo\n(anticipo validado y\nmanifiesto completo)\no vencer la solicitud" as P4
+  rectangle "Registrar la cancelacion\ny liberar los cupos" as P5
+  rectangle "Auditar los cambios y\nderivar los avisos" as P6
+}
+
+rectangle "Disponibilidad\nactualizada y unica" as S1 <<salida>>
+rectangle "Reservas confirmadas\ncon su historial" as S2 <<salida>>
+rectangle "Avisos al cliente\nafectado" as S3 <<salida>>
+rectangle "Reportes de ocupacion\ny reservas por fecha" as S4 <<salida>>
+
+E1 --> P1
+E2 --> P2
+E3 --> P3
+E4 --> P6
+P1 --> P2
+P2 --> P4
+P3 --> P4
+P4 --> P5
+P4 --> S1
+P4 --> S2
+P5 --> S1
+P6 --> S3
+P6 --> S4
+S1 --> S4
+
+note bottom of P1
+  El cupo no se almacena: se calcula sobre las
+  reservas pendientes vigentes y las
+  confirmadas. Las vencidas y las canceladas
+  no cuentan (RN-GEN-04 y RN-RES-03).
+end note
+
+note bottom of P3
+  El pago registrado por el cliente no suma
+  hasta que el personal lo valida; el pago
+  por si solo no confirma nada (RN-PAG-04 y
+  RN-PAG-08).
+end note
+
+note bottom of P4
+  La unica transicion automatica es el
+  vencimiento: pasada la fecha limite, la
+  solicitud deja de ocupar cupo (RN-RES-05 y
+  RN-RES-09).
+end note
+
+note bottom of S1
+  La consulta del cliente y la de la oficina
+  provienen de la misma vista de
+  disponibilidad: una sola fuente de verdad
+  (HU-03).
+end note
+@enduml

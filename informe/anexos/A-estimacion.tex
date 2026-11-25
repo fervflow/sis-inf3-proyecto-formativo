@@ -1,0 +1,65 @@
+%% Anexo A: resumen de estimación de costos. Los cálculos completos
+%% provienen de sistema/estimacion/ y del tablero del proyecto.
+\chapter{Resumen de estimación de costos}
+\label{anexo:estimacion}
+
+Los valores siguientes son supuestos académicos de planificación expresados
+en bolivianos (Bs). No se cuenta con cotizaciones reales de mercado: la
+tarifa y la capacidad son las declaradas por el equipo, y el ritmo medido
+proviene del tablero de trabajo.
+
+\section{COCOMO básico}
+
+Se supone un proyecto orgánico de 3 KLOC (3.000 líneas de código) y un costo
+de 4.000 Bs por persona-mes. Se emplean las ecuaciones de COCOMO básico
+\parencite{boehm1981}, con los resultados de la tabla~\ref{tab:cocomo}.
+
+\begin{tablaapa}{tab:cocomo}{Estimación con COCOMO básico}
+\small
+\begin{tabular}{@{}p{4.6cm}p{5.6cm}p{4.4cm}@{}}
+\toprule
+Concepto & Cálculo & Resultado \\
+\midrule
+Esfuerzo & $2{,}4 \times 3^{1{,}05}$ & 7,61 persona-mes \\
+Duración & $2{,}5 \times 7{,}61^{0{,}38}$ & 5,40 meses \\
+Personal promedio & $7{,}61 \div 5{,}40$ & 1,41 personas \\
+Costo laboral & $7{,}61 \times 4.000$ Bs & 30.426,26 Bs \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia con \textcite{boehm1981}.}
+\end{tablaapa}
+
+\section{Estimación ágil}
+
+Se utiliza el alcance real del backlog (19 historias, 55 puntos de historia y
+54 tareas) y el ritmo medido en el tablero durante la primera ventana de
+trabajo: 4,00 horas-persona por punto de historia. La tarifa declarada es de
+5.000 Bs por mes-persona de 160 horas; la capacidad del equipo es de 8
+horas-persona por día hábil (dos integrantes con 4 horas). Los resultados se
+resumen en la tabla~\ref{tab:agil}.
+
+\begin{tablaapa}{tab:agil}{Estimación ágil con datos del proyecto}
+\small
+\begin{tabular}{@{}p{4.6cm}p{5.6cm}p{4.4cm}@{}}
+\toprule
+Concepto & Cálculo & Resultado \\
+\midrule
+Producto mínimo viable de la primera ventana & 8 pts (HU-08, HU-01 y
+HU-04) & 2.500 Bs \\
+Esfuerzo del alcance completo & $55 \times 4{,}00$ h = 220 h & 1,38
+mes-persona \\
+Costo del alcance completo & $1{,}38 \times 5.000$ Bs & 6.875 Bs \\
+Calendario & $220 \div 8$ h por día de equipo & 27,5 días hábiles (2,75
+ventanas) \\
+Cierre estimado & desde el 25/11/2026 & 07/01/2027 \\
+\bottomrule
+\end{tabular}
+\nota{Elaboración propia a partir del backlog y del tablero del proyecto.}
+\end{tablaapa}
+
+Los dos modelos no son directamente equivalentes: COCOMO emplea un esfuerzo
+equivalente a tiempo completo sobre un tamaño hipotético de código, y la
+estimación ágil parte del alcance real y del ritmo medido con dedicación
+parcial. Se adopta el cálculo ágil como presupuesto preliminar del proyecto y
+se recalcula al cierre de cada ventana de trabajo. COCOMO no incluye
+infraestructura ni contingencia.
