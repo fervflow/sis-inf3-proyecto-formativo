@@ -43,35 +43,41 @@ export const es = {
   'tema.oscuro': 'Oscuro',
   'tema.sistema': 'Sistema',
 
-  'inicio.titulo': 'Gestión de paquetes turísticos y reservas',
+  'inicio.titulo': 'Tus próximas aventuras salen de Potosí',
   'inicio.etiqueta': 'Vizcacha Tours · Potosí',
   'inicio.introduccion':
-    'Sistema web para la agencia Vizcacha Tours, en Potosí. Atiende a dos canales con el mismo proceso validado: la atención del personal de agencia y el acceso directo del cliente.',
-  'inicio.ingresar': 'Ingresar al sistema',
+    'Explora salidas al Salar de Uyuni y a otros destinos, consulta los cupos reales y asegura tu lugar en pocos minutos: reserva desde la web y paga tu anticipo sin pasar por la oficina.',
+  'inicio.ingresar': 'Ingresar',
   'inicio.verDisponibilidad': 'Ver próximas salidas',
   'inicio.irAlPanel': 'Ir al panel',
-  'inicio.cuentas':
-    'Las cuentas las entrega la agencia; no hay registro público.',
-  'inicio.queSePuedeHacer': 'Qué se puede hacer',
-  'inicio.tarjetas.paquetes.titulo': 'Paquetes y salidas',
-  'inicio.tarjetas.paquetes.texto':
-    'Catálogo vigente, fechas, cupos y precios en un solo lugar.',
-  'inicio.tarjetas.reservas.titulo': 'Reservas con cupo validado',
-  'inicio.tarjetas.reservas.texto':
-    'El cupo se descuenta en la base: no se vende dos veces el mismo lugar.',
-  'inicio.tarjetas.equipo.titulo': 'Para el equipo y para el cliente',
-  'inicio.tarjetas.equipo.texto':
-    'El personal atiende y el cliente consulta; el proceso es el mismo.',
-  'inicio.capacidades.1':
-    'Registrar y mantener los paquetes turísticos y sus proveedores.',
-  'inicio.capacidades.2':
-    'Programar salidas con fecha, cupo y precio.',
-  'inicio.capacidades.3':
-    'Consultar la disponibilidad y registrar reservas con validación de cupos.',
-  'inicio.capacidades.4':
-    'Registrar clientes y pasajeros, cotizaciones, anticipos y saldos.',
-  'inicio.capacidades.5':
-    'Confirmar solicitudes, consultar reportes y auditar los cambios.',
+  'inicio.crearCuenta': 'Crear tu cuenta',
+  'inicio.beneficios.titulo': '¿Por qué reservar con Vizcacha Tours?',
+  'inicio.beneficios.cupos.titulo': 'Cupos reales, en tiempo real',
+  'inicio.beneficios.cupos.texto':
+    'La disponibilidad se calcula con las reservas vigentes: lo que ves es lo que hay, y tu lugar no se vende dos veces.',
+  'inicio.beneficios.web.titulo': 'Reserva sin trámites',
+  'inicio.beneficios.web.texto':
+    'Solicita tu reserva desde la web y confírmala con tu anticipo: sin papeles ni viajes a la oficina.',
+  'inicio.beneficios.pagos.titulo': 'Pagos bajo control',
+  'inicio.beneficios.pagos.texto':
+    'Registra tu anticipo, sigue tu saldo y consulta el estado de tu reserva en cualquier momento.',
+  'inicio.beneficios.equipo.titulo': 'Equipo local de Potosí',
+  'inicio.beneficios.equipo.texto':
+    'Un equipo que conoce cada ruta te acompaña antes, durante y después del viaje.',
+  'inicio.pasos.titulo': 'Reservar es así de simple',
+  'inicio.pasos.1.titulo': 'Elige tu salida',
+  'inicio.pasos.1.texto':
+    'Explora las próximas salidas: fechas, precios y lugares disponibles.',
+  'inicio.pasos.2.titulo': 'Solicita tu reserva',
+  'inicio.pasos.2.texto':
+    'Indica los pasajeros y envía tu solicitud; queda pendiente por 24 horas.',
+  'inicio.pasos.3.titulo': 'Paga y viaja',
+  'inicio.pasos.3.texto':
+    'La agencia valida tu anticipo y confirma la reserva: tu lugar queda asegurado.',
+  'inicio.cierre.titulo': '¿Listo para viajar?',
+  'inicio.cierre.texto':
+    'Revisa las salidas programadas y asegura tu lugar hoy mismo.',
+  'inicio.cierre.accion': 'Explorar salidas',
 
   'salud.titulo': 'Estado del sistema',
   'salud.comprobar': 'Comprobar la conexión con la base',

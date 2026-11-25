@@ -37,30 +37,41 @@ export const en: Mensajes = {
   'tema.oscuro': 'Dark',
   'tema.sistema': 'System',
 
-  'inicio.titulo': 'Tour package and booking management',
+  'inicio.titulo': 'Your next adventures leave from Potosí',
   'inicio.etiqueta': 'Vizcacha Tours · Potosí',
   'inicio.introduccion':
-    'Web system for the Vizcacha Tours agency, in Potosí. It serves two channels through the same validated process: the agency staff and the customer’s direct access.',
+    'Explore departures to Salar de Uyuni and other destinations, check the real capacity left and secure your place in a few minutes: book on the web and pay your deposit without visiting the office.',
   'inicio.ingresar': 'Sign in',
   'inicio.verDisponibilidad': 'See upcoming departures',
   'inicio.irAlPanel': 'Go to dashboard',
-  'inicio.cuentas':
-    'Accounts are provided by the agency; there is no public sign-up.',
-  'inicio.queSePuedeHacer': 'What you can do',
-  'inicio.tarjetas.paquetes.titulo': 'Packages and departures',
-  'inicio.tarjetas.paquetes.texto':
-    'Current catalogue, dates, capacity and prices in one place.',
-  'inicio.tarjetas.reservas.titulo': 'Bookings with validated capacity',
-  'inicio.tarjetas.reservas.texto':
-    'Capacity is deducted in the database: the same place is never sold twice.',
-  'inicio.tarjetas.equipo.titulo': 'For the team and the customer',
-  'inicio.tarjetas.equipo.texto':
-    'Staff serve and clients check; it is the same process.',
-  'inicio.capacidades.1': 'Register and maintain tour packages and their suppliers.',
-  'inicio.capacidades.2': 'Schedule departures with a date, a capacity and a price.',
-  'inicio.capacidades.3': 'Check availability and record bookings with capacity validation.',
-  'inicio.capacidades.4': 'Register customers and passengers, quotations, deposits and balances.',
-  'inicio.capacidades.5': 'Confirm requests, check reports and audit every change.',
+  'inicio.crearCuenta': 'Create your account',
+  'inicio.beneficios.titulo': 'Why book with Vizcacha Tours?',
+  'inicio.beneficios.cupos.titulo': 'Real capacity, in real time',
+  'inicio.beneficios.cupos.texto':
+    'Availability is calculated from the bookings in force: what you see is what there is, and your place is never sold twice.',
+  'inicio.beneficios.web.titulo': 'Book with no paperwork',
+  'inicio.beneficios.web.texto':
+    'Request your booking on the web and confirm it with your deposit: no forms, no trips to the office.',
+  'inicio.beneficios.pagos.titulo': 'Payments under control',
+  'inicio.beneficios.pagos.texto':
+    'Register your deposit, follow your balance and check the status of your booking at any time.',
+  'inicio.beneficios.equipo.titulo': 'Local team from Potosí',
+  'inicio.beneficios.equipo.texto':
+    'A team that knows every route accompanies you before, during and after the trip.',
+  'inicio.pasos.titulo': 'Booking is this simple',
+  'inicio.pasos.1.titulo': 'Choose your departure',
+  'inicio.pasos.1.texto':
+    'Explore the upcoming departures: dates, prices and places available.',
+  'inicio.pasos.2.titulo': 'Request your booking',
+  'inicio.pasos.2.texto':
+    'Name the passengers and send your request; it stays pending for 24 hours.',
+  'inicio.pasos.3.titulo': 'Pay and travel',
+  'inicio.pasos.3.texto':
+    'The agency validates your deposit and confirms the booking: your place is secured.',
+  'inicio.cierre.titulo': 'Ready to travel?',
+  'inicio.cierre.texto':
+    'Review the scheduled departures and secure your place today.',
+  'inicio.cierre.accion': 'Explore departures',
 
   'salud.titulo': 'System status',
   'salud.comprobar': 'Check the database connection',

@@ -1,97 +1,146 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-12">
+    <!-- Portada: un panel oscuro con el mensaje y las acciones del cliente. -->
     <section
-      class="overflow-hidden rounded-(--vt-radio-lg) border border-(--vt-color-borde) bg-(--vt-color-superficie) p-6 sm:p-10"
+      class="relative isolate overflow-hidden rounded-(--vt-radio-lg) bg-(--vt-color-marca-950) bg-linear-to-br from-(--vt-color-marca-950) via-(--vt-color-marca-900) to-(--vt-color-marca-800) p-8 sm:p-12"
     >
-      <p
-        class="flex items-center gap-2 text-xs uppercase tracking-wide text-(--vt-color-texto-suave)"
-      >
-        <span class="size-1.5 rounded-full bg-(--vt-color-marca-500)" />
-        {{ t('inicio.etiqueta') }}
-      </p>
+      <div
+        aria-hidden="true"
+        class="absolute -top-24 -right-24 size-96 rounded-full bg-[radial-gradient(closest-side,var(--vt-color-marca-400),transparent)] opacity-30 blur-2xl"
+      />
+      <div
+        aria-hidden="true"
+        class="absolute -bottom-32 -left-16 size-80 rounded-full bg-[radial-gradient(closest-side,var(--vt-color-advertencia-400),transparent)] opacity-20 blur-2xl"
+      />
 
-      <h1
-        class="mt-3 max-w-3xl text-(--vt-texto-3xl) font-(--vt-texto-peso-fuerte) tracking-tight sm:text-(--vt-texto-4xl)"
-      >
-        {{ t('inicio.titulo') }}
-      </h1>
+      <div class="relative">
+        <p
+          class="inline-flex items-center gap-2 rounded-(--vt-radio-full) bg-white/10 px-3 py-1 text-xs font-(--vt-texto-peso-medio) tracking-wide text-(--vt-color-marca-100) uppercase"
+        >
+          <UIcon name="i-lucide-mountain-snow" class="size-3.5" />
+          {{ t('inicio.etiqueta') }}
+        </p>
 
-      <p
-        class="mt-3 max-w-2xl text-(--vt-texto-base) text-(--vt-color-texto-suave)"
-      >
-        {{ t('inicio.introduccion') }}
-      </p>
+        <h1
+          class="mt-4 max-w-2xl text-(--vt-texto-3xl) font-(--vt-texto-peso-fuerte) tracking-tight text-white sm:text-(--vt-texto-4xl)"
+        >
+          {{ t('inicio.titulo') }}
+        </h1>
 
-      <div class="mt-6 flex flex-wrap items-center gap-3">
-        <UButton
-          v-if="cuenta?.usuario"
-          :to="destinoPanel"
-          color="primary"
-          size="lg"
-          icon="i-lucide-arrow-right"
-          :label="t('inicio.irAlPanel')"
-        />
-        <UButton
-          v-else
-          to="/ingresar"
-          color="primary"
-          size="lg"
-          icon="i-lucide-log-in"
-          :label="t('inicio.ingresar')"
-        />
+        <p class="mt-3 max-w-xl text-(--vt-texto-base) text-(--vt-color-marca-100)">
+          {{ t('inicio.introduccion') }}
+        </p>
 
-        <UButton
-          to="/disponibilidad"
-          variant="outline"
-          color="neutral"
-          size="lg"
-          icon="i-lucide-calendar-days"
-          :label="t('inicio.verDisponibilidad')"
-        />
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <UButton
+            :to="cuenta?.usuario ? destinoPanel : '/disponibilidad'"
+            color="primary"
+            size="lg"
+            :icon="cuenta?.usuario ? 'i-lucide-layout-dashboard' : 'i-lucide-compass'"
+            :label="cuenta?.usuario ? t('inicio.irAlPanel') : t('inicio.verDisponibilidad')"
+          />
+          <UButton
+            v-if="!cuenta?.usuario"
+            to="/crear-cuenta"
+            color="primary"
+            variant="soft"
+            size="lg"
+            icon="i-lucide-user-plus"
+            :label="t('inicio.crearCuenta')"
+          />
+          <UButton
+            v-else
+            to="/disponibilidad"
+            color="primary"
+            variant="soft"
+            size="lg"
+            icon="i-lucide-compass"
+            :label="t('inicio.verDisponibilidad')"
+          />
+        </div>
       </div>
-
-      <p
-        v-if="!cuenta?.usuario"
-        class="mt-3 text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
-      >
-        {{ t('inicio.cuentas') }}
-      </p>
     </section>
 
-    <div class="grid gap-4 md:grid-cols-3">
-      <BaseTarjeta
-        v-for="tarjeta in tarjetas"
-        :key="tarjeta.clave"
-        :titulo="t(`inicio.tarjetas.${tarjeta.clave}.titulo` as ClaveMensaje)"
+    <!-- Beneficios: lo que gana el cliente, sin instrucciones de uso. -->
+    <section class="space-y-6">
+      <h2
+        class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight"
       >
-        <div class="flex items-start gap-3">
-          <span
-            class="grid size-9 shrink-0 place-items-center rounded-(--vt-radio-md) bg-(--vt-color-marca-100) text-(--vt-color-marca-800)"
-          >
-            <UIcon :name="tarjeta.icono" class="size-5" />
-          </span>
-          <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
-            {{ t(`inicio.tarjetas.${tarjeta.clave}.texto` as ClaveMensaje) }}
-          </p>
-        </div>
-      </BaseTarjeta>
-    </div>
+        {{ t('inicio.beneficios.titulo') }}
+      </h2>
 
-    <BaseTarjeta :titulo="t('inicio.queSePuedeHacer')">
-      <ul class="grid gap-2 sm:grid-cols-2">
-        <li
-          v-for="clave in capacidades"
-          :key="clave"
-          class="flex gap-2 text-(--vt-texto-sm)"
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <BaseTarjeta
+          v-for="beneficio in beneficios"
+          :key="beneficio.clave"
+          :titulo="t(`inicio.beneficios.${beneficio.clave}.titulo` as ClaveMensaje)"
         >
-          <UIcon
-            name="i-lucide-check"
-            class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
-          />
-          <span>{{ t(clave) }}</span>
-        </li>
-      </ul>
-    </BaseTarjeta>
+          <div class="flex items-start gap-3">
+            <span
+              class="grid size-9 shrink-0 place-items-center rounded-(--vt-radio-md) bg-(--vt-color-marca-100) text-(--vt-color-marca-700)"
+            >
+              <UIcon :name="beneficio.icono" class="size-5" />
+            </span>
+            <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+              {{ t(`inicio.beneficios.${beneficio.clave}.texto` as ClaveMensaje) }}
+            </p>
+          </div>
+        </BaseTarjeta>
+      </div>
+    </section>
+
+    <!-- Cómo se reserva: tres pasos, contados para el cliente. -->
+    <section class="space-y-6">
+      <h2
+        class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight"
+      >
+        {{ t('inicio.pasos.titulo') }}
+      </h2>
+
+      <div class="grid gap-4 md:grid-cols-3">
+        <BaseTarjeta
+          v-for="(paso, indice) in pasos"
+          :key="paso.clave"
+          :titulo="t(`inicio.pasos.${paso.clave}.titulo` as ClaveMensaje)"
+        >
+          <template #acciones>
+            <span
+              class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) text-(--vt-color-marca-300)"
+              aria-hidden="true"
+            >
+              {{ indice + 1 }}
+            </span>
+          </template>
+          <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+            {{ t(`inicio.pasos.${paso.clave}.texto` as ClaveMensaje) }}
+          </p>
+        </BaseTarjeta>
+      </div>
+    </section>
+
+    <!-- Cierre: una última invitación a mirar las salidas. -->
+    <section
+      class="flex flex-wrap items-center justify-between gap-6 rounded-(--vt-radio-lg) bg-(--vt-color-marca-900) bg-linear-to-r from-(--vt-color-marca-800) to-(--vt-color-marca-600) p-8 sm:p-10"
+    >
+      <div class="max-w-lg">
+        <h2
+          class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight text-white"
+        >
+          {{ t('inicio.cierre.titulo') }}
+        </h2>
+        <p class="mt-2 text-(--vt-texto-sm) text-(--vt-color-marca-100)">
+          {{ t('inicio.cierre.texto') }}
+        </p>
+      </div>
+      <UButton
+        to="/disponibilidad"
+        color="neutral"
+        variant="solid"
+        size="lg"
+        icon="i-lucide-arrow-right"
+        :label="t('inicio.cierre.accion')"
+      />
+    </section>
   </div>
 </template>
 
@@ -114,17 +163,16 @@ const destinoPanel = computed(() => {
   return '/disponibilidad'
 })
 
-const tarjetas = [
-  { clave: 'paquetes', icono: 'i-lucide-map' },
-  { clave: 'reservas', icono: 'i-lucide-calendar-check' },
+const beneficios = [
+  { clave: 'cupos', icono: 'i-lucide-badge-check' },
+  { clave: 'web', icono: 'i-lucide-monitor-smartphone' },
+  { clave: 'pagos', icono: 'i-lucide-wallet' },
   { clave: 'equipo', icono: 'i-lucide-users' },
 ] as const
 
-const capacidades = [
-  'inicio.capacidades.1',
-  'inicio.capacidades.2',
-  'inicio.capacidades.3',
-  'inicio.capacidades.4',
-  'inicio.capacidades.5',
-] satisfies ClaveMensaje[]
+const pasos = [
+  { clave: '1' },
+  { clave: '2' },
+  { clave: '3' },
+] as const
 </script>
