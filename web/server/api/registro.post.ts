@@ -114,10 +114,23 @@ export default defineEventHandler(async (event): Promise<RespuestaOperacion> => 
 
       if (idFicha !== null) {
         // La cuenta toma el correo de la ficha: la ficha conserva su
-        // historial de reservas y cotizaciones (HU-04).
+        // historial de reservas y cotizaciones (HU-04). Los nombres, el
+        // documento y el teléfono se alinean con lo declarado en el
+        // registro: el documento identifica a la persona que se registra
+        // y la ficha debe mostrar sus datos, no los de una captura
+        // anterior; si no, el personal ve en las reservas el nombre de
+        // otra persona (HU-06).
         await db
           .update(schema.cliente)
-          .set({ idUsuario: idCuenta, correo })
+          .set({
+            idUsuario: idCuenta,
+            correo,
+            tipoDocumento: datos.tipoDocumento,
+            numeroDocumento,
+            nombres: datos.nombres,
+            apellidos: datos.apellidos,
+            telefono: datos.telefono || null,
+          })
           .where(eq(schema.cliente.idCliente, idFicha))
       } else {
         await db
