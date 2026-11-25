@@ -59,6 +59,12 @@ distintos.
 3. **Un componente propio cubre un patrón, no un caso.**
 4. **La jerarquía la hace el borde y el espacio**, no la sombra.
 5. **Accesibilidad:** contraste suficiente, foco visible y uso con teclado.
+6. **Los tokens de tamaño de texto llevan la pista `length:`.** La
+   abreviatura de Tailwind `text-(--var)` es ambigua: sin pista la
+   interpreta como color, y `text-(--vt-texto-3xl)` termina siendo una
+   declaración de color inválida que se hereda. Los tamaños se escriben
+   `text-(length:--vt-texto-3xl)`; los de color no la necesitan,
+   `text-(--vt-color-texto-suave)` ya se interpreta como color.
 
 ## Componentes base
 
