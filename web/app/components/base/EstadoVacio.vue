@@ -14,12 +14,12 @@ defineProps<{
 <template>
   <div class="flex flex-col items-center gap-2 px-6 py-10 text-center">
     <UIcon name="i-lucide-inbox" class="size-8 text-(--vt-color-texto-suave)" />
-    <p class="text-(--vt-texto-base) font-(--vt-texto-peso-medio)">
+    <p class="text-(length:--vt-texto-base) font-(--vt-texto-peso-medio)">
       {{ titulo }}
     </p>
     <p
       v-if="descripcion"
-      class="max-w-md text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+      class="max-w-md text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
     >
       {{ descripcion }}
     </p>

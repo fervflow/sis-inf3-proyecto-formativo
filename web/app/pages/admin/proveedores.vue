@@ -110,10 +110,10 @@
           <div class="space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
                   {{ t('proveedores.detalles.titulo') }}
                 </p>
-                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                   {{ t('proveedores.detalles.ayuda') }}
                 </p>
               </div>
@@ -131,7 +131,7 @@
 
             <p
               v-if="formulario.detalles.length === 0"
-              class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+              class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
             >
               {{ t('proveedores.detalles.vacio') }}
             </p>
@@ -217,7 +217,7 @@
         <div class="flex flex-wrap items-center justify-end gap-2">
           <p
             v-if="errorFormulario"
-            class="me-auto text-(--vt-texto-sm) text-(--vt-color-error-600)"
+            class="me-auto text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
           >
             {{ errorFormulario }}
           </p>
@@ -299,7 +299,7 @@
         <div class="flex flex-wrap items-center justify-end gap-2">
           <p
             v-if="errorVinculo"
-            class="me-auto text-(--vt-texto-sm) text-(--vt-color-error-600)"
+            class="me-auto text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
           >
             {{ errorVinculo }}
           </p>

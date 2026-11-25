@@ -108,12 +108,12 @@ async function guardar() {
 <template>
   <form id="form-modificar-reserva" class="space-y-4" @submit.prevent="guardar">
     <div
-      class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
+      class="rounded-(--vt-radio-md) px-3 py-2 text-(length:--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
     >
       <p class="font-(--vt-texto-peso-medio)">
         {{ reserva.paquete }} · {{ reserva.codigo }}
       </p>
-      <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+      <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
         {{ t('historial.cantidadActual', { cantidad: reserva.cantidadPasajeros }) }}
         · {{ t('historial.montoActual', { monto: moneda(reserva.montoTotal) }) }}
       </p>

@@ -45,7 +45,7 @@
             {{ etiquetaTipo(fila.tipoDocumento) }} {{ fila.numeroDocumento }}
           </span>
 
-          <span v-else-if="columna.clave === 'cuenta'" class="text-(--vt-texto-sm)">
+          <span v-else-if="columna.clave === 'cuenta'" class="text-(length:--vt-texto-sm)">
             <template v-if="fila.cuenta">
               {{ fila.cuenta.usuario }}
               <UBadge

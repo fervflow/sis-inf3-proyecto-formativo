@@ -443,7 +443,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
         <!-- Identidad -->
         <section class="space-y-4">
           <div class="flex flex-wrap items-center gap-2">
-            <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+            <h3 class="text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)">
               {{ t('paquetes.secciones.identidad') }}
             </h3>
             <UBadge
@@ -481,7 +481,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
         <!-- Ubicación y recorrido -->
         <section class="space-y-4">
-          <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+          <h3 class="text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)">
             {{ t('paquetes.secciones.ubicacion') }}
           </h3>
 
@@ -525,10 +525,10 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
           <div class="space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
                   {{ t('paquetes.form.paradas') }}
                 </p>
-                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                   {{ t('paquetes.ayudaParadas') }}
                 </p>
               </div>
@@ -536,7 +536,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
             <p
               v-if="formulario.paradas.length === 0"
-              class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+              class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
             >
               {{ t('paquetes.paradas.vacio') }}
             </p>
@@ -546,7 +546,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
               :key="parada.idLugar"
               class="flex items-center justify-between gap-3 rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
             >
-              <span class="text-(--vt-texto-sm)">
+              <span class="text-(length:--vt-texto-sm)">
                 {{ indice + 1 }}. {{ parada.nombre }}
               </span>
               <UButton
@@ -569,14 +569,14 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
             <p
               v-if="erroresCampo.paradas"
-              class="text-(--vt-texto-sm) text-(--vt-color-error-600)"
+              class="text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
             >
               {{ erroresCampo.paradas }}
             </p>
           </div>
 
           <div v-if="marcadoresRecorrido.length > 0" class="space-y-2">
-            <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+            <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
               {{ t('paquetes.columnas.recorrido') }}
             </p>
             <BaseMapa
@@ -591,7 +591,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
         <!-- Contenido -->
         <section class="space-y-4">
-          <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+          <h3 class="text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)">
             {{ t('paquetes.secciones.contenido') }}
           </h3>
 
@@ -613,10 +613,10 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
           <div class="space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
                   {{ t('paquetes.form.itinerario') }}
                 </p>
-                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                   {{ t('paquetes.ayudaItinerario') }}
                 </p>
               </div>
@@ -633,7 +633,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
             <p
               v-if="formulario.itinerario.length === 0"
-              class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+              class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
             >
               {{ t('paquetes.itinerario.vacio') }}
             </p>
@@ -708,7 +708,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
             <p
               v-if="erroresCampo.itinerario"
-              class="text-(--vt-texto-sm) text-(--vt-color-error-600)"
+              class="text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
             >
               {{ erroresCampo.itinerario }}
             </p>
@@ -769,7 +769,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
         <!-- Datos comerciales -->
         <section class="space-y-4">
-          <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+          <h3 class="text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)">
             {{ t('paquetes.secciones.comercial') }}
           </h3>
 
@@ -827,16 +827,16 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
 
         <!-- Proveedores -->
         <section class="space-y-3">
-          <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+          <h3 class="text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)">
             {{ t('paquetes.form.proveedores') }}
           </h3>
-          <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+          <p class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
             {{ t('paquetes.ayudaProveedores') }}
           </p>
 
           <p
             v-if="formulario.proveedores.length === 0"
-            class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+            class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
           >
             {{ t('paquetes.sinProveedores') }}
           </p>
@@ -848,15 +848,15 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
               class="flex flex-wrap items-baseline justify-between gap-2 rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
             >
               <div>
-                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
                   {{ proveedor.nombre }}
                 </p>
-                <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                   {{ t(`paquetes.proveedores.tipos.${proveedor.tipo}` as ClaveMensaje) }}
                   <span v-if="proveedor.detalle"> · {{ proveedor.detalle }}</span>
                 </p>
               </div>
-              <span class="text-(--vt-texto-sm) tabular-nums">
+              <span class="text-(length:--vt-texto-sm) tabular-nums">
                 {{ moneda(proveedor.costo) }}
               </span>
             </li>
@@ -870,7 +870,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
           v-if="mostrarFaltantes || formulario.estado === 'activo'"
           class="space-y-3"
         >
-          <h3 class="text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)">
+          <h3 class="text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)">
             {{ t('paquetes.secciones.publicacion') }}
           </h3>
 
@@ -901,7 +901,7 @@ async function guardar(estadoObjetivo: EstadoPaquete) {
       <div class="flex flex-wrap items-center justify-end gap-2">
         <p
           v-if="errorFormulario || mensajeValidacion"
-          class="me-auto text-(--vt-texto-sm) text-(--vt-color-error-600)"
+          class="me-auto text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
         >
           {{ errorFormulario ?? mensajeValidacion }}
         </p>

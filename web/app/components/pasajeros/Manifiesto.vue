@@ -197,13 +197,13 @@ defineExpose({ recargar: cargar })
 <template>
   <div class="space-y-4">
     <div
-      class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
+      class="rounded-(--vt-radio-md) px-3 py-2 text-(length:--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
     >
       <p class="font-(--vt-texto-peso-medio)">
         {{ reserva.paquete }} · {{ reserva.codigo }}
       </p>
       <p
-        class="text-(--vt-texto-xs)"
+        class="text-(length:--vt-texto-xs)"
         :class="coinciden ? 'text-(--vt-color-texto-suave)' : 'text-(--vt-color-error-600)'"
       >
         {{
@@ -221,7 +221,7 @@ defineExpose({ recargar: cargar })
       </p>
     </div>
 
-    <table v-if="filas.length > 0" class="w-full text-(--vt-texto-sm)">
+    <table v-if="filas.length > 0" class="w-full text-(length:--vt-texto-sm)">
       <thead class="text-left text-xs text-(--vt-color-texto-suave)">
         <tr>
           <th class="pb-2">{{ t('pasajeros.columnas.tipo') }}</th>
@@ -288,7 +288,7 @@ defineExpose({ recargar: cargar })
       </tbody>
     </table>
 
-    <p v-else class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+    <p v-else class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
       {{ t('pasajeros.vacio') }}
     </p>
 
@@ -314,7 +314,7 @@ defineExpose({ recargar: cargar })
       />
       <span
         v-if="reserva.origen === 'web'"
-        class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+        class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)"
       >
         {{
           t('pasajeros.topeSolicitado', {

@@ -41,7 +41,7 @@ await cargar()
   <div class="space-y-3">
     <p
       v-if="!cargando && (historial?.historial ?? []).length === 0 && !error"
-      class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+      class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
     >
       {{ t('historial.vacio') }}
     </p>
@@ -52,16 +52,16 @@ await cargar()
         :key="entrada.idHistorial"
         class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
       >
-        <p class="text-(--vt-texto-sm)">
+        <p class="text-(length:--vt-texto-sm)">
           <span class="font-(--vt-texto-peso-medio)">
             {{ t('historial.deA', { anterior: entrada.estadoAnterior ?? '—', nuevo: entrada.estadoNuevo }) }}
           </span>
-          <span class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+          <span class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
             · {{ fechaHora(entrada.fechaCambio) }}
             <template v-if="entrada.usuario">· {{ entrada.usuario }}</template>
           </span>
         </p>
-        <p v-if="entrada.observacion" class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+        <p v-if="entrada.observacion" class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
           {{ entrada.observacion }}
         </p>
       </li>

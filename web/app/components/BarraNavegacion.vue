@@ -236,7 +236,7 @@ const menuMovil = computed<DropdownMenuItem[][]>(() => {
         </span>
         <span class="hidden min-w-0 flex-col leading-tight sm:flex">
           <span
-            class="truncate text-(--vt-texto-base) font-(--vt-texto-peso-fuerte)"
+            class="truncate text-(length:--vt-texto-base) font-(--vt-texto-peso-fuerte)"
           >
             {{ t('app.nombre') }}
           </span>

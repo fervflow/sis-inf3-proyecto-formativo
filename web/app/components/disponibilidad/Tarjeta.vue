@@ -78,7 +78,7 @@ const precioDistinto = computed(
           name="i-lucide-map-pin"
           class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
         />
-        <p class="text-(--vt-texto-sm)">{{ recorridoMostrado }}</p>
+        <p class="text-(length:--vt-texto-sm)">{{ recorridoMostrado }}</p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-3">
@@ -88,7 +88,7 @@ const precioDistinto = computed(
           >
             {{ t('salidas.tarjeta.fechas') }}
           </p>
-          <p class="text-(--vt-texto-sm)">
+          <p class="text-(length:--vt-texto-sm)">
             {{ fecha(salida.fecha_salida) }} →
             {{ fecha(salida.fecha_retorno) }}
           </p>
@@ -100,7 +100,7 @@ const precioDistinto = computed(
           >
             {{ t('salidas.tarjeta.duracion') }}
           </p>
-          <p class="text-(--vt-texto-sm)">
+          <p class="text-(length:--vt-texto-sm)">
             {{ t('salidas.tarjeta.dias', { dias: salida.duracion_dias }) }}
           </p>
         </div>
@@ -108,7 +108,7 @@ const precioDistinto = computed(
 
       <div class="space-y-1">
         <div
-          class="flex items-center justify-between gap-2 text-(--vt-texto-sm)"
+          class="flex items-center justify-between gap-2 text-(length:--vt-texto-sm)"
         >
           <span>{{ t('salidas.tarjeta.cupo') }}</span>
           <span class="tabular-nums">
@@ -163,7 +163,7 @@ const precioDistinto = computed(
           >
             {{ t('salidas.tarjeta.precio') }}
           </p>
-          <p class="text-(--vt-texto-lg) font-(--vt-texto-peso-fuerte) tabular-nums">
+          <p class="text-(length:--vt-texto-lg) font-(--vt-texto-peso-fuerte) tabular-nums">
             {{ moneda(salida.precio) }}
           </p>
           <p
@@ -184,7 +184,7 @@ const precioDistinto = computed(
           >
             {{ t('salidas.tarjeta.puntoEncuentro') }}
           </p>
-          <p class="text-(--vt-texto-sm)">{{ salida.punto_encuentro }}</p>
+          <p class="text-(length:--vt-texto-sm)">{{ salida.punto_encuentro }}</p>
         </div>
       </div>
     </div>

@@ -14,12 +14,12 @@ defineProps<{
 <template>
   <header class="flex flex-wrap items-start justify-between gap-4">
     <div class="min-w-0">
-      <h1 class="text-(--vt-texto-3xl) font-(--vt-texto-peso-fuerte) tracking-tight">
+      <h1 class="text-(length:--vt-texto-3xl) font-(--vt-texto-peso-fuerte) tracking-tight">
         {{ titulo }}
       </h1>
       <p
         v-if="descripcion"
-        class="mt-1 max-w-3xl text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+        class="mt-1 max-w-3xl text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
       >
         {{ descripcion }}
       </p>

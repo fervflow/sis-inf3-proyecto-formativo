@@ -119,13 +119,13 @@ function detallesDe(proveedor: ProveedorFicha) {
     <!-- Encabezado -->
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+        <p class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
           {{ ficha.codigoSalida }}
         </p>
-        <h3 class="text-(--vt-texto-xl) font-(--vt-texto-peso-fuerte)">
+        <h3 class="text-(length:--vt-texto-xl) font-(--vt-texto-peso-fuerte)">
           {{ ficha.paquete }}
         </h3>
-        <p v-if="ficha.descripcion" class="mt-1 max-w-prose text-(--vt-texto-sm)">
+        <p v-if="ficha.descripcion" class="mt-1 max-w-prose text-(length:--vt-texto-sm)">
           {{ ficha.descripcion }}
         </p>
       </div>
@@ -142,7 +142,7 @@ function detallesDe(proveedor: ProveedorFicha) {
       Detalles de un vistazo: fechas, duración, precio, cupo y punto de
       encuentro, en filas compactas con icono en lugar de mini-bloques.
     -->
-    <dl class="grid gap-x-6 gap-y-3 text-(--vt-texto-sm) sm:grid-cols-3">
+    <dl class="grid gap-x-6 gap-y-3 text-(length:--vt-texto-sm) sm:grid-cols-3">
       <div class="flex items-start gap-2">
         <UIcon
           name="i-lucide-calendar-days"
@@ -265,7 +265,7 @@ function detallesDe(proveedor: ProveedorFicha) {
           <li
             v-for="(parada, indice) in ficha.paradas"
             :key="parada.idLugar"
-            class="flex items-center gap-2 text-(--vt-texto-sm)"
+            class="flex items-center gap-2 text-(length:--vt-texto-sm)"
           >
             <span
               class="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-(--vt-color-marca-100) text-xs text-(--vt-color-marca-800)"
@@ -277,7 +277,7 @@ function detallesDe(proveedor: ProveedorFicha) {
         </ol>
       </div>
 
-      <ul v-else class="grid gap-1 text-(--vt-texto-sm) sm:grid-cols-2">
+      <ul v-else class="grid gap-1 text-(length:--vt-texto-sm) sm:grid-cols-2">
         <li
           v-for="(parada, indice) in ficha.paradas"
           :key="parada.idLugar"
@@ -299,7 +299,7 @@ function detallesDe(proveedor: ProveedorFicha) {
           :key="dia.dia"
           class="rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
         >
-          <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+          <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
             <span
               class="mr-2 inline-flex size-6 items-center justify-center rounded-full bg-(--vt-color-marca-100) text-xs text-(--vt-color-marca-800)"
             >
@@ -309,13 +309,13 @@ function detallesDe(proveedor: ProveedorFicha) {
           </p>
           <p
             v-if="dia.detalle"
-            class="mt-1 whitespace-pre-line text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+            class="mt-1 whitespace-pre-line text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
           >
             {{ dia.detalle }}
           </p>
         </li>
       </ol>
-      <p v-else class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+      <p v-else class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
         {{ t('salidas.ficha.sinItinerario') }}
       </p>
     </section>
@@ -339,7 +339,7 @@ function detallesDe(proveedor: ProveedorFicha) {
         </div>
         <p
           v-if="ficha.serviciosDetalle"
-          class="whitespace-pre-line text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+          class="whitespace-pre-line text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
         >
           {{ ficha.serviciosDetalle }}
         </p>
@@ -350,11 +350,11 @@ function detallesDe(proveedor: ProveedorFicha) {
         </BaseSubtitulo>
         <p
           v-if="ficha.serviciosExcluidos"
-          class="whitespace-pre-line text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+          class="whitespace-pre-line text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
         >
           {{ ficha.serviciosExcluidos }}
         </p>
-        <p v-else class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+        <p v-else class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
           {{ t('salidas.ficha.sinExcluidos') }}
         </p>
       </div>
@@ -380,7 +380,7 @@ function detallesDe(proveedor: ProveedorFicha) {
 
             <div class="min-w-0 flex-1">
               <p
-                class="flex flex-wrap items-center gap-1.5 text-(--vt-texto-sm) font-(--vt-texto-peso-medio)"
+                class="flex flex-wrap items-center gap-1.5 text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)"
               >
                 {{ proveedor.nombre }}
                 <UBadge
@@ -391,7 +391,7 @@ function detallesDe(proveedor: ProveedorFicha) {
               </p>
               <p
                 v-if="proveedor.detalle"
-                class="mt-0.5 whitespace-pre-line text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+                class="mt-0.5 whitespace-pre-line text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
               >
                 {{ proveedor.detalle }}
               </p>
@@ -399,7 +399,7 @@ function detallesDe(proveedor: ProveedorFicha) {
 
             <p
               v-if="esPersonal && proveedor.costo"
-              class="shrink-0 tabular-nums text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+              class="shrink-0 tabular-nums text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)"
             >
               {{ t('salidas.ficha.costo', { costo: moneda(proveedor.costo) }) }}
             </p>
@@ -419,12 +419,12 @@ function detallesDe(proveedor: ProveedorFicha) {
                 class="mt-1 size-3.5 shrink-0 text-(--vt-color-marca-600)"
               />
               <div class="min-w-0">
-                <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+                <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
                   {{ detalle.titulo }}
                 </p>
                 <p
                   v-if="detalle.detalle"
-                  class="whitespace-pre-line text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+                  class="whitespace-pre-line text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)"
                 >
                   {{ detalle.detalle }}
                 </p>
@@ -435,7 +435,7 @@ function detallesDe(proveedor: ProveedorFicha) {
       </div>
       <p
         v-if="ficha.proveedores.length === 0"
-        class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+        class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
       >
         {{ t('salidas.ficha.sinProveedores') }}
       </p>
@@ -453,7 +453,7 @@ function detallesDe(proveedor: ProveedorFicha) {
         <li
           v-for="asignacion in ficha.asignaciones"
           :key="asignacion.idProveedor"
-          class="text-(--vt-texto-sm)"
+          class="text-(length:--vt-texto-sm)"
         >
           <span class="font-(--vt-texto-peso-medio)">{{ asignacion.nombre }}</span>
           <UBadge

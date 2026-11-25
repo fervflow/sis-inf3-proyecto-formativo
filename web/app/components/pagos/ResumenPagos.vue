@@ -215,7 +215,7 @@ defineExpose({ recargar: cargar })
   <div class="space-y-4">
     <dl
       v-if="resumen"
-      class="grid grid-cols-2 gap-3 text-(--vt-texto-sm) sm:grid-cols-4"
+      class="grid grid-cols-2 gap-3 text-(length:--vt-texto-sm) sm:grid-cols-4"
     >
       <div
         v-for="dato in [
@@ -244,12 +244,12 @@ defineExpose({ recargar: cargar })
 
     <p
       v-if="filas.length === 0"
-      class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+      class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
     >
       {{ t('pagos.sinPagos') }}
     </p>
 
-    <table v-else class="w-full text-(--vt-texto-sm)">
+    <table v-else class="w-full text-(length:--vt-texto-sm)">
       <thead class="text-left text-xs text-(--vt-color-texto-suave)">
         <tr>
           <th class="pb-2">{{ t('pagos.columnas.fecha') }}</th>
@@ -316,7 +316,7 @@ defineExpose({ recargar: cargar })
       class="space-y-3 rounded-(--vt-radio-md) px-3 py-3 ring-1 ring-(--vt-color-borde)"
       @submit.prevent="registrarPago"
     >
-      <p class="font-(--vt-texto-peso-medio) text-(--vt-texto-sm)">
+      <p class="font-(--vt-texto-peso-medio) text-(length:--vt-texto-sm)">
         {{ t('pagos.registrarTitulo') }}
       </p>
 

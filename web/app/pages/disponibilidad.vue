@@ -64,7 +64,7 @@
 
       <p
         v-if="error"
-        class="text-(--vt-texto-sm) text-(--vt-color-error-600)"
+        class="text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
       >
         {{ error }}
       </p>
@@ -106,7 +106,7 @@
 
       <p
         v-if="errorGestion"
-        class="text-(--vt-texto-sm) text-(--vt-color-error-600)"
+        class="text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
       >
         {{ errorGestion }}
       </p>

@@ -27,7 +27,7 @@ function valorDe(fila: Fila, clave: keyof Fila & string): unknown {
       <USkeleton v-for="n in 4" :key="n" class="h-6 w-full" />
     </div>
 
-    <p v-else-if="filas.length === 0" class="p-6 text-center text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+    <p v-else-if="filas.length === 0" class="p-6 text-center text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
       {{ textoVacio ?? ' ' }}
     </p>
 
@@ -57,7 +57,7 @@ function valorDe(fila: Fila, clave: keyof Fila & string): unknown {
           <td
             v-for="columna in columnas"
             :key="columna.clave"
-            class="px-3 py-2 text-(--vt-texto-sm)"
+            class="px-3 py-2 text-(length:--vt-texto-sm)"
             :class="{
               'text-right': columna.alineacion === 'derecha',
               'text-center': columna.alineacion === 'centro',

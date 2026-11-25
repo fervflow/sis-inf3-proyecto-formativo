@@ -49,7 +49,7 @@
       </form>
     </BaseTarjeta>
 
-    <p class="text-center text-(--vt-texto-sm)">
+    <p class="text-center text-(length:--vt-texto-sm)">
       {{ t('ingreso.sinCuenta') }}
       <UButton
         :to="rutaRegistro"

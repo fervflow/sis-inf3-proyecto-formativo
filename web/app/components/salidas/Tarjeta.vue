@@ -81,7 +81,7 @@ const desglose = computed(() =>
           name="i-lucide-map-pin"
           class="mt-0.5 size-4 shrink-0 text-(--vt-color-marca-600)"
         />
-        <p class="text-(--vt-texto-sm)">{{ recorridoMostrado }}</p>
+        <p class="text-(length:--vt-texto-sm)">{{ recorridoMostrado }}</p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-3">
@@ -91,7 +91,7 @@ const desglose = computed(() =>
           >
             {{ t('salidas.tarjeta.fechas') }}
           </p>
-          <p class="text-(--vt-texto-sm)">
+          <p class="text-(length:--vt-texto-sm)">
             {{ fecha(salida.fechaSalida) }} →
             {{ fecha(salida.fechaRetorno) }}
           </p>
@@ -103,7 +103,7 @@ const desglose = computed(() =>
           >
             {{ t('salidas.tarjeta.duracion') }}
           </p>
-          <p class="text-(--vt-texto-sm)">
+          <p class="text-(length:--vt-texto-sm)">
             {{ t('salidas.tarjeta.dias', { dias: salida.duracionDias }) }}
           </p>
         </div>
@@ -111,7 +111,7 @@ const desglose = computed(() =>
 
       <div class="space-y-1">
         <div
-          class="flex items-center justify-between gap-2 text-(--vt-texto-sm)"
+          class="flex items-center justify-between gap-2 text-(length:--vt-texto-sm)"
         >
           <span>{{ t('salidas.tarjeta.cupo') }}</span>
           <span class="tabular-nums">
@@ -161,7 +161,7 @@ const desglose = computed(() =>
           >
             {{ t('salidas.tarjeta.precio') }}
           </p>
-          <p class="text-(--vt-texto-lg) font-(--vt-texto-peso-fuerte) tabular-nums">
+          <p class="text-(length:--vt-texto-lg) font-(--vt-texto-peso-fuerte) tabular-nums">
             {{ moneda(salida.precio) }}
           </p>
           <p
@@ -182,7 +182,7 @@ const desglose = computed(() =>
           >
             {{ t('salidas.tarjeta.puntoEncuentro') }}
           </p>
-          <p class="text-(--vt-texto-sm)">{{ salida.puntoEncuentro }}</p>
+          <p class="text-(length:--vt-texto-sm)">{{ salida.puntoEncuentro }}</p>
         </div>
       </div>
 
@@ -192,7 +192,7 @@ const desglose = computed(() =>
         >
           {{ t('salidas.tarjeta.observaciones') }}
         </p>
-        <p class="line-clamp-2 text-(--vt-texto-sm)">
+        <p class="line-clamp-2 text-(length:--vt-texto-sm)">
           {{ salida.observaciones }}
         </p>
       </div>

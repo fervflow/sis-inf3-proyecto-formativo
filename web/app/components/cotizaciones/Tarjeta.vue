@@ -59,13 +59,13 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
 
     <div class="space-y-4">
       <div>
-        <p class="text-(--vt-texto-sm) font-(--vt-texto-peso-medio)">
+        <p class="text-(length:--vt-texto-sm) font-(--vt-texto-peso-medio)">
           {{ cotizacion.paquete }}
-          <span class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+          <span class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
             · {{ cotizacion.codigoPaquete }}
           </span>
         </p>
-        <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+        <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
           {{ fecha(cotizacion.fechaSalida) }} →
           {{ fecha(cotizacion.fechaRetorno) }}
         </p>
@@ -78,7 +78,7 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
           >
             {{ t('cotizaciones.columnas.pasajeros') }}
           </p>
-          <p class="text-(--vt-texto-sm)">
+          <p class="text-(length:--vt-texto-sm)">
             {{ cotizacion.cantidadPasajeros }}
           </p>
         </div>
@@ -88,7 +88,7 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
           >
             {{ t('cotizaciones.columnas.validez') }}
           </p>
-          <p class="text-(--vt-texto-sm)">
+          <p class="text-(length:--vt-texto-sm)">
             {{ fecha(cotizacion.fechaValidez) }}
           </p>
         </div>
@@ -101,12 +101,12 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
           >
             {{ t('cotizaciones.columnas.total') }}
           </p>
-          <p class="text-(--vt-texto-lg) font-(--vt-texto-peso-fuerte) tabular-nums">
+          <p class="text-(length:--vt-texto-lg) font-(--vt-texto-peso-fuerte) tabular-nums">
             {{ moneda(cotizacion.total) }}
           </p>
           <p
             v-if="descuento > 0"
-            class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)"
+            class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)"
           >
             {{ t('cotizaciones.form.descuento') }}:
             {{ moneda(cotizacion.descuento) }}
@@ -119,7 +119,7 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
           >
             {{ t('cotizaciones.tarjeta.precio') }}
           </p>
-          <p class="text-(--vt-texto-sm) tabular-nums">
+          <p class="text-(length:--vt-texto-sm) tabular-nums">
             {{ moneda(cotizacion.precioUnitario) }}
           </p>
         </div>
@@ -131,7 +131,7 @@ const descuento = computed(() => Number(props.cotizacion.descuento))
         >
           {{ t('cotizaciones.form.condiciones') }}
         </p>
-        <p class="line-clamp-2 text-(--vt-texto-sm)">
+        <p class="line-clamp-2 text-(length:--vt-texto-sm)">
           {{ cotizacion.condiciones }}
         </p>
       </div>

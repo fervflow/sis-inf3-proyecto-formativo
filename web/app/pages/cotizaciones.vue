@@ -100,15 +100,15 @@
 
           <div
             v-if="salidaSeleccionada"
-            class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
+            class="rounded-(--vt-radio-md) px-3 py-2 text-(length:--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
           >
             <p class="font-(--vt-texto-peso-medio)">
               {{ salidaSeleccionada.paquete }}
-              <span class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+              <span class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                 · {{ salidaSeleccionada.codigo_salida }}
               </span>
             </p>
-            <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+            <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
               {{ fecha(salidaSeleccionada.fecha_salida) }} →
               {{ fecha(salidaSeleccionada.fecha_retorno) }} ·
               {{ salidaSeleccionada.cupo_disponible }}
@@ -202,11 +202,11 @@
 
           <div class="flex justify-end">
             <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-right">
-              <span class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+              <span class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
                 {{ t('cotizaciones.resumen.subtotal') }}
               </span>
               <span class="tabular-nums">{{ moneda(subtotal) }}</span>
-              <span class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+              <span class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
                 {{ t('cotizaciones.resumen.descuento') }}
               </span>
               <span class="tabular-nums">{{ moneda(formulario.descuento ?? 0) }}</span>
@@ -225,7 +225,7 @@
         <div class="flex flex-wrap items-center justify-end gap-2">
           <p
             v-if="errorFormulario"
-            class="me-auto text-(--vt-texto-sm) text-(--vt-color-error-600)"
+            class="me-auto text-(length:--vt-texto-sm) text-(--vt-color-error-600)"
           >
             {{ errorFormulario }}
           </p>

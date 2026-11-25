@@ -56,7 +56,7 @@ const estadoColor = computed<'success' | 'neutral'>(() =>
     </template>
 
     <div class="space-y-4">
-      <div class="space-y-1 text-(--vt-texto-sm)">
+      <div class="space-y-1 text-(length:--vt-texto-sm)">
         <p v-if="proveedor.nit" class="flex items-center gap-2">
           <UIcon name="i-lucide-badge-check" class="size-4 shrink-0 text-(--vt-color-texto-suave)" />
           <span>{{ proveedor.nit }}</span>
@@ -93,7 +93,7 @@ const estadoColor = computed<'success' | 'neutral'>(() =>
 
         <p
           v-if="proveedor.paquetes.length === 0"
-          class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)"
+          class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)"
         >
           {{ t('proveedores.sinPaquetes') }}
         </p>
@@ -105,13 +105,13 @@ const estadoColor = computed<'success' | 'neutral'>(() =>
             class="flex items-start justify-between gap-2 rounded-(--vt-radio-md) px-3 py-2 ring-1 ring-(--vt-color-borde)"
           >
             <div class="min-w-0">
-              <p class="truncate text-(--vt-texto-sm)">
+              <p class="truncate text-(length:--vt-texto-sm)">
                 {{ vinculo.paquete }}
-                <span class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+                <span class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                   · {{ vinculo.codigoPaquete }}
                 </span>
               </p>
-              <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+              <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
                 {{
                   t(
                     `proveedores.tipos.${vinculo.servicio}` as ClaveMensaje,

@@ -13,7 +13,7 @@ defineProps<{
     <dt class="text-xs uppercase tracking-wide text-(--vt-color-texto-suave)">
       {{ etiqueta }}
     </dt>
-    <dd class="text-(--vt-texto-xl) font-(--vt-texto-peso-medio)">
+    <dd class="text-(length:--vt-texto-xl) font-(--vt-texto-peso-medio)">
       {{ valor }}
     </dd>
   </div>

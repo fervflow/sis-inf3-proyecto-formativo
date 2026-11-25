@@ -174,7 +174,7 @@ async function crear() {
       </form>
     </BaseTarjeta>
 
-    <p class="text-center text-(--vt-texto-sm)">
+    <p class="text-center text-(length:--vt-texto-sm)">
       {{ t('registro.tengoCuenta') }}
       <UButton
         :to="rutaIngreso"

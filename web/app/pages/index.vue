@@ -22,12 +22,12 @@
         </p>
 
         <h1
-          class="mt-4 max-w-2xl text-(--vt-texto-3xl) font-(--vt-texto-peso-fuerte) tracking-tight text-white sm:text-(--vt-texto-4xl)"
+          class="mt-4 max-w-2xl text-(length:--vt-texto-3xl) font-(--vt-texto-peso-fuerte) tracking-tight text-white sm:text-(length:--vt-texto-4xl)"
         >
           {{ t('inicio.titulo') }}
         </h1>
 
-        <p class="mt-3 max-w-xl text-(--vt-texto-base) text-(--vt-color-marca-100)">
+        <p class="mt-3 max-w-xl text-(length:--vt-texto-base) text-(--vt-color-marca-100)">
           {{ t('inicio.introduccion') }}
         </p>
 
@@ -64,7 +64,7 @@
     <!-- Beneficios: lo que gana el cliente, sin instrucciones de uso. -->
     <section class="space-y-6">
       <h2
-        class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight"
+        class="text-(length:--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight"
       >
         {{ t('inicio.beneficios.titulo') }}
       </h2>
@@ -81,7 +81,7 @@
             >
               <UIcon :name="beneficio.icono" class="size-5" />
             </span>
-            <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+            <p class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
               {{ t(`inicio.beneficios.${beneficio.clave}.texto` as ClaveMensaje) }}
             </p>
           </div>
@@ -92,7 +92,7 @@
     <!-- Cómo se reserva: tres pasos, contados para el cliente. -->
     <section class="space-y-6">
       <h2
-        class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight"
+        class="text-(length:--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight"
       >
         {{ t('inicio.pasos.titulo') }}
       </h2>
@@ -105,13 +105,13 @@
         >
           <template #acciones>
             <span
-              class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) text-(--vt-color-marca-300)"
+              class="text-(length:--vt-texto-2xl) font-(--vt-texto-peso-fuerte) text-(--vt-color-marca-300)"
               aria-hidden="true"
             >
               {{ indice + 1 }}
             </span>
           </template>
-          <p class="text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+          <p class="text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
             {{ t(`inicio.pasos.${paso.clave}.texto` as ClaveMensaje) }}
           </p>
         </BaseTarjeta>
@@ -124,11 +124,11 @@
     >
       <div class="max-w-lg">
         <h2
-          class="text-(--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight text-white"
+          class="text-(length:--vt-texto-2xl) font-(--vt-texto-peso-fuerte) tracking-tight text-white"
         >
           {{ t('inicio.cierre.titulo') }}
         </h2>
-        <p class="mt-2 text-(--vt-texto-sm) text-(--vt-color-marca-100)">
+        <p class="mt-2 text-(length:--vt-texto-sm) text-(--vt-color-marca-100)">
           {{ t('inicio.cierre.texto') }}
         </p>
       </div>

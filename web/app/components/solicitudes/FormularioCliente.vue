@@ -64,15 +64,15 @@ defineExpose({
 <template>
   <form id="form-solicitud-cliente" class="space-y-4" @submit.prevent="guardar">
     <div
-      class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
+      class="rounded-(--vt-radio-md) px-3 py-2 text-(length:--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
     >
       <p class="font-(--vt-texto-peso-medio)">
         {{ salida.paquete }}
-        <span class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+        <span class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
           · {{ salida.codigo_paquete }}
         </span>
       </p>
-      <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+      <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
         {{ fecha(salida.fecha_salida) }} → {{ fecha(salida.fecha_retorno) }} ·
         {{ salida.cupo_disponible }} {{ t('solicitudes.disponibles') }} ·
         {{ moneda(salida.precio) }} {{ t('solicitudes.porPasajero') }}

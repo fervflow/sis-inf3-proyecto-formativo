@@ -190,12 +190,12 @@ await cargarPagos()
       />
 
       <div
-        class="rounded-(--vt-radio-md) px-3 py-2 text-(--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
+        class="rounded-(--vt-radio-md) px-3 py-2 text-(length:--vt-texto-sm) ring-1 ring-(--vt-color-borde)"
       >
         <p class="font-(--vt-texto-peso-medio)">
           {{ reserva.paquete }} · {{ reserva.codigo }}
         </p>
-        <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+        <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
           {{ t('pagos.total') }}: {{ moneda(reserva.montoTotal) }}
           <template v-if="comprometido > 0">
             · {{ t('pagos.comprometido') }}: {{ moneda(String(comprometido)) }}
@@ -240,7 +240,7 @@ await cargarPagos()
           required
           @update:model-value="(valor) => (formulario.monto = valor ?? 0)"
         />
-        <p class="mt-1 text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+        <p class="mt-1 text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
           {{
             tipoPago === 'saldo'
               ? t('pasarela.saldoRestante', { monto: moneda(String(disponible)) })

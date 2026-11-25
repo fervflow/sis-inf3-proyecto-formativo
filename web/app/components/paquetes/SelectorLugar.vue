@@ -257,7 +257,7 @@ onBeforeUnmount(() => {
       @update:search-term="alBuscar"
     >
       <template #empty>
-        <p class="px-3 py-2 text-(--vt-texto-sm) text-(--vt-color-texto-suave)">
+        <p class="px-3 py-2 text-(length:--vt-texto-sm) text-(--vt-color-texto-suave)">
           {{ t('paquetes.mapa.sinResultados') }}
         </p>
       </template>
@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
         @seleccionar="alClicMapa"
       />
 
-      <p class="text-(--vt-texto-xs) text-(--vt-color-texto-suave)">
+      <p class="text-(length:--vt-texto-xs) text-(--vt-color-texto-suave)">
         {{ t('paquetes.mapa.instruccion') }}
       </p>
     </template>
@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <p v-if="error" class="text-(--vt-texto-sm) text-(--vt-color-error-600)">
+    <p v-if="error" class="text-(length:--vt-texto-sm) text-(--vt-color-error-600)">
       {{ error }}
     </p>
   </div>
